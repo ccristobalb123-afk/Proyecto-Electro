@@ -1,0 +1,112 @@
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 24, 31, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-confirm);
+  padding: 24px;
+}
+
+.confirm-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+
+.confirm-card--peligro {
+  border-color: var(--danger-tint);
+}
+
+.confirm-icono-container {
+  display: inline-flex;
+  margin-bottom: 16px;
+}
+
+.confirm-icono--normal {
+  color: var(--electro-dark);
+  background: var(--electro-tint);
+  padding: 10px;
+  border-radius: 10px;
+  width: 46px;
+  height: 46px;
+  box-sizing: border-box;
+}
+
+.confirm-icono--peligro {
+  color: var(--danger-dark);
+  background: var(--danger-tint);
+  padding: 10px;
+  border-radius: 10px;
+  width: 46px;
+  height: 46px;
+  box-sizing: border-box;
+}
+
+.confirm-mensaje {
+  color: var(--text);
+  font-size: 14.5px;
+  line-height: 1.5;
+  margin: 0 0 24px;
+}
+
+.confirm-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-confirm-secondary {
+  background: var(--paper);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-confirm-secondary:hover {
+  background: var(--gray-tint);
+}
+
+.btn-confirm-primary {
+  background: var(--electro);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-confirm-primary:hover {
+  background: var(--electro-dark);
+}
+
+.btn-confirm-danger {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-confirm-danger:hover {
+  background: var(--danger-dark);
+}

@@ -50,7 +50,69 @@
   --topbar-height: 64px;
   --radius: 8px;
   --radius-lg: 12px;
+
+  /* ---------- Sistema de diseño (punto 1.9 del roadmap) ---------- */
+
+  /* Espaciados — usar estos en vez de números sueltos (4px, 18px, 22px...) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Tamaños de fuente */
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-base: 13.5px;
+  --fs-md: 15px;
+  --fs-lg: 16px;
+  --fs-xl: 19px;
+  --fs-2xl: 26px;
+
+  /* Pesos de fuente */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* Alturas de controles — inputs, selects, botones deberían medir una
+     de estas 3 alturas, no valores sueltos (36px/38px/42px mezclados). */
+  --control-height-sm: 36px;
+  --control-height-md: 40px;
+  --control-height-lg: 44px;
+
+  /* Sombras — 3 niveles nada más. No inventar una sombra nueva por
+     componente (hoy hay como 6 variantes ligeramente distintas). */
+  --shadow-sm: 0 1px 2px rgba(18, 24, 31, 0.06);
+  --shadow-md: 0 12px 32px -4px rgba(18, 24, 31, 0.16);
+  --shadow-lg: 0 20px 50px -4px rgba(18, 24, 31, 0.22);
+
+  /* Transiciones — usar la misma curva en toda la app */
+  --transition-fast: 0.12s ease;
+  --transition-base: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Capas — evita el "número random" para z-index. Nombrados según el
+     orden de apilamiento real de la app, de menor a mayor. */
+  --z-modal: 50;
+  --z-bell-panel: 400;
+  --z-drawer-overlay: 590;
+  --z-drawer: 600;
+  --z-toast: 3000;
+  --z-confirm: 3100;
+  --z-dropdown-menu: 3200;
+  --z-critical-alert: 3300;
 }
+
+/* Breakpoints de referencia (documentados acá porque CSS no permite
+   var() dentro de @media — usar estos 3 valores literales siempre que
+   se agregue una regla responsiva nueva, en vez de inventar otro ancho):
+     - Celular:      max-width: 640px
+     - Tablet:       max-width: 960px
+     - Desktop ancho: sin media query (es el diseño base) */
 
 * {
   box-sizing: border-box;

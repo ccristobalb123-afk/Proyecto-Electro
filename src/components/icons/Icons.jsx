@@ -186,3 +186,75 @@ export function IconExternalLink(props) {
     </svg>
   );
 }
+
+export function IconCheckCircle(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.5 12.5 2.3 2.3L15.5 9.5" />
+    </svg>
+  );
+}
+
+export function IconInfo(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5M12 8h.01" />
+    </svg>
+  );
+}
+
+export function IconHelpCircle(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 1.7-2.4 3.2M12 17h.01" />
+    </svg>
+  );
+}
+
+export function IconMoreVertical(props) {
+  return (
+    <svg {...base} {...props} fill="currentColor" stroke="none">
+      <circle cx="12" cy="5" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="12" cy="19" r="1.6" />
+    </svg>
+  );
+}
+
+export function IconHourglass(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6 3h12M6 21h12" />
+      <path d="M7 3v3.5a5 5 0 0 0 2.3 4.2L12 12l2.7 1.3A5 5 0 0 1 17 17.5V21" />
+      <path d="M17 3v3.5a5 5 0 0 1-2.3 4.2L12 12l-2.7 1.3A5 5 0 0 0 7 17.5V21" />
+    </svg>
+  );
+}
+
+export function IconMenu(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  );
+}
+
+export function IconInbox(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 12h4l1.5 3h5L16 12h4" />
+      <path d="M5.5 6h13L21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6l2.5-6Z" />
+    </svg>
+  );
+}
+
+export function IconLoader(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3a9 9 0 1 0 9 9" />
+    </svg>
+  );
+}

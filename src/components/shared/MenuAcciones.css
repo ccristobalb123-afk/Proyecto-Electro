@@ -1,0 +1,87 @@
+.menu-acciones__boton {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.menu-acciones__boton:hover,
+.menu-acciones__boton--activo {
+  background: var(--copper-tint);
+  border-color: var(--copper);
+  color: var(--copper-dark);
+}
+
+.menu-acciones__lista--portal {
+  position: fixed;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-dropdown-menu);
+  min-width: 180px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  transform-origin: top right;
+  animation: menu-acciones-aparecer 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes menu-acciones-aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.menu-acciones__item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #374151;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  transition: all 0.12s ease;
+}
+
+.menu-acciones__item:hover {
+  background: var(--gray-tint);
+  color: var(--text);
+}
+
+.menu-acciones__item--peligro {
+  color: var(--danger-dark);
+}
+
+.menu-acciones__item--peligro:hover {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+.menu-acciones__item--exito {
+  color: #1f6b41;
+}
+
+.menu-acciones__item--exito:hover {
+  background: var(--success-tint);
+  color: var(--success);
+}

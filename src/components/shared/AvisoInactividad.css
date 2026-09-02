@@ -1,0 +1,92 @@
+.aviso-inactividad-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 24, 31, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-critical-alert);
+  padding: 24px;
+}
+
+.aviso-inactividad-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  text-align: center;
+  max-width: 340px;
+  width: 100%;
+}
+
+.aviso-inactividad-icono-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: var(--volt-tint);
+  border-radius: 50%;
+  margin-bottom: 16px;
+  animation: pulso-advertencia 2s infinite ease-in-out;
+}
+
+.aviso-inactividad-icono {
+  color: var(--volt-dark);
+}
+
+.aviso-inactividad-card h2 {
+  color: var(--text);
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.aviso-inactividad-card p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 24px;
+}
+
+.timer-destacado {
+  color: var(--volt-dark);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: var(--volt-tint);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 15px;
+}
+
+.btn-seguir-conectado {
+  width: 100%;
+  background: var(--copper);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 11px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-seguir-conectado:hover {
+  background: var(--copper-dark);
+}
+
+@keyframes pulso-advertencia {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(240, 180, 41, 0.25);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px 4px rgba(240, 180, 41, 0.18);
+  }
+}

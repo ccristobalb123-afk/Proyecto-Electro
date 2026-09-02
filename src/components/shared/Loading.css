@@ -1,0 +1,44 @@
+.loading-bloque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.loading-spinner-icon {
+  color: var(--copper);
+  animation: loading-girar 0.7s linear infinite;
+  will-change: transform;
+}
+
+.loading-texto {
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  margin: 0;
+  letter-spacing: 0.01em;
+  animation: loading-pulso 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-girar {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-pulso {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}

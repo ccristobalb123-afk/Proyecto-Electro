@@ -1,0 +1,26 @@
+.estado-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+  gap: 12px;
+}
+
+.estado-error__icono {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.estado-error__texto {
+  font-size: 13.5px;
+  color: var(--text);
+  margin: 0;
+  max-width: 360px;
+}

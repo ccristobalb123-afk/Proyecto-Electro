@@ -1,0 +1,299 @@
+/* ===== Compartidas con Operaciones (mismo patrón visual) ===== */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+  width: fit-content;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  border: none;
+  background: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.tabs button.active {
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+
+.filters select,
+.filters .search input {
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  font-size: 13px;
+  background: #fff;
+  font-family: var(--font-body);
+  color: #374151;
+}
+
+.filters .search {
+  flex: 1;
+  max-width: 260px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px;
+}
+
+.filters .search input {
+  border: none;
+  padding: 0;
+  height: 36px;
+}
+
+.co-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.co-badge.corevex {
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.co-badge.electro {
+  background: var(--electro-tint);
+  color: var(--electro-dark);
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.icon-btn:hover {
+  background: var(--paper);
+}
+
+.btn-outline-sm {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.btn-outline-sm:hover {
+  border-color: var(--electro);
+  color: var(--electro-dark);
+}
+
+/* ===== Tarjetas de Finanzas ===== */
+.fin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.fin-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.fin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 16px 14px;
+}
+
+.fin-card-titulo {
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.fin-card-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fin-card-monto {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.fin-card-body {
+  padding: 0 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.fin-card-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+  margin-bottom: 2px;
+}
+
+.fin-card-montos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.fin-card-monto--saldo {
+  color: var(--danger-dark);
+}
+
+.fin-card-fechas {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 14px;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.fin-card-fechas > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.fin-tag-detraccion {
+  align-self: flex-start;
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.fin-card-archivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  width: fit-content;
+}
+
+.fin-card-archivo--link {
+  color: var(--electro-dark);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.fin-card-archivo--link:hover {
+  color: var(--copper-dark);
+}
+
+.fin-card-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ===== Estado de pago ===== */
+.estado-pago {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.estado-pago.pendiente {
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+}
+
+.estado-pago.parcial {
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+}
+
+.estado-pago.pagado {
+  background: var(--success-tint);
+  color: #1f6b41;
+}
+
+/* ===== Casilla de detracción en el formulario ===== */
+.field-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  margin: 4px 0 14px;
+  cursor: pointer;
+}
+
+.field-check input {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== Pagos previos dentro del modal de registrar pago ===== */
+.fin-pagos-previos {
+  margin: 4px 0 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}

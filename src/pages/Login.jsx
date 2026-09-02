@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import * as authService from "../services/authService";
 import "./Login.css";
 
 const STEPS = {
@@ -46,6 +48,7 @@ function CircuitPattern() {
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login, verificarMfa } = useAuth();
   const [step, setStep] = useState(STEPS.CREDENTIALS);
   const [correo, setCorreo] = useState("");
   const [clave, setClave] = useState("");
@@ -75,13 +78,14 @@ export default function Login() {
     setClave(claveVal);
     setLoading(true);
     try {
-      // TODO backend: POST /api/auth/login { correo: correoVal, clave: claveVal }
-      // Si las credenciales son correctas, el backend responde indicando
-      // que se requiere el segundo factor (MFA) antes de emitir el token.
-      await new Promise((r) => setTimeout(r, 400)); // placeholder
-      setStep(STEPS.MFA);
-    } catch {
-      setError("Correo o contraseña incorrectos.");
+      const resultado = await login(correoVal, claveVal);
+      if (resultado.requiereMfa) {
+        setStep(STEPS.MFA);
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setError(err.message || "Correo o contraseña incorrectos.");
     } finally {
       setLoading(false);
     }
@@ -108,12 +112,10 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      // TODO backend: POST /api/auth/verify-mfa { correo, code }
-      // Al validar, el backend emite la sesión/token.
-      await new Promise((r) => setTimeout(r, 400)); // placeholder
+      await verificarMfa(correo, code);
       navigate("/dashboard");
-    } catch {
-      setError("Código incorrecto o vencido.");
+    } catch (err) {
+      setError(err.message || "Código incorrecto o vencido.");
     } finally {
       setLoading(false);
     }
@@ -126,7 +128,7 @@ export default function Login() {
     try {
       // TODO backend: POST /api/auth/forgot-password { correo }
       // Respuesta siempre genérica (no confirmar si el correo existe).
-      await new Promise((r) => setTimeout(r, 400)); // placeholder
+      await authService.recuperarPassword(correoRecovery);
       setStep(STEPS.RECOVERY_SENT);
     } finally {
       setLoading(false);

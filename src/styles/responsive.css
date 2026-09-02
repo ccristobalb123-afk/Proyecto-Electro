@@ -1,0 +1,72 @@
+/* ============================================================
+   Responsivo — reglas compartidas por todas las páginas
+   Se anteponen con ".main" para ganarle en especificidad a las
+   reglas de cada página sin importar en qué orden cargue el CSS.
+   ============================================================ */
+
+/* ---------- Tablet ---------- */
+@media (max-width: 960px) {
+  .main .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .main .cols {
+    grid-template-columns: 1fr;
+  }
+
+  .main .filters {
+    flex-wrap: wrap;
+  }
+
+  .main .filters .search {
+    width: 100%;
+    order: -1;
+  }
+
+  .main .filters select {
+    flex: 1 1 160px;
+  }
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 640px) {
+  .main .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main .vehiculos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main .tabs {
+    width: 100%;
+  }
+
+  .main .tabs button {
+    flex: 1;
+  }
+
+  .main .categoria-seccion-header h3 {
+    font-size: 14.5px;
+  }
+}
+
+/* ---------- Tablas: scroll horizontal en vez de romper el layout --------- */
+.main .table-scroll {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 800px) {
+  .main .table-scroll table {
+    min-width: 680px;
+  }
+}
+
+/* ---------- Formularios dentro de modales ---------- */
+@media (max-width: 560px) {
+  .modal .form-row {
+    grid-template-columns: 1fr;
+  }
+}

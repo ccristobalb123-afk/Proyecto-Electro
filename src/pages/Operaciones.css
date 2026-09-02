@@ -330,6 +330,18 @@ tbody tr:hover {
   font-weight: 500;
 }
 
+.docs-row-title--link {
+  color: var(--electro-dark);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.docs-row-title--link:hover {
+  color: var(--copper-dark);
+}
+
 .docs-row-sub {
   font-size: 11.5px;
   margin-top: 2px;
@@ -390,3 +402,311 @@ tbody tr:hover {
   font-size: 13.5px;
   font-weight: 600;
 }
+
+/* ===== Tarjetas de Equipos ===== */
+.equipos-por-categoria {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.categoria-seccion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.categoria-seccion-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.categoria-seccion-count {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  min-width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+}
+
+.equipos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.equipo-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.equipo-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 16px 14px;
+}
+
+.equipo-card-code {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.equipo-card-cat {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.equipo-card-body {
+  padding: 0 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.equipo-card-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+  margin-bottom: 2px;
+}
+
+.equipo-card-asignado {
+  background: var(--electro-tint);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+
+.equipo-card-asignado .equipo-card-label {
+  color: var(--electro-dark);
+  opacity: 0.75;
+}
+
+.equipo-card-asignado-valor {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--electro-dark);
+}
+
+.equipo-card-campos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.equipo-card-campo {
+  display: flex;
+  flex-direction: column;
+}
+
+.equipo-card-campo-valor {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.equipo-card-inspecciones {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.equipo-card-inspecciones > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.equipo-card-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.equipo-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.equipo-card-actions-spacer {
+  flex: 1;
+}
+
+.btn-outline-sm {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.btn-outline-sm:hover {
+  border-color: var(--electro);
+  color: var(--electro-dark);
+}
+
+.equipo-card-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.equipo-card-select select {
+  flex: 1;
+  max-width: 62%;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--card);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ===== Tarjetas de Vehículos ===== */
+.vehiculos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.vehiculo-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+
+.vehiculo-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.vehiculo-card-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.vehiculo-placa {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+
+.co-badge.tipo {
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+}
+
+.vehiculo-card-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vehiculo-card-cuadrilla {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.vehiculo-docs-list {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.vehiculo-doc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.vehiculo-doc-item:last-child {
+  border-bottom: none;
+}
+
+.vehiculo-doc-nombre {
+  font-size: 13.5px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.vehiculo-doc-nombre--link {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  color: var(--electro-dark);
+  cursor: pointer;
+}
+
+.vehiculo-doc-nombre--link:hover {
+  color: var(--copper-dark);
+}
+
+.vehiculo-doc-vence {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  flex: 1;
+}
+
+.vence-gray { color: var(--muted); }
+.vence-amber { color: var(--volt-dark); }
+.vence-red { color: var(--danger-dark); font-weight: 600; }

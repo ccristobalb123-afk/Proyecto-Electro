@@ -7,7 +7,13 @@ import {
   IconInvoice,
   IconTruck,
   IconBell,
+  IconClipboardCheck,
 } from "../components/icons/Icons";
+import * as notificacionesService from "../services/notificacionesService";
+import { useAsyncList } from "../hooks/useAsyncList";
+import Loading from "../components/shared/Loading";
+import EstadoVacio from "../components/shared/EstadoVacio";
+import EstadoError from "../components/shared/EstadoError";
 import "./Dashboard.css";
 
 // TODO backend: reemplazar por GET /api/dashboard (KPIs de los 4 módulos,
@@ -19,25 +25,15 @@ const kpis = [
   { label: "Alertas pendientes", value: "7", icon: IconBell, tone: "danger" },
 ];
 
-// TODO backend: GET /api/alertas?estado=PENDIENTE&limit=5 (ordenadas por
-// días restantes) — este es el motor central de Vencimientos, mezcla
-// Contrato/Curso/Equipo/Vehículo/Factura por igual, no le da prioridad
-// a ningún módulo.
-const proximosVencimientos = [
-  { titulo: "EMO — Milagros Ríos", empresa: "Corevex", dias: 2, icon: IconBell, tag: "red" },
-  { titulo: "Contrato — J. Ramírez Soto", empresa: "Corevex", dias: 4, icon: IconContrato, tag: "red" },
-  { titulo: "Inspección — Arnés AR-014", empresa: "Electro", dias: 9, icon: IconWrench, tag: "amber" },
-  { titulo: "SOAT — Vehículo ABC-123", empresa: "Corevex", dias: 22, icon: IconTruck, tag: "amber" },
-  { titulo: "Factura #F001-00234 por cobrar", empresa: "Corevex", dias: 30, icon: IconInvoice, tag: "gray" },
-];
+const ICONO_POR_TIPO = {
+  curso: IconClipboardCheck,
+  contrato: IconContrato,
+  equipo: IconWrench,
+  vehiculo: IconTruck,
+  factura: IconInvoice,
+};
 
-// TODO backend: GET /api/registro-actividad?limit=4 (tabla RegistroActividad)
-const actividadReciente = [
-  { iniciales: "CC", texto: "<b>Cristian</b> registró un pago parcial en Factura F001-00229", tiempo: "Hace 12 min" },
-  { iniciales: "MR", texto: "<b>Milagros</b> asignó el equipo EQ-072 a J. Ramírez", tiempo: "Hace 1 h" },
-  { iniciales: "CC", texto: "<b>Cristian</b> creó el contrato de S. Vega Luna", tiempo: "Ayer, 5:40 p.m." },
-  { iniciales: "AT", texto: "<b>Alonso</b> marcó como resuelta la alerta de SOAT DEF-456", tiempo: "Ayer, 2:15 p.m." },
-];
+const TAG_POR_DIAS = (dias) => (dias <= 5 ? "red" : dias <= 15 ? "amber" : "gray");
 
 // TODO backend: GET /api/finanzas/comparativo?mes=2026-08 — suma de
 // DocumentoFinanciero/Gasto/Planilla agrupados por empresa, por mes.
@@ -146,12 +142,19 @@ export default function Dashboard() {
   const [mes, setMes] = useState("2026-08");
   useComparativoChart(chartRef, mes);
 
-  const alertCount = proximosVencimientos.length;
+  const {
+    data: proximosVencimientos,
+    loading: cargandoAlertas,
+    error: errorAlertas,
+    reload: recargarAlertas,
+  } = useAsyncList(() => notificacionesService.listarAlertas({ limit: 5 }), []);
+
+  const { data: actividadReciente } = useAsyncList(() => notificacionesService.listarActividadReciente({ limit: 4 }), []);
 
   return (
     <AppShell
       title="Dashboard general"
-      topbarExtra={<DefaultTopbarExtra alertCount={alertCount} />}
+      topbarExtra={<DefaultTopbarExtra />}
     >
       <div className="kpi-grid">
         {kpis.map(({ label, value, icon: Icon, tone }) => (
@@ -173,20 +176,31 @@ export default function Dashboard() {
             <h3>Próximos vencimientos</h3>
             <span>Ver todos</span>
           </div>
-          {proximosVencimientos.map(({ titulo, empresa, dias, icon: Icon, tag }) => (
-            <div className="row-item" key={titulo}>
-              <div className="row-icon">
-                <Icon />
-              </div>
-              <div className="row-main">
-                <div className="row-title">{titulo}</div>
-                <div className="row-sub">
-                  <span className="co-pill">{empresa}</span> vence en {dias} días
+          {cargandoAlertas ? (
+            <Loading texto="Cargando..." />
+          ) : errorAlertas ? (
+            <EstadoError error={errorAlertas} onReintentar={recargarAlertas} mensaje="No se pudieron cargar los vencimientos." />
+          ) : proximosVencimientos.length === 0 ? (
+            <EstadoVacio titulo="No hay vencimientos próximos" descripcion="Todo al día." />
+          ) : (
+            proximosVencimientos.map(({ id, titulo, empresa, dias, tipo }) => {
+              const Icon = ICONO_POR_TIPO[tipo] || IconBell;
+              return (
+                <div className="row-item" key={id}>
+                  <div className="row-icon">
+                    <Icon />
+                  </div>
+                  <div className="row-main">
+                    <div className="row-title">{titulo}</div>
+                    <div className="row-sub">
+                      <span className="co-pill">{empresa}</span> vence en {dias} días
+                    </div>
+                  </div>
+                  <span className={`tag ${TAG_POR_DIAS(dias)}`}>{dias}d</span>
                 </div>
-              </div>
-              <span className={`tag ${tag}`}>{dias}d</span>
-            </div>
-          ))}
+              );
+            })
+          )}
         </div>
 
         <div className="panel">
