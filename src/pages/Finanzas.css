@@ -25,100 +25,6 @@
   color: var(--copper-dark);
 }
 
-.filters {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
-  align-items: center;
-}
-
-.filters select,
-.filters .search input {
-  height: 38px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0 12px;
-  font-size: 13px;
-  background: var(--card);
-  font-family: var(--font-body);
-  color: var(--muted);
-}
-
-.filters .search {
-  flex: 1;
-  max-width: 260px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0 12px;
-}
-
-.filters .search input {
-  border: none;
-  padding: 0;
-  height: 36px;
-}
-
-.co-badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 6px;
-}
-
-.co-badge.corevex {
-  background: var(--copper-tint);
-  color: var(--copper-dark);
-}
-
-.co-badge.electro {
-  background: var(--electro-tint);
-  color: var(--electro-dark);
-}
-
-.icon-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-btn svg {
-  width: 14px;
-  height: 14px;
-  color: var(--muted);
-}
-
-.icon-btn:hover {
-  background: var(--paper);
-}
-
-.btn-outline-sm {
-  border: 1px solid var(--border);
-  background: var(--card);
-  border-radius: 7px;
-  padding: 7px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-
-.btn-outline-sm:hover {
-  border-color: var(--electro);
-  color: var(--electro-dark);
-}
-
 /* ===== Tarjetas de Finanzas ===== */
 .fin-grid {
   display: grid;
@@ -276,22 +182,13 @@
   color: var(--success-dark);
 }
 
+.estado-pago.anulada {
+  background: var(--gray-tint);
+  color: var(--gray-dark);
+  text-decoration: line-through;
+}
+
 /* ===== Casilla de detracción en el formulario ===== */
-.field-check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text);
-  margin: 4px 0 14px;
-  cursor: pointer;
-}
-
-.field-check input {
-  width: 16px;
-  height: 16px;
-}
-
 /* ===== Pagos previos dentro del modal de registrar pago ===== */
 .fin-pagos-previos {
   margin: 4px 0 16px;

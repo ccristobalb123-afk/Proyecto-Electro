@@ -1,8 +1,13 @@
 import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
 
-export default function ModalNuevaFacturaPagar({ open, onClose, fFacturaPagar, setFFacturaPagar, onSubmit }) {
+export default function ModalNuevaFacturaPagar({ open, onClose, fFacturaPagar, setFFacturaPagar, onSubmit, editando }) {
   return (
-    <Modal open={open} title="Nueva factura por pagar" subtitle="Completa los datos de la deuda con el proveedor." onClose={onClose}>
+    <Modal
+      open={open}
+      title={editando ? "Editar factura por pagar" : "Nueva factura por pagar"}
+      subtitle={editando ? fFacturaPagar.proveedor : "Completa los datos de la deuda con el proveedor."}
+      onClose={onClose}
+    >
       <form onSubmit={onSubmit}>
         <div className="form-field">
           <label>Empresa</label>
@@ -31,7 +36,7 @@ export default function ModalNuevaFacturaPagar({ open, onClose, fFacturaPagar, s
           </div>
         </div>
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">Guardar</button>
+          <button className="btn-primary" type="submit">{editando ? "Guardar cambios" : "Guardar"}</button>
         </ModalActions>
       </form>
     </Modal>

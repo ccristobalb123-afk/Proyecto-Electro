@@ -1,8 +1,13 @@
 import { Modal, ModalActions, CompanyChoice, AvisoVencimiento } from "../shared/Modal";
 
-export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura, onSubmit }) {
+export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura, onSubmit, editando }) {
   return (
-    <Modal open={open} title="Nueva factura" subtitle="Completa los datos de la factura al cliente." onClose={onClose}>
+    <Modal
+      open={open}
+      title={editando ? "Editar factura" : "Nueva factura"}
+      subtitle={editando ? `${fFactura.serie}-${fFactura.numero}` : "Completa los datos de la factura al cliente."}
+      onClose={onClose}
+    >
       <form onSubmit={onSubmit}>
         <div className="form-field">
           <label>Empresa</label>
@@ -42,7 +47,7 @@ export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura
         </label>
         <AvisoVencimiento value={fFactura.diasAviso} onChange={(v) => setFFactura({ ...fFactura, diasAviso: v })} />
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">Guardar factura</button>
+          <button className="btn-primary" type="submit">{editando ? "Guardar cambios" : "Guardar factura"}</button>
         </ModalActions>
       </form>
     </Modal>

@@ -1,0 +1,22 @@
+/* ============================================================
+   Badges — estilos compartidos por todos los módulos.
+   Antes .co-badge (y sus variantes .corevex/.electro) estaban
+   copiados y pegados, idénticos, en los 4 módulos.
+   ============================================================ */
+
+.co-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.co-badge.corevex {
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.co-badge.electro {
+  background: var(--electro-tint);
+  color: var(--electro-dark);
+}

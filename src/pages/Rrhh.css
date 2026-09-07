@@ -24,47 +24,6 @@
   color: var(--copper-dark);
 }
 
-.filters {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
-  align-items: center;
-}
-
-.filters select,
-.filters .search input {
-  height: 38px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0 12px;
-  font-size: 13px;
-  background: var(--card);
-  font-family: var(--font-body);
-  color: var(--muted);
-}
-
-.filters .search {
-  flex: 1;
-  max-width: 280px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0 12px;
-}
-
-.filters .search input {
-  border: none;
-  padding: 0;
-  height: 36px;
-}
-
-.filters .search input:focus {
-  outline: none;
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
@@ -119,23 +78,6 @@ tbody tr:hover {
   font-weight: 600;
   color: var(--muted);
   flex: none;
-}
-
-.co-badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 6px;
-}
-
-.co-badge.electro {
-  background: var(--electro-tint);
-  color: var(--electro-dark);
-}
-
-.co-badge.corevex {
-  background: var(--copper-tint);
-  color: var(--copper-dark);
 }
 
 .code {
@@ -220,27 +162,6 @@ tbody tr:hover {
   color: var(--muted-2);
 }
 
-.icon-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-btn svg {
-  width: 14px;
-  height: 14px;
-  color: var(--muted);
-}
-
-.icon-btn:hover {
-  background: var(--paper);
-}
-
 /* ===== Modal: detalle de contrato/curso ===== */
 .detalle-grid {
   display: grid;
@@ -269,4 +190,65 @@ tbody tr:hover {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text);
+}
+
+/* ===== Vista de tarjetas para celular (reemplaza a la tabla) =====
+   Oculta por defecto — responsive.css la muestra y esconde la tabla
+   por debajo de los 640px. */
+.rrhh-cards-mobile {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rrhh-mobile-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rrhh-mobile-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rrhh-mobile-card-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.rrhh-mobile-card-datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.rrhh-mobile-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+}
+
+.rrhh-mobile-card-datos p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.rrhh-mobile-card-doc {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
 }

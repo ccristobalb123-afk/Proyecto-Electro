@@ -7,6 +7,7 @@ import { CATEGORIAS_GASTO } from "../services/finanzasService";
 import { totalPagado } from "../services/facturasService";
 import { useDebounce } from "../hooks/useDebounce";
 import { useAsyncList } from "../hooks/useAsyncList";
+import { useConfirm } from "../context/ConfirmContext";
 import { soles } from "../components/finanzas/finanzasUtils";
 import FacturasGrid from "../components/finanzas/FacturasGrid";
 import FacturasPorPagarGrid from "../components/finanzas/FacturasPorPagarGrid";
@@ -18,6 +19,7 @@ import ModalRegistrarPago from "../components/finanzas/ModalRegistrarPago";
 import "./Finanzas.css";
 
 export default function Finanzas() {
+  const { confirmar } = useConfirm();
   const [tab, setTab] = useState("facturas"); // "facturas" | "facturasPagar" | "gastos"
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
@@ -45,6 +47,7 @@ export default function Finanzas() {
   const gastos = tab === "gastos" ? listaActual : [];
 
   const [modalNuevo, setModalNuevo] = useState(false);
+  const [idEditando, setIdEditando] = useState(null); // null = creando, id = editando ese registro
   const [modalPago, setModalPago] = useState(null); // { tipo: "factura"|"facturaPagar", doc }
   const [montoPago, setMontoPago] = useState("");
   const [errorPago, setErrorPago] = useState("");
@@ -78,21 +81,73 @@ export default function Finanzas() {
     setFFactura({ empresa: "corevex", cliente: "", serie: "", numero: "", montoTotal: "", fechaEmision: "", fechaVencimiento: "", aplicaDetraccion: false, diasAviso: 7 });
     setFFacturaPagar({ empresa: "corevex", proveedor: "", motivo: "", montoTotal: "", fechaEmision: "", fechaVencimiento: "" });
     setFGasto({ empresa: "corevex", categoria: CATEGORIAS_GASTO[0], monto: "", fecha: "", proveedor: "", trabajador: "", descripcion: "" });
+    setIdEditando(null);
     setModalNuevo(true);
+  }
+
+  function abrirEditarFactura(f) {
+    setFFactura({
+      empresa: f.empresa,
+      cliente: f.cliente,
+      serie: f.serie,
+      numero: f.numero,
+      montoTotal: String(f.montoTotal),
+      fechaEmision: f.fechaEmision,
+      fechaVencimiento: f.fechaVencimiento,
+      aplicaDetraccion: f.aplicaDetraccion,
+      diasAviso: f.diasAviso ?? 7,
+    });
+    setIdEditando(f.id);
+    setModalNuevo(true);
+  }
+
+  function abrirEditarFacturaPagar(f) {
+    setFFacturaPagar({
+      empresa: f.empresa,
+      proveedor: f.proveedor,
+      motivo: f.motivo,
+      montoTotal: String(f.montoTotal),
+      fechaEmision: f.fechaEmision,
+      fechaVencimiento: f.fechaVencimiento,
+    });
+    setIdEditando(f.id);
+    setModalNuevo(true);
+  }
+
+  async function handleAnularFactura(f) {
+    const seguro = await confirmar(
+      `¿Anular la factura ${f.serie}-${f.numero} de ${f.cliente}? Esta acción no se puede deshacer.`,
+      { tipo: "peligro" }
+    );
+    if (!seguro) return;
+    const actualizada = await facturasService.anularFactura(f.id);
+    setListaActual((prev) => prev.map((x) => (x.id === actualizada.id ? actualizada : x)));
   }
 
   async function handleGuardarFactura(e) {
     e.preventDefault();
-    const nueva = await facturasService.crearFactura(fFactura);
-    setListaActual((prev) => [nueva, ...prev]);
+    if (idEditando) {
+      const actualizada = await facturasService.actualizarFactura(idEditando, fFactura);
+      setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
+    } else {
+      const nueva = await facturasService.crearFactura(fFactura);
+      setListaActual((prev) => [nueva, ...prev]);
+    }
     setModalNuevo(false);
+    setIdEditando(null);
   }
 
   async function handleGuardarFacturaPagar(e) {
     e.preventDefault();
-    const nueva = await facturasService.crearFacturaPorPagar(fFacturaPagar);
-    setListaActual((prev) => [nueva, ...prev]);
+    if (idEditando) {
+      const actualizada = await facturasService.actualizarFacturaPorPagar(idEditando, fFacturaPagar);
+      setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
+    } else {
+      const nueva = await facturasService.crearFacturaPorPagar(fFacturaPagar);
+      setListaActual((prev) => [nueva, ...prev]);
+    }
     setModalNuevo(false);
+    setIdEditando(null);
   }
 
   async function handleGuardarGasto(e) {
@@ -192,6 +247,8 @@ export default function Finanzas() {
           onNuevo={abrirNuevo}
           onSubirComprobante={marcarComprobanteSubido}
           onRegistrarPago={abrirRegistrarPago}
+          onEditar={abrirEditarFactura}
+          onAnular={handleAnularFactura}
         />
       )}
 
@@ -204,6 +261,7 @@ export default function Finanzas() {
           onNuevo={abrirNuevo}
           onSubirComprobante={marcarComprobanteSubido}
           onRegistrarPago={abrirRegistrarPago}
+          onEditar={abrirEditarFacturaPagar}
         />
       )}
 
@@ -220,18 +278,20 @@ export default function Finanzas() {
 
       <ModalNuevaFactura
         open={modalNuevo && tab === "facturas"}
-        onClose={() => setModalNuevo(false)}
+        onClose={() => { setModalNuevo(false); setIdEditando(null); }}
         fFactura={fFactura}
         setFFactura={setFFactura}
         onSubmit={handleGuardarFactura}
+        editando={!!idEditando}
       />
 
       <ModalNuevaFacturaPagar
         open={modalNuevo && tab === "facturasPagar"}
-        onClose={() => setModalNuevo(false)}
+        onClose={() => { setModalNuevo(false); setIdEditando(null); }}
         fFacturaPagar={fFacturaPagar}
         setFFacturaPagar={setFFacturaPagar}
         onSubmit={handleGuardarFacturaPagar}
+        editando={!!idEditando}
       />
 
       <ModalNuevoGasto

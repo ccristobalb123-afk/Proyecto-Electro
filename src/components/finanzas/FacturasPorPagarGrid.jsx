@@ -5,7 +5,7 @@ import EstadoError from "../shared/EstadoError";
 import { totalPagado, estadoPago } from "../../services/facturasService";
 import { soles, formatFecha, ESTADO_PAGO_LABEL } from "./finanzasUtils";
 
-export default function FacturasPorPagarGrid({ cargando, error, onReintentar, facturas, onNuevo, onSubirComprobante, onRegistrarPago }) {
+export default function FacturasPorPagarGrid({ cargando, error, onReintentar, facturas, onNuevo, onSubirComprobante, onRegistrarPago, onEditar }) {
   if (cargando) return <Loading texto="Cargando..." />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
   if (facturas.length === 0) {
@@ -66,7 +66,7 @@ export default function FacturasPorPagarGrid({ cargando, error, onReintentar, fa
                   Registrar pago
                 </button>
               )}
-              <button className="btn-outline-sm" type="button">Editar</button>
+              <button className="btn-outline-sm" type="button" onClick={() => onEditar(f)}>Editar</button>
             </div>
           </div>
         );

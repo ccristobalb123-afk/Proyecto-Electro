@@ -1,6 +1,7 @@
 import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
-import { IconClipboardCheck, IconPlus, IconTrash } from "../icons/Icons";
+import { IconClipboardCheck, IconPlus, IconTrash, IconCamera } from "../icons/Icons";
 import { CATEGORIAS } from "../../services/equiposService";
+import { comprimirImagen } from "../../utils/imageUtils";
 
 const OPCION_NUEVA = "__nueva__";
 
@@ -42,6 +43,20 @@ export default function ModalNuevoEquipo({
 
   function quitarCampoNuevo(i) {
     setCamposNuevaCategoria(camposNuevaCategoria.filter((_, idx) => idx !== i));
+  }
+
+  async function handleFotoChange(indice, archivo) {
+    if (!archivo) return;
+    const dataUrl = await comprimirImagen(archivo);
+    const fotos = [...(fEquipo.fotos || [null, null])];
+    fotos[indice] = dataUrl;
+    setFEquipo({ ...fEquipo, fotos });
+  }
+
+  function quitarFoto(indice) {
+    const fotos = [...(fEquipo.fotos || [null, null])];
+    fotos[indice] = null;
+    setFEquipo({ ...fEquipo, fotos });
   }
 
   return (
@@ -141,6 +156,62 @@ export default function ModalNuevoEquipo({
         <div className="form-field">
           <label>Empresa dueña</label>
           <CompanyChoice name="empresaEquipo" value={fEquipo.empresa} onChange={(v) => setFEquipo({ ...fEquipo, empresa: v })} />
+        </div>
+
+        <div className="form-field">
+          <label>Fotos del equipo (hasta 2)</label>
+          <div className="fotos-equipo-row">
+            {[0, 1].map((indice) => {
+              const foto = (fEquipo.fotos || [null, null])[indice];
+              return (
+                <div className="foto-equipo-slot" key={indice}>
+                  {foto ? (
+                    <>
+                      {/* Tocar la foto reemplaza directo — subir una nueva
+                          descarta automáticamente la anterior, sin tener
+                          que borrarla primero. */}
+                      <label className="foto-equipo-reemplazar" title="Tocar para reemplazar">
+                        <img src={foto} alt={`Foto ${indice + 1}`} />
+                        <div className="foto-equipo-reemplazar-hint">
+                          <IconCamera width={16} height={16} />
+                          <span>Cambiar</span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          style={{ display: "none" }}
+                          onChange={(e) => handleFotoChange(indice, e.target.files?.[0])}
+                        />
+                      </label>
+                      <button
+                        className="foto-equipo-quitar"
+                        type="button"
+                        title="Quitar foto"
+                        onClick={() => quitarFoto(indice)}
+                      >
+                        <IconTrash width={13} height={13} />
+                      </button>
+                    </>
+                  ) : (
+                    <label className="foto-equipo-vacio">
+                      <IconCamera width={20} height={20} />
+                      <span>Agregar foto</span>
+                      {/* accept+capture: en celular abre la cámara directo; en
+                          computadora abre el explorador de archivos normal. */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        style={{ display: "none" }}
+                        onChange={(e) => handleFotoChange(indice, e.target.files?.[0])}
+                      />
+                    </label>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="checklist-note">

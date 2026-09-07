@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Row, Col } from "react-bootstrap";
-import { IconEye, IconTrash } from "../icons/Icons";
+import { IconEye, IconTrash, IconCamera } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
+import Lightbox from "../shared/Lightbox";
 
 const ESTADOS = { disponible: "Disponible", asignado: "Asignado", mantenimiento: "Mantenimiento", vencido: "Vencido", debaja: "De baja" };
 
@@ -18,7 +20,10 @@ export default function EquiposGrid({
   onVerHistorial,
   onDarBaja,
   onCambiarEstado,
+  onEditarFotos,
 }) {
+  const [fotoMaximizada, setFotoMaximizada] = useState(null);
+
   if (cargando) return <Loading texto="Cargando equipos..." />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
 
@@ -55,6 +60,34 @@ export default function EquiposGrid({
                     </div>
 
                     <div className="equipo-card-body">
+                      <div className="equipo-card-fotos-wrap">
+                        <div className="equipo-card-fotos">
+                          {(eq.fotos && eq.fotos.length > 0 ? eq.fotos : [null, null]).map((foto, i) =>
+                            foto ? (
+                              <button
+                                key={i}
+                                type="button"
+                                className="equipo-card-foto-btn"
+                                title="Ver foto en grande"
+                                onClick={() => setFotoMaximizada(foto)}
+                              >
+                                <img src={foto} alt={`${eq.codigo} — foto ${i + 1}`} />
+                              </button>
+                            ) : (
+                              <div key={i} className="equipo-card-foto-vacia" />
+                            )
+                          )}
+                        </div>
+                        <button
+                          className="equipo-card-fotos-editar"
+                          type="button"
+                          title="Editar fotos"
+                          onClick={() => onEditarFotos(eq)}
+                        >
+                          <IconCamera width={13} height={13} />
+                        </button>
+                      </div>
+
                       {eq.responsable && (
                         <div className="equipo-card-asignado">
                           <span className="equipo-card-label">Asignado a</span>
@@ -134,6 +167,7 @@ export default function EquiposGrid({
           </Row>
         </section>
       ))}
+      <Lightbox src={fotoMaximizada} alt="Foto del equipo" onClose={() => setFotoMaximizada(null)} />
     </div>
   );
 }

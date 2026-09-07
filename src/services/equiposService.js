@@ -101,16 +101,37 @@ export async function listarEquipos({ empresa, categoria, q } = {}) {
   return apiClient.get("/equipos", { empresa, categoria, q });
 }
 
-export async function crearEquipo({ codigo, categoria, empresa, camposValores }) {
+export async function actualizarFotosEquipo(equipoId, fotos) {
+  if (MOCK_MODE) {
+    await delay(200);
+    equiposMock = equiposMock.map((eq) => (eq.id === equipoId ? { ...eq, fotos: fotos.filter(Boolean) } : eq));
+    return equiposMock.find((eq) => eq.id === equipoId);
+  }
+  // TODO backend: PATCH /api/equipos/:id/fotos { fotos } — el backend sube
+  // las imágenes (acá van en base64) a almacenamiento real.
+  return apiClient.patch(`/equipos/${equipoId}/fotos`, { fotos });
+}
+
+export async function crearEquipo({ codigo, categoria, empresa, camposValores, fotos }) {
   if (MOCK_MODE) {
     await delay();
-    const nuevo = { id: Date.now(), codigo: codigo.trim(), categoria, empresa, responsable: null, estado: "disponible", camposValores };
+    const nuevo = {
+      id: Date.now(),
+      codigo: codigo.trim(),
+      categoria,
+      empresa,
+      responsable: null,
+      estado: "disponible",
+      camposValores,
+      fotos: (fotos || [null, null]).filter(Boolean),
+    };
     equiposMock = [nuevo, ...equiposMock];
     return nuevo;
   }
-  // TODO backend: POST /api/equipos { codigo, categoria, empresa, camposValores }
-  // — el backend valida que el código no exista.
-  return apiClient.post("/equipos", { codigo, categoria, empresa, camposValores });
+  // TODO backend: POST /api/equipos { codigo, categoria, empresa, camposValores, fotos }
+  // — el backend valida que el código no exista, y sube las fotos (base64
+  // acá en el mock) a almacenamiento real, devolviendo sus URLs.
+  return apiClient.post("/equipos", { codigo, categoria, empresa, camposValores, fotos });
 }
 
 export async function cambiarEstadoEquipo(equipoId, estado) {

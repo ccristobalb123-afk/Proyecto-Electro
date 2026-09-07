@@ -1,0 +1,75 @@
+/* ============================================================
+   Botones — estilos compartidos por todos los módulos.
+   .btn-primary vive en tokens.css (es el único botón que además
+   define el color de acento de la app). Estos son el resto —
+   antes estaban copiados y pegados, byte por byte, en Operaciones.css,
+   Rrhh.css, Administracion.css y Finanzas.css.
+   ============================================================ */
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: var(--paper);
+}
+
+.icon-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-outline-sm {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-outline-sm:hover {
+  border-color: var(--electro);
+  color: var(--electro-dark);
+}
+
+.btn-outline-sm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-danger:hover {
+  background: var(--danger-dark);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

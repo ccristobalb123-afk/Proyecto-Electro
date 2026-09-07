@@ -5,7 +5,7 @@ import EstadoError from "../shared/EstadoError";
 import { totalPagado, estadoPago } from "../../services/facturasService";
 import { soles, formatFecha, ESTADO_PAGO_LABEL } from "./finanzasUtils";
 
-export default function FacturasGrid({ cargando, error, onReintentar, facturas, onNuevo, onSubirComprobante, onRegistrarPago }) {
+export default function FacturasGrid({ cargando, error, onReintentar, facturas, onNuevo, onSubirComprobante, onRegistrarPago, onEditar, onAnular }) {
   if (cargando) return <Loading texto="Cargando..." />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
   if (facturas.length === 0) {
@@ -33,7 +33,9 @@ export default function FacturasGrid({ cargando, error, onReintentar, facturas, 
                   {f.serie}-{f.numero} · <span className={`co-badge ${f.empresa}`}>{f.empresa === "corevex" ? "Corevex" : "Electro"}</span>
                 </div>
               </div>
-              <span className={`estado-pago ${estado}`}>{ESTADO_PAGO_LABEL[estado]}</span>
+              <span className={f.anulada ? "estado-pago anulada" : `estado-pago ${estado}`}>
+                {f.anulada ? "Anulada" : ESTADO_PAGO_LABEL[estado]}
+              </span>
             </div>
 
             <div className="fin-card-body">
@@ -70,13 +72,21 @@ export default function FacturasGrid({ cargando, error, onReintentar, facturas, 
             </div>
 
             <div className="fin-card-footer">
-              {estado !== "pagado" && (
+              {estado !== "pagado" && !f.anulada && (
                 <button className="btn-outline-sm" type="button" onClick={() => onRegistrarPago("factura", f)}>
                   Registrar pago
                 </button>
               )}
-              <button className="btn-outline-sm" type="button">Editar</button>
-              <button className="icon-btn" type="button" title="Anular factura">
+              {!f.anulada && (
+                <button className="btn-outline-sm" type="button" onClick={() => onEditar(f)}>Editar</button>
+              )}
+              <button
+                className="icon-btn"
+                type="button"
+                title={f.anulada ? "Ya está anulada" : "Anular factura"}
+                disabled={f.anulada}
+                onClick={() => onAnular(f)}
+              >
                 <IconInvoice width={15} height={15} />
               </button>
             </div>

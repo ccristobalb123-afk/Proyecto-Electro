@@ -16,8 +16,11 @@ import ModalInspeccion from "../components/operaciones/ModalInspeccion";
 import ModalBaja from "../components/operaciones/ModalBaja";
 import ModalAsignarEquipo from "../components/operaciones/ModalAsignarEquipo";
 import ModalMantenimiento from "../components/operaciones/ModalMantenimiento";
+import ModalEditarFotosEquipo from "../components/operaciones/ModalEditarFotosEquipo";
 import ModalDocumentos from "../components/operaciones/ModalDocumentos";
 import "./Operaciones.css";
+import "../components/operaciones/EquiposCards.css";
+import "../components/operaciones/VehiculosCards.css";
 
 function iniciales(nombre) {
   return nombre.split(" ").map((p) => p[0]).slice(0, 2).join("");
@@ -40,6 +43,8 @@ export default function Operaciones() {
   const [modalBaja, setModalBaja] = useState(null); // equipo seleccionado
   const [modalAsignar, setModalAsignar] = useState(null); // equipo seleccionado
   const [modalMantenimiento, setModalMantenimiento] = useState(null); // equipo seleccionado
+  const [modalFotos, setModalFotos] = useState(null); // equipo seleccionado
+  const [fotosEditando, setFotosEditando] = useState([null, null]);
   const [modalDocs, setModalDocs] = useState(null); // vehiculo seleccionado
 
   // ---- Formulario Nuevo equipo ----
@@ -48,6 +53,7 @@ export default function Operaciones() {
     categoria: "Escaleras Embonables",
     empresa: "corevex",
     camposValores: {},
+    fotos: [null, null],
   });
   const [errorCodigo, setErrorCodigo] = useState(false);
 
@@ -130,7 +136,7 @@ export default function Operaciones() {
 
   function openNuevo() {
     if (tab === "equipos") {
-      setFEquipo({ codigo: "", categoria: "Escaleras Embonables", empresa: "corevex", camposValores: {} });
+      setFEquipo({ codigo: "", categoria: "Escaleras Embonables", empresa: "corevex", camposValores: {}, fotos: [null, null] });
       setErrorCodigo(false);
       setNuevaCategoria(false);
       setNombreNuevaCategoria("");
@@ -257,6 +263,17 @@ export default function Operaciones() {
     setModalMantenimiento(null);
   }
 
+  function abrirEditarFotos(eq) {
+    setFotosEditando(eq.fotos && eq.fotos.length > 0 ? [eq.fotos[0] || null, eq.fotos[1] || null] : [null, null]);
+    setModalFotos(eq);
+  }
+
+  async function handleGuardarFotos() {
+    const actualizado = await equiposService.actualizarFotosEquipo(modalFotos.id, fotosEditando);
+    setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+    setModalFotos(null);
+  }
+
   function abrirInspeccion(eq) {
     setFInspeccion({ tipo: "interna", fechaInspeccion: "", fechaVencimiento: "", diasAnticipacion: 30, resultado: "aprobado" });
     setModalInspeccion(eq);
@@ -373,6 +390,7 @@ export default function Operaciones() {
           onVerHistorial={setModalHistorial}
           onDarBaja={abrirBaja}
           onCambiarEstado={handleCambiarEstado}
+          onEditarFotos={abrirEditarFotos}
         />
       ) : (
         <VehiculosGrid
@@ -458,6 +476,15 @@ export default function Operaciones() {
         error={errorMantenimiento}
         onClose={() => setModalMantenimiento(null)}
         onConfirmar={handleConfirmarMantenimiento}
+      />
+
+      <ModalEditarFotosEquipo
+        open={!!modalFotos}
+        equipo={modalFotos}
+        fotos={fotosEditando}
+        setFotos={setFotosEditando}
+        onClose={() => setModalFotos(null)}
+        onGuardar={handleGuardarFotos}
       />
 
       <ModalDocumentos

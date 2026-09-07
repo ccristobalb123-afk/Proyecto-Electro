@@ -75,7 +75,7 @@
 .form-field select,
 .form-field textarea {
   width: 100%;
-  height: 42px;
+  height: var(--control-height-lg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0 12px;
@@ -94,6 +94,21 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+.field-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  margin: 4px 0 14px;
+  cursor: pointer;
+}
+
+.field-check input {
+  width: 16px;
+  height: 16px;
 }
 
 .co-choice {
@@ -339,4 +354,94 @@
   grid-template-columns: 1fr 1fr auto;
   gap: 8px;
   align-items: center;
+}
+
+/* ===== Fotos del equipo (hasta 2, en Nuevo equipo) ===== */
+.fotos-equipo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.foto-equipo-slot {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.foto-equipo-reemplazar {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.foto-equipo-reemplazar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.foto-equipo-reemplazar-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(15, 19, 24, 0.55);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.foto-equipo-reemplazar:hover .foto-equipo-reemplazar-hint {
+  opacity: 1;
+}
+
+.foto-equipo-quitar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 19, 24, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foto-equipo-quitar:hover {
+  background: rgba(15, 19, 24, 0.8);
+}
+
+.foto-equipo-vacio {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.foto-equipo-vacio:hover {
+  border-color: var(--copper);
+  color: var(--copper-dark);
 }

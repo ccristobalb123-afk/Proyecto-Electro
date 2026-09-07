@@ -49,6 +49,17 @@
   .main .categoria-seccion-header h3 {
     font-size: 14.5px;
   }
+
+  /* Tabla de RRHH -> tarjetas: una tabla de 6-7 columnas con scroll
+     horizontal es incómoda de leer con el dedo en un celular, así que
+     ahí se reemplaza por una lista de tarjetas con la misma info. */
+  .main .table-scroll {
+    display: none;
+  }
+
+  .main .rrhh-cards-mobile {
+    display: flex;
+  }
 }
 
 /* ---------- Tablas: scroll horizontal en vez de romper el layout --------- */

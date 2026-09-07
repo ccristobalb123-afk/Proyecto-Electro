@@ -1,0 +1,43 @@
+/* ============================================================
+   Barra de filtros — compartida por Operaciones, RRHH,
+   Administración y Finanzas. Antes estaba copiada y pegada,
+   casi idéntica, en los 4 archivos (con una pequeña divergencia:
+   RRHH tenía max-width: 280px en vez de 260px, ya normalizado).
+   ============================================================ */
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+
+.filters select,
+.filters .search input {
+  height: var(--control-height-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  font-size: 13px;
+  background: var(--card);
+  font-family: var(--font-body);
+  color: var(--muted);
+}
+
+.filters .search {
+  flex: 1;
+  max-width: 260px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px;
+}
+
+.filters .search input {
+  border: none;
+  padding: 0;
+  height: var(--control-height-sm);
+}
