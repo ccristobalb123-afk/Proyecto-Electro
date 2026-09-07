@@ -39,6 +39,22 @@ export const CATEGORIAS = {
   ],
 };
 
+// Agrega una categoría nueva (con sus propios campos personalizados) al
+// catálogo. Mutamos el objeto CATEGORIAS directamente (en vez de
+// reasignarlo) para que todo lo que ya lo usa — el select de categorías,
+// el agrupador de EquiposGrid, etc. — la vea sin tener que refactorizar
+// nada más: son la misma referencia de objeto en toda la app.
+// TODO backend: POST /api/categorias-equipo { nombre, campos } — cuando
+// haya backend, esto pasa a ser la fuente de verdad de CATEGORIAS en vez
+// de mutar el objeto en memoria.
+export function agregarCategoria(nombre, campos) {
+  const nombreLimpio = nombre.trim();
+  CATEGORIAS[nombreLimpio] = campos
+    .filter((c) => c.nombre.trim())
+    .map((c) => ({ nombre: c.nombre.trim(), placeholder: c.placeholder.trim() }));
+  return nombreLimpio;
+}
+
 let equiposMock = [
   { id: 1, codigo: "PP-ESC-EMB-009", categoria: "Escaleras Embonables", empresa: "corevex", responsable: "Camión CJO-871", estado: "asignado", camposValores: { Pasos: "8" }, ultInspeccion: "30/07/2026", proxInspeccion: "30/01/2027" },
   { id: 2, codigo: "EQ-GD-021", categoria: "Guantes Dieléctricos", empresa: "electro", responsable: null, estado: "vencido", camposValores: { Clase: "Clase 0", Talla: "M" } },
@@ -100,11 +116,59 @@ export async function crearEquipo({ codigo, categoria, empresa, camposValores })
 export async function cambiarEstadoEquipo(equipoId, estado) {
   if (MOCK_MODE) {
     await delay(200);
+    const actual = equiposMock.find((eq) => eq.id === equipoId);
+    // "Asignado" ahora exige elegir un camión registrado (asignarEquipo) y
+    // "Mantenimiento" exige un comentario (enviarAMantenimiento) — ambos
+    // tienen su propio flujo con modal, no se setean directo desde acá.
+    if (estado === "asignado") {
+      throw new Error("Para asignar un equipo hay que elegir un camión registrado.");
+    }
+    if (estado === "mantenimiento") {
+      throw new Error("Para enviar a mantenimiento hay que indicar qué tiene el equipo.");
+    }
+    // Un equipo vencido o dado de baja no puede volver a asignarse ni
+    // pasar directo a otro estado operativo sin pasar antes por una
+    // inspección/reactivación explícita.
+    if (actual && (actual.estado === "vencido" || actual.estado === "debaja") && estado === "asignado") {
+      throw new Error("Un equipo vencido o de baja no se puede asignar.");
+    }
     equiposMock = equiposMock.map((eq) => (eq.id === equipoId ? { ...eq, estado } : eq));
     return equiposMock.find((eq) => eq.id === equipoId);
   }
-  // TODO backend: PATCH /api/equipos/:id/estado { estado }
+  // TODO backend: PATCH /api/equipos/:id/estado { estado } — el backend
+  // debe repetir esta misma validación, nunca confiar solo en el frontend.
   return apiClient.patch(`/equipos/${equipoId}/estado`, { estado });
+}
+
+// Asigna el equipo a un camión ya registrado (no a un texto libre ni a
+// una persona) — el vehículo viene de vehiculosService.listarVehiculos().
+export async function asignarEquipo(equipoId, vehiculo) {
+  if (MOCK_MODE) {
+    await delay(200);
+    equiposMock = equiposMock.map((eq) =>
+      eq.id === equipoId
+        ? { ...eq, estado: "asignado", responsable: `Camión ${vehiculo.placa}`, vehiculoId: vehiculo.id }
+        : eq
+    );
+    return equiposMock.find((eq) => eq.id === equipoId);
+  }
+  // TODO backend: PATCH /api/equipos/:id/estado { estado: "asignado", vehiculoId }
+  return apiClient.patch(`/equipos/${equipoId}/estado`, { estado: "asignado", vehiculoId: vehiculo.id });
+}
+
+// Envía el equipo a mantenimiento, exigiendo un comentario de qué tiene.
+export async function enviarAMantenimiento(equipoId, comentario) {
+  if (MOCK_MODE) {
+    await delay(200);
+    equiposMock = equiposMock.map((eq) =>
+      eq.id === equipoId
+        ? { ...eq, estado: "mantenimiento", responsable: null, vehiculoId: null, comentarioMantenimiento: comentario }
+        : eq
+    );
+    return equiposMock.find((eq) => eq.id === equipoId);
+  }
+  // TODO backend: PATCH /api/equipos/:id/estado { estado: "mantenimiento", comentario }
+  return apiClient.patch(`/equipos/${equipoId}/estado`, { estado: "mantenimiento", comentario });
 }
 
 export async function devolverEquipo(equipoId) {

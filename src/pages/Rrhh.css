@@ -1,7 +1,7 @@
 .tabs {
   display: flex;
   gap: 4px;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 3px;
@@ -38,9 +38,9 @@
   border-radius: var(--radius);
   padding: 0 12px;
   font-size: 13px;
-  background: #fff;
+  background: var(--card);
   font-family: var(--font-body);
-  color: #374151;
+  color: var(--muted);
 }
 
 .filters .search {
@@ -49,7 +49,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0 12px;
@@ -68,7 +68,7 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -164,7 +164,7 @@ tbody tr:hover {
 
 .estado.vigente {
   background: var(--success-tint);
-  color: #1f6b41;
+  color: var(--success-dark);
 }
 
 .estado.porvencer {
@@ -201,7 +201,18 @@ tbody tr:hover {
 }
 
 .doc-chip:hover {
-  background: #ead3b8;
+  background: rgba(201, 117, 46, 0.28);
+}
+
+.doc-chip--pendiente {
+  color: var(--danger-dark);
+  background: var(--danger-tint);
+  cursor: pointer;
+  border: 1px dashed var(--danger-dark);
+}
+
+.doc-chip--pendiente:hover {
+  background: rgba(194, 68, 68, 0.28);
 }
 
 .sin-adjuntar {
@@ -214,7 +225,7 @@ tbody tr:hover {
   height: 30px;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--card);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -228,4 +239,34 @@ tbody tr:hover {
 
 .icon-btn:hover {
   background: var(--paper);
+}
+
+/* ===== Modal: detalle de contrato/curso ===== */
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 18px;
+  margin-top: 4px;
+}
+
+.detalle-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detalle-grid .equipo-card-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+}
+
+.detalle-grid p {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
 }

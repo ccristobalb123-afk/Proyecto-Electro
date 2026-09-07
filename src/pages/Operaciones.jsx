@@ -14,6 +14,8 @@ import ModalNuevoVehiculo from "../components/operaciones/ModalNuevoVehiculo";
 import ModalHistorialOperaciones from "../components/operaciones/ModalHistorialOperaciones";
 import ModalInspeccion from "../components/operaciones/ModalInspeccion";
 import ModalBaja from "../components/operaciones/ModalBaja";
+import ModalAsignarEquipo from "../components/operaciones/ModalAsignarEquipo";
+import ModalMantenimiento from "../components/operaciones/ModalMantenimiento";
 import ModalDocumentos from "../components/operaciones/ModalDocumentos";
 import "./Operaciones.css";
 
@@ -36,6 +38,8 @@ export default function Operaciones() {
   const [modalHistorial, setModalHistorial] = useState(null); // equipo|vehiculo seleccionado
   const [modalInspeccion, setModalInspeccion] = useState(null); // equipo seleccionado
   const [modalBaja, setModalBaja] = useState(null); // equipo seleccionado
+  const [modalAsignar, setModalAsignar] = useState(null); // equipo seleccionado
+  const [modalMantenimiento, setModalMantenimiento] = useState(null); // equipo seleccionado
   const [modalDocs, setModalDocs] = useState(null); // vehiculo seleccionado
 
   // ---- Formulario Nuevo equipo ----
@@ -46,6 +50,12 @@ export default function Operaciones() {
     camposValores: {},
   });
   const [errorCodigo, setErrorCodigo] = useState(false);
+
+  // ---- Categoría nueva (dentro del modal de Nuevo equipo) ----
+  const [nuevaCategoria, setNuevaCategoria] = useState(false);
+  const [nombreNuevaCategoria, setNombreNuevaCategoria] = useState("");
+  const [camposNuevaCategoria, setCamposNuevaCategoria] = useState([{ nombre: "", placeholder: "" }]);
+  const [errorCategoria, setErrorCategoria] = useState("");
 
   // ---- Formulario Nuevo vehículo ----
   const [fVehiculo, setFVehiculo] = useState({
@@ -66,6 +76,10 @@ export default function Operaciones() {
 
   // ---- Formulario dar de baja ----
   const [motivoBaja, setMotivoBaja] = useState("");
+  const [vehiculoIdAsignar, setVehiculoIdAsignar] = useState("");
+  const [errorAsignar, setErrorAsignar] = useState(false);
+  const [comentarioMantenimiento, setComentarioMantenimiento] = useState("");
+  const [errorMantenimiento, setErrorMantenimiento] = useState(false);
   const [errorMotivo, setErrorMotivo] = useState(false);
 
   // Carga de equipos: se re-consulta al backend cuando cambia un filtro,
@@ -118,6 +132,10 @@ export default function Operaciones() {
     if (tab === "equipos") {
       setFEquipo({ codigo: "", categoria: "Escaleras Embonables", empresa: "corevex", camposValores: {} });
       setErrorCodigo(false);
+      setNuevaCategoria(false);
+      setNombreNuevaCategoria("");
+      setCamposNuevaCategoria([{ nombre: "", placeholder: "" }]);
+      setErrorCategoria("");
     } else {
       setFVehiculo({ placa: "", tipoUnidad: "Camioneta", empresa: "corevex", cuadrilla: "" });
     }
@@ -127,9 +145,27 @@ export default function Operaciones() {
   async function handleGuardarEquipo(e) {
     e.preventDefault();
     if (!fEquipo.codigo.trim() || errorCodigo) return;
+
+    let categoriaFinal = fEquipo.categoria;
+    if (nuevaCategoria) {
+      if (!nombreNuevaCategoria.trim()) {
+        setErrorCategoria("Ponle un nombre a la categoría.");
+        return;
+      }
+      if (CATEGORIAS[nombreNuevaCategoria.trim()]) {
+        setErrorCategoria("Ya existe una categoría con ese nombre.");
+        return;
+      }
+      if (!camposNuevaCategoria.some((c) => c.nombre.trim())) {
+        setErrorCategoria("Agrega al menos un campo para esta categoría.");
+        return;
+      }
+      categoriaFinal = equiposService.agregarCategoria(nombreNuevaCategoria, camposNuevaCategoria);
+    }
+
     // El backend valida de nuevo el código único (nunca confiar solo en
     // la validación del frontend) y crea el equipo con estado DISPONIBLE.
-    const nuevo = await equiposService.crearEquipo(fEquipo);
+    const nuevo = await equiposService.crearEquipo({ ...fEquipo, categoria: categoriaFinal });
     setEquipos((prev) => [nuevo, ...prev]);
     setModalNuevo(false);
   }
@@ -176,8 +212,49 @@ export default function Operaciones() {
       setModalBaja(eq);
       return;
     }
+    if (nuevoEstado === "asignado") {
+      abrirAsignar(eq);
+      return;
+    }
+    if (nuevoEstado === "mantenimiento") {
+      abrirMantenimiento(eq);
+      return;
+    }
     const actualizado = await equiposService.cambiarEstadoEquipo(eq.id, nuevoEstado);
     setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+  }
+
+  function abrirAsignar(eq) {
+    setVehiculoIdAsignar("");
+    setErrorAsignar(false);
+    setModalAsignar(eq);
+  }
+
+  async function handleConfirmarAsignar() {
+    if (!vehiculoIdAsignar) {
+      setErrorAsignar(true);
+      return;
+    }
+    const vehiculo = vehiculos.find((v) => String(v.id) === String(vehiculoIdAsignar));
+    const actualizado = await equiposService.asignarEquipo(modalAsignar.id, vehiculo);
+    setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+    setModalAsignar(null);
+  }
+
+  function abrirMantenimiento(eq) {
+    setComentarioMantenimiento("");
+    setErrorMantenimiento(false);
+    setModalMantenimiento(eq);
+  }
+
+  async function handleConfirmarMantenimiento() {
+    if (!comentarioMantenimiento.trim()) {
+      setErrorMantenimiento(true);
+      return;
+    }
+    const actualizado = await equiposService.enviarAMantenimiento(modalMantenimiento.id, comentarioMantenimiento);
+    setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+    setModalMantenimiento(null);
   }
 
   function abrirInspeccion(eq) {
@@ -219,6 +296,13 @@ export default function Operaciones() {
   // referenciamos las listas tal como llegaron.
   const equiposFiltrados = equipos;
   const vehiculosFiltrados = vehiculos;
+
+  // Solo camiones registrados de la misma empresa dueña del equipo — así
+  // no se puede asignar, por ejemplo, un equipo de Electro a un camión
+  // que es de Corevex.
+  const vehiculosParaAsignar = modalAsignar
+    ? vehiculos.filter((v) => v.empresaDueña === modalAsignar.empresa)
+    : [];
 
   // Agrupa los equipos por categoría (Escaleras, Guantes, Líneas de vida...)
   // en vez de mostrarlos todos mezclados en un solo grid. Usa el orden de
@@ -311,6 +395,13 @@ export default function Operaciones() {
         errorCodigo={errorCodigo}
         checkCodigo={checkCodigo}
         onSubmit={handleGuardarEquipo}
+        nuevaCategoria={nuevaCategoria}
+        setNuevaCategoria={setNuevaCategoria}
+        nombreNuevaCategoria={nombreNuevaCategoria}
+        setNombreNuevaCategoria={setNombreNuevaCategoria}
+        camposNuevaCategoria={camposNuevaCategoria}
+        setCamposNuevaCategoria={setCamposNuevaCategoria}
+        errorCategoria={errorCategoria}
       />
 
       <ModalNuevoVehiculo
@@ -346,6 +437,27 @@ export default function Operaciones() {
         error={errorMotivo}
         onClose={() => setModalBaja(null)}
         onConfirmar={handleConfirmarBaja}
+      />
+
+      <ModalAsignarEquipo
+        open={!!modalAsignar}
+        equipo={modalAsignar}
+        vehiculos={vehiculosParaAsignar}
+        vehiculoId={vehiculoIdAsignar}
+        setVehiculoId={(v) => { setVehiculoIdAsignar(v); setErrorAsignar(false); }}
+        error={errorAsignar}
+        onClose={() => setModalAsignar(null)}
+        onConfirmar={handleConfirmarAsignar}
+      />
+
+      <ModalMantenimiento
+        open={!!modalMantenimiento}
+        equipo={modalMantenimiento}
+        comentario={comentarioMantenimiento}
+        setComentario={(v) => { setComentarioMantenimiento(v); setErrorMantenimiento(false); }}
+        error={errorMantenimiento}
+        onClose={() => setModalMantenimiento(null)}
+        onConfirmar={handleConfirmarMantenimiento}
       />
 
       <ModalDocumentos

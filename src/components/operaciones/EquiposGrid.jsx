@@ -1,3 +1,4 @@
+import { Row, Col } from "react-bootstrap";
 import { IconEye, IconTrash } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
@@ -37,81 +38,100 @@ export default function EquiposGrid({
             <h3 className="font-display">{categoria}</h3>
             <span className="categoria-seccion-count">{items.length}</span>
           </div>
-          <div className="equipos-grid">
+
+          {/* Grid de Bootstrap: columnas responsivas + h-100 para igualar alturas */}
+          <Row xs={1} sm={2} lg={3} className="g-3">
             {items.map((eq) => {
               const campos = Object.entries(eq.camposValores || {});
               return (
-                <div className="equipo-card" key={eq.id}>
-                  <div className="equipo-card-header">
-                    <div>
-                      <div className="equipo-card-code">{eq.codigo}</div>
-                      <div className="equipo-card-cat">{eq.categoria}</div>
+                <Col key={eq.id}>
+                  <div className="equipo-card h-100">
+                    <div className="equipo-card-header">
+                      <div>
+                        <div className="equipo-card-code">{eq.codigo}</div>
+                        <div className="equipo-card-cat">{eq.categoria}</div>
+                      </div>
+                      <span className={`estado ${eq.estado}`}><i />{ESTADOS[eq.estado]}</span>
                     </div>
-                    <span className={`estado ${eq.estado}`}><i />{ESTADOS[eq.estado]}</span>
-                  </div>
 
-                  <div className="equipo-card-body">
-                    {eq.responsable && (
-                      <div className="equipo-card-asignado">
-                        <span className="equipo-card-label">Asignado a</span>
-                        <span className="equipo-card-asignado-valor">👤 {eq.responsable}</span>
-                      </div>
-                    )}
-
-                    {campos.length > 0 && (
-                      <div className="equipo-card-campos">
-                        {campos.map(([campo, valor]) => (
-                          <div className="equipo-card-campo" key={campo}>
-                            <span className="equipo-card-label">{campo}</span>
-                            <span className="equipo-card-campo-valor">{valor}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {(eq.ultInspeccion || eq.proxInspeccion) && (
-                      <div className="equipo-card-inspecciones">
-                        {eq.ultInspeccion && (
-                          <div><span className="equipo-card-label">Últ. inspección</span><span>{eq.ultInspeccion}</span></div>
-                        )}
-                        {eq.proxInspeccion && (
-                          <div><span className="equipo-card-label">Próx. inspección</span><span>{eq.proxInspeccion}</span></div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="equipo-card-footer">
-                    <div className="equipo-card-actions">
-                      <button className="btn-outline-sm" type="button" onClick={() => onInspeccionar(eq)}>
-                        Checklist pre-uso
-                      </button>
-                      {eq.estado === "asignado" && (
-                        <button className="btn-outline-sm" type="button" onClick={() => onDevolver(eq)}>
-                          Devolver
-                        </button>
+                    <div className="equipo-card-body">
+                      {eq.responsable && (
+                        <div className="equipo-card-asignado">
+                          <span className="equipo-card-label">Asignado a</span>
+                          <span className="equipo-card-asignado-valor">👤 {eq.responsable}</span>
+                        </div>
                       )}
-                      <button className="icon-btn" type="button" title="Ver hoja de vida" onClick={() => onVerHistorial(eq)}>
-                        <IconEye />
-                      </button>
-                      <button className="icon-btn" type="button" title="Dar de baja" onClick={() => onDarBaja(eq)}>
-                        <IconTrash />
-                      </button>
+
+                      {eq.estado === "mantenimiento" && eq.comentarioMantenimiento && (
+                        <div className="equipo-card-asignado" style={{ background: "var(--volt-tint)" }}>
+                          <span className="equipo-card-label" style={{ color: "var(--volt-dark)" }}>Qué tiene</span>
+                          <span className="equipo-card-asignado-valor" style={{ color: "var(--volt-dark)" }}>
+                            {eq.comentarioMantenimiento}
+                          </span>
+                        </div>
+                      )}
+
+                      {campos.length > 0 && (
+                        <div className="equipo-card-campos">
+                          {campos.map(([campo, valor]) => (
+                            <div className="equipo-card-campo" key={campo}>
+                              <span className="equipo-card-label">{campo}</span>
+                              <span className="equipo-card-campo-valor">{valor}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {(eq.ultInspeccion || eq.proxInspeccion) && (
+                        <div className="equipo-card-inspecciones">
+                          {eq.ultInspeccion && (
+                            <div><span className="equipo-card-label">Últ. inspección</span><span>{eq.ultInspeccion}</span></div>
+                          )}
+                          {eq.proxInspeccion && (
+                            <div><span className="equipo-card-label">Próx. inspección</span><span>{eq.proxInspeccion}</span></div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    <label className="equipo-card-select">
-                      <span>Cambiar estado</span>
-                      <select value={eq.estado} onChange={(e) => onCambiarEstado(eq, e.target.value)}>
-                        {Object.entries(ESTADOS).map(([valor, label]) => (
-                          <option key={valor} value={valor}>{label}</option>
-                        ))}
-                      </select>
-                    </label>
+                    <div className="equipo-card-footer">
+                      <div className="equipo-card-actions">
+                        <button className="btn-outline-sm" type="button" onClick={() => onInspeccionar(eq)}>
+                          Checklist pre-uso
+                        </button>
+                        {eq.estado === "asignado" && (
+                          <button className="btn-outline-sm" type="button" onClick={() => onDevolver(eq)}>
+                            Devolver
+                          </button>
+                        )}
+                        <button className="icon-btn" type="button" title="Ver hoja de vida" onClick={() => onVerHistorial(eq)}>
+                          <IconEye />
+                        </button>
+                        <button className="icon-btn" type="button" title="Dar de baja" onClick={() => onDarBaja(eq)}>
+                          <IconTrash />
+                        </button>
+                      </div>
+
+                      <label className="equipo-card-select">
+                        <span>Cambiar estado</span>
+                        <select value={eq.estado} onChange={(e) => onCambiarEstado(eq, e.target.value)}>
+                          {Object.entries(ESTADOS).map(([valor, label]) => (
+                            <option
+                              key={valor}
+                              value={valor}
+                              disabled={valor === "asignado" && (eq.estado === "vencido" || eq.estado === "debaja")}
+                            >
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
                   </div>
-                </div>
+                </Col>
               );
             })}
-          </div>
+          </Row>
         </section>
       ))}
     </div>

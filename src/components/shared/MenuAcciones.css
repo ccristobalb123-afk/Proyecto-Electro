@@ -53,7 +53,7 @@
   padding: 9px 12px;
   font-size: 13.5px;
   font-weight: 500;
-  color: #374151;
+  color: var(--muted);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -78,7 +78,7 @@
 }
 
 .menu-acciones__item--exito {
-  color: #1f6b41;
+  color: var(--success-dark);
 }
 
 .menu-acciones__item--exito:hover {

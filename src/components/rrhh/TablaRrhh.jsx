@@ -1,9 +1,9 @@
-import { IconFile, IconEye } from "../icons/Icons";
+import { IconFile, IconEye, IconUpload } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
 
-export default function TablaRrhh({ cargando, error, onReintentar, items, tab, estadoLabel, hayFiltrosActivos, onNuevo }) {
+export default function TablaRrhh({ cargando, error, onReintentar, items, tab, estadoLabel, hayFiltrosActivos, onNuevo, onVerDetalle, onAdjuntarArchivo }) {
   if (cargando) return <Loading texto="Cargando..." />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
 
@@ -56,7 +56,19 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
                       Ver PDF
                     </button>
                   ) : (
-                    <span className="sin-adjuntar">Sin adjuntar</span>
+                    <label className="doc-chip doc-chip--pendiente" title="Adjuntar el documento del contrato">
+                      <IconUpload width={13} height={13} />
+                      Adjuntar
+                      <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const archivo = e.target.files?.[0];
+                          if (archivo) onAdjuntarArchivo(item, archivo);
+                        }}
+                      />
+                    </label>
                   )}
                 </td>
               )}
@@ -67,7 +79,7 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
                 </span>
               </td>
               <td>
-                <button className="icon-btn" type="button" title="Ver detalle">
+                <button className="icon-btn" type="button" title="Ver detalle" onClick={() => onVerDetalle(item)}>
                   <IconEye />
                 </button>
               </td>

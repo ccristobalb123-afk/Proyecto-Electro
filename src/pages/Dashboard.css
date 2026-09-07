@@ -10,6 +10,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 18px;
+  box-shadow: var(--shadow-sm);
 }
 
 .kpi-top {
@@ -72,6 +73,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .panel-head {
@@ -249,6 +251,6 @@
   padding: 0 10px;
   font-size: 12.5px;
   font-family: var(--font-body);
-  color: #374151;
-  background: #fff;
+  color: var(--muted);
+  background: var(--card);
 }

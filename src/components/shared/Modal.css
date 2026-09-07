@@ -12,8 +12,8 @@
   display: flex;
 }
 
-.modal {
-  background: #fff;
+.modal-electro {
+  background: var(--card);
   border-radius: 14px;
   width: 460px;
   max-width: 92vw;
@@ -22,7 +22,7 @@
   padding: 26px 28px;
 }
 
-.modal-wide {
+.modal-electro.modal-wide {
   width: 560px;
 }
 
@@ -81,7 +81,7 @@
   padding: 0 12px;
   font-size: 13.5px;
   font-family: var(--font-body);
-  background: #fff;
+  background: var(--card);
 }
 
 .form-field textarea {
@@ -173,7 +173,7 @@
 
 .aviso-hint {
   font-size: 11.5px;
-  color: #8a5e10;
+  color: var(--volt-dark);
   margin-top: 6px;
 }
 
@@ -212,7 +212,7 @@
 }
 
 .dropzone.has-file p {
-  color: #1f6b41;
+  color: var(--success-dark);
 }
 
 .modal-actions {
@@ -222,7 +222,7 @@
 }
 
 .btn-secondary {
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 10px 18px;
@@ -271,7 +271,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--card);
   border: 2px solid var(--copper);
 }
 
@@ -307,4 +307,36 @@
 .saldo-summary .val {
   font-family: var(--font-mono);
   font-weight: 600;
+}
+
+/* ===== Categoría nueva (dentro de Nuevo equipo) ===== */
+.categoria-nueva-box {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.categoria-nueva-campos-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+.categoria-nueva-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: -6px 0 2px;
+}
+
+.campo-nuevo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
 }

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { AppShell } from "../components/layout/AppShell";
+import { Modal } from "../components/shared/Modal";
+import { useModal } from "../hooks/useModal";
 import { IconPlus } from "../components/icons/Icons";
 import * as contratosService from "../services/contratosService";
 import * as rrhhService from "../services/rrhhService";
@@ -21,6 +23,7 @@ const ESTADO_LABEL = {
 export default function Rrhh() {
   const [tab, setTab] = useState("contratos"); // "contratos" | "cursos"
   const [modalOpen, setModalOpen] = useState(false);
+  const modalDetalle = useModal(); // dato = contrato o curso seleccionado
 
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
@@ -121,6 +124,11 @@ export default function Rrhh() {
     setFContrato((f) => ({ ...f, archivoNombre: file ? file.name : "" }));
   }
 
+  async function handleAdjuntarArchivo(item, archivo) {
+    const actualizado = await contratosService.adjuntarArchivoContrato(item.id, archivo.name);
+    setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
+  }
+
   const hayFiltrosActivos = !!(filtroEmpresa || filtroEstado || busqueda);
 
   return (
@@ -186,6 +194,8 @@ export default function Rrhh() {
         estadoLabel={ESTADO_LABEL}
         hayFiltrosActivos={hayFiltrosActivos}
         onNuevo={openModal}
+        onVerDetalle={modalDetalle.abrir}
+        onAdjuntarArchivo={handleAdjuntarArchivo}
       />
 
       <ModalNuevoContrato
@@ -206,6 +216,41 @@ export default function Rrhh() {
         error={errorCurso}
         onSubmit={handleGuardarCurso}
       />
+
+      {/* ===== Modal: Ver detalle (contrato o curso) ===== */}
+      <Modal
+        open={modalDetalle.abierto}
+        title={tab === "contratos" ? "Detalle del contrato" : "Detalle del registro"}
+        subtitle={modalDetalle.dato?.trabajador}
+        onClose={modalDetalle.cerrar}
+      >
+        {modalDetalle.dato && (
+          <div className="detalle-grid">
+            <div>
+              <span className="equipo-card-label">Empresa</span>
+              <p>{modalDetalle.dato.empresa === "corevex" ? "CorevexSAC" : "ElectroSAC"}</p>
+            </div>
+            <div>
+              <span className="equipo-card-label">Tipo</span>
+              <p>{modalDetalle.dato.tipo}</p>
+            </div>
+            <div>
+              <span className="equipo-card-label">Vence</span>
+              <p>{modalDetalle.dato.vence}</p>
+            </div>
+            <div>
+              <span className="equipo-card-label">Estado</span>
+              <p>{ESTADO_LABEL[modalDetalle.dato.estado]}</p>
+            </div>
+            {tab === "contratos" && (
+              <div>
+                <span className="equipo-card-label">Documento</span>
+                <p>{modalDetalle.dato.archivo ? "Adjunto" : "Sin adjuntar"}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </AppShell>
   );
 }

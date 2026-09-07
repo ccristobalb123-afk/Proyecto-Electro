@@ -27,10 +27,15 @@ export default function Administracion() {
   const [filtroRol, setFiltroRol] = useState("");
 
   const modalNuevo = useModal();
+  const modalEditar = useModal(); // dato = usuario seleccionado
   const modalReset = useModal(); // dato = usuario seleccionado
   const modalDesactivar = useModal(); // dato = usuario seleccionado
 
   const [fUsuario, setFUsuario] = useState({
+    nombre: "", correo: "", rol: "USUARIO", empresas: ["corevex"],
+  });
+
+  const [fUsuarioEditar, setFUsuarioEditar] = useState({
     nombre: "", correo: "", rol: "USUARIO", empresas: ["corevex"],
   });
 
@@ -60,11 +65,31 @@ export default function Administracion() {
     });
   }
 
+  function toggleEmpresaEditar(empresa) {
+    setFUsuarioEditar((prev) => {
+      const tiene = prev.empresas.includes(empresa);
+      const empresas = tiene ? prev.empresas.filter((e) => e !== empresa) : [...prev.empresas, empresa];
+      return { ...prev, empresas };
+    });
+  }
+
+  function abrirEditar(u) {
+    setFUsuarioEditar({ nombre: u.nombre, correo: u.correo, rol: u.rol, empresas: u.empresas });
+    modalEditar.abrir(u);
+  }
+
   async function handleGuardarUsuario(e) {
     e.preventDefault();
     const nuevo = await usuariosService.crearUsuario(fUsuario);
     setUsuarios((prev) => [nuevo, ...prev]);
     modalNuevo.cerrar();
+  }
+
+  async function handleGuardarEdicion(e) {
+    e.preventDefault();
+    const actualizado = await usuariosService.actualizarUsuario(modalEditar.dato.id, fUsuarioEditar);
+    setUsuarios((prev) => prev.map((u) => (u.id === actualizado.id ? actualizado : u)));
+    modalEditar.cerrar();
   }
 
   async function handleConfirmarReset() {
@@ -142,7 +167,7 @@ export default function Administracion() {
               <button className="btn-outline-sm" type="button" onClick={() => modalReset.abrir(u)}>
                 Restablecer contraseña
               </button>
-              <button className="btn-outline-sm" type="button">Editar</button>
+              <button className="btn-outline-sm" type="button" onClick={() => abrirEditar(u)}>Editar</button>
               <button
                 className="icon-btn"
                 type="button"
@@ -209,6 +234,62 @@ export default function Administracion() {
           </div>
           <ModalActions onCancel={modalNuevo.cerrar}>
             <button className="btn-primary" type="submit">Crear usuario</button>
+          </ModalActions>
+        </form>
+      </Modal>
+
+      {/* ===== Modal: Editar usuario ===== */}
+      <Modal open={modalEditar.abierto} title="Editar usuario" subtitle={modalEditar.dato ? modalEditar.dato.nombre : ""} onClose={modalEditar.cerrar}>
+        <form onSubmit={handleGuardarEdicion}>
+          <div className="form-field">
+            <label>Nombre completo</label>
+            <input required value={fUsuarioEditar.nombre} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, nombre: e.target.value })} placeholder="Ej. Milagros Ríos" />
+          </div>
+          <div className="form-field">
+            <label>Correo</label>
+            <input required type="email" value={fUsuarioEditar.correo} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, correo: e.target.value })} placeholder="nombre@corevex.pe" />
+          </div>
+          <div className="form-field">
+            <label>Rol</label>
+            <div className="rol-choice">
+              <label className={fUsuarioEditar.rol === "USUARIO" ? "sel" : ""}>
+                <input type="radio" name="rolEditar" checked={fUsuarioEditar.rol === "USUARIO"} onChange={() => setFUsuarioEditar({ ...fUsuarioEditar, rol: "USUARIO" })} />
+                <div>
+                  <strong>Usuario</strong>
+                  <span>Acceso solo a Dashboard y Operaciones</span>
+                </div>
+              </label>
+              <label className={fUsuarioEditar.rol === "SUPERVISOR" ? "sel" : ""}>
+                <input type="radio" name="rolEditar" checked={fUsuarioEditar.rol === "SUPERVISOR"} onChange={() => setFUsuarioEditar({ ...fUsuarioEditar, rol: "SUPERVISOR" })} />
+                <div>
+                  <strong>Supervisor</strong>
+                  <span>Además accede a RRHH</span>
+                </div>
+              </label>
+              <label className={fUsuarioEditar.rol === "ADMINISTRADOR" ? "sel" : ""}>
+                <input type="radio" name="rolEditar" checked={fUsuarioEditar.rol === "ADMINISTRADOR"} onChange={() => setFUsuarioEditar({ ...fUsuarioEditar, rol: "ADMINISTRADOR" })} />
+                <div>
+                  <strong>Administrador</strong>
+                  <span>Acceso completo — pide código de verificación (MFA)</span>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div className="form-field">
+            <label>Empresas con acceso</label>
+            <div className="empresas-check">
+              <label className={fUsuarioEditar.empresas.includes("corevex") ? "sel-corevex" : ""}>
+                <input type="checkbox" checked={fUsuarioEditar.empresas.includes("corevex")} onChange={() => toggleEmpresaEditar("corevex")} />
+                CorevexSAC
+              </label>
+              <label className={fUsuarioEditar.empresas.includes("electro") ? "sel-electro" : ""}>
+                <input type="checkbox" checked={fUsuarioEditar.empresas.includes("electro")} onChange={() => toggleEmpresaEditar("electro")} />
+                ElectroSAC
+              </label>
+            </div>
+          </div>
+          <ModalActions onCancel={modalEditar.cerrar}>
+            <button className="btn-primary" type="submit">Guardar cambios</button>
           </ModalActions>
         </form>
       </Modal>

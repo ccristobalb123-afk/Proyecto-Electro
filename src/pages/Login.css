@@ -109,7 +109,7 @@
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 6px;
-  color: #374151;
+  color: var(--muted);
 }
 
 .field input {
@@ -120,7 +120,7 @@
   padding: 0 14px;
   font-size: 14px;
   font-family: var(--font-body);
-  background: #fff;
+  background: var(--card);
 }
 
 .field-error {
@@ -167,7 +167,7 @@
   font-family: var(--font-mono);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: #fff;
+  background: var(--card);
 }
 
 .step-icon {
@@ -184,5 +184,5 @@
 
 .step-icon.success {
   background: var(--success-tint);
-  color: #1f6b41;
+  color: var(--success-dark);
 }

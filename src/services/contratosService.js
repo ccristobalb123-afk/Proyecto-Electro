@@ -46,3 +46,15 @@ export async function crearContrato(datos) {
   // diasAnticipacion <= hoy, crea la Alerta correspondiente.
   return apiClient.post("/contratos", datos);
 }
+
+export async function adjuntarArchivoContrato(contratoId, archivoNombre) {
+  if (MOCK_MODE) {
+    await delay();
+    contratosMock = contratosMock.map((c) =>
+      c.id === contratoId ? { ...c, archivo: true, archivoNombre } : c
+    );
+    return contratosMock.find((c) => c.id === contratoId);
+  }
+  // TODO backend: POST /api/contratos/:id/documento (multipart/form-data)
+  return apiClient.post(`/contratos/${contratoId}/documento`, { archivoNombre });
+}

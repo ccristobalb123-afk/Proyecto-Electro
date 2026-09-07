@@ -1,44 +1,55 @@
 /* ============================================================
    Activo360 v2 — Design tokens
-   Mismos valores usados en los mockups de alta fidelidad.
+   Paleta corporativa clara — sidebar oscuro, contenido claro.
+   Mismos nombres de variable que antes para no tocar componentes,
+   solo cambian los valores.
    ============================================================ */
 
 :root {
   /* Base */
-  --ink: #12181f;
-  --ink-2: #1b2430;
-  --ink-border: #2a3542;
-  --paper: #f6f4ef;
-  --card: #ffffff;
-  --border: #e4e0d6;
+  --ink: #243447;         /* sidebar — se mantiene oscuro a propósito */
+  --ink-2: #1b2836;
+  --ink-border: rgba(255, 255, 255, 0.08);
+  --paper: #eaeef2;       /* fondo general */
+  --card: #ffffff;        /* tarjetas, paneles, inputs */
+  --border: #dce2e8;
 
-  /* Marca */
-  --copper: #c9752e;
-  --copper-dark: #a85d1f;
-  --copper-tint: #f3e3d3;
+  /* "Principal" (acento dominante de la app: botones, focos, hovers).
+     Se mantiene el nombre --copper por compatibilidad con ~90 usos en
+     el resto del CSS, pero el valor es el azul Principal de la paleta.
+     CorevexSAC usa este mismo azul como su color de marca (es la
+     empresa "principal" del sistema). */
+  --copper: #2563eb;
+  --copper-dark: #1d4ed8;
+  --copper-tint: #dbeafe;
 
-  --electro: #3b6e8f;
-  --electro-dark: #2a536d;
-  --electro-tint: #e2ecf1;
+  /* ElectroSAC — gris pizarra neutro, para no competir con el azul
+     Principal ni sumar un tono extra a la paleta. */
+  --electro: #64748b;
+  --electro-dark: #334155;
+  --electro-tint: #e2e8f0;
 
-  --volt: #f0b429;
-  --volt-dark: #8a5e10;
-  --volt-tint: #fbedcb;
+  /* Advertencia / pendiente / próximo a vencer */
+  --volt: #f59e0b;
+  --volt-dark: #92400e;
+  --volt-tint: #fef3c7;
 
-  /* Semánticos */
-  --danger: #c24444;
-  --danger-dark: #8b2e2e;
-  --danger-tint: #f7e2e1;
+  /* Error / vencido */
+  --danger: #dc2626;
+  --danger-dark: #991b1b;
+  --danger-tint: #fee2e2;
 
-  --success: #2f8f5b;
-  --success-tint: #e1f1e7;
+  /* Éxito / pagado / disponible */
+  --success: #16a34a;
+  --success-dark: #166534;
+  --success-tint: #dcfce7;
 
-  --text: #12181f;
-  --muted: #6b7280;
+  --text: #1f2937;
+  --muted: #667085;
   --muted-2: #98a2b3;
 
-  --gray-tint: #eeeeec;
-  --gray-dark: #5a5a56;
+  --gray-tint: #f1f3f5;
+  --gray-dark: #4b5563;
 
   /* Tipografía */
   --font-display: "Space Grotesk", sans-serif;
@@ -53,7 +64,6 @@
 
   /* ---------- Sistema de diseño (punto 1.9 del roadmap) ---------- */
 
-  /* Espaciados — usar estos en vez de números sueltos (4px, 18px, 22px...) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -64,7 +74,6 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  /* Tamaños de fuente */
   --fs-xs: 11.5px;
   --fs-sm: 12.5px;
   --fs-base: 13.5px;
@@ -73,30 +82,23 @@
   --fs-xl: 19px;
   --fs-2xl: 26px;
 
-  /* Pesos de fuente */
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
   --fw-bold: 700;
 
-  /* Alturas de controles — inputs, selects, botones deberían medir una
-     de estas 3 alturas, no valores sueltos (36px/38px/42px mezclados). */
   --control-height-sm: 36px;
   --control-height-md: 40px;
   --control-height-lg: 44px;
 
-  /* Sombras — 3 niveles nada más. No inventar una sombra nueva por
-     componente (hoy hay como 6 variantes ligeramente distintas). */
-  --shadow-sm: 0 1px 2px rgba(18, 24, 31, 0.06);
-  --shadow-md: 0 12px 32px -4px rgba(18, 24, 31, 0.16);
-  --shadow-lg: 0 20px 50px -4px rgba(18, 24, 31, 0.22);
+  /* Sombras — sutiles, propias de un fondo claro */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 12px 32px -4px rgba(16, 24, 40, 0.12);
+  --shadow-lg: 0 20px 50px -4px rgba(16, 24, 40, 0.18);
 
-  /* Transiciones — usar la misma curva en toda la app */
   --transition-fast: 0.12s ease;
   --transition-base: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Capas — evita el "número random" para z-index. Nombrados según el
-     orden de apilamiento real de la app, de menor a mayor. */
   --z-modal: 50;
   --z-bell-panel: 400;
   --z-drawer-overlay: 590;
@@ -107,15 +109,17 @@
   --z-critical-alert: 3300;
 }
 
-/* Breakpoints de referencia (documentados acá porque CSS no permite
-   var() dentro de @media — usar estos 3 valores literales siempre que
-   se agregue una regla responsiva nueva, en vez de inventar otro ancho):
+/* Breakpoints de referencia:
      - Celular:      max-width: 640px
      - Tablet:       max-width: 960px
      - Desktop ancho: sin media query (es el diseño base) */
 
 * {
   box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
 }
 
 body {

@@ -67,15 +67,20 @@ export async function crearVehiculo({ placa, tipoUnidad, empresa, cuadrilla }) {
       empresaDueña: empresa,
       empresaUso: empresa,
       cuadrilla,
-      documentos:
-        tipoUnidad === "Grúa"
-          ? [{ tipo: "Brazo hidráulico", dias: null, estado: "gray", archivo: false }]
-          : [],
+      // Antes esto quedaba en [] para vehículos que no son Grúa, así que
+      // el modal de Documentos no tenía ninguna fila donde adjuntar nada
+      // recién creado el vehículo. Ahora siempre arranca con los 5
+      // documentos base (sin adjuntar todavía), más el de Grúa si aplica.
+      documentos: [
+        ...DOCS_BASE.map((tipo) => ({ tipo, dias: null, estado: "gray", archivo: false })),
+        ...(tipoUnidad === "Grúa" ? [{ tipo: "Brazo hidráulico", dias: null, estado: "gray", archivo: false }] : []),
+      ],
     };
     vehiculosMock = [nuevo, ...vehiculosMock];
     return nuevo;
   }
   // TODO backend: POST /api/vehiculos { placa, tipoUnidad, empresa, cuadrilla }
+  // — el backend crea también los documentos base sin adjuntar.
   return apiClient.post("/vehiculos", { placa, tipoUnidad, empresa, cuadrilla });
 }
 

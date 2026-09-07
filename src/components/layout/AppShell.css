@@ -1,15 +1,23 @@
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ---------- Sidebar ---------- */
+/* position:sticky + top:0 + su propio alto de 100vh evita que el menú se
+   desplace cuando el contenido de la derecha es más largo que la
+   pantalla — así siempre queda a mano para cambiar de sección. */
 .sidebar {
   flex: 0 0 var(--sidebar-width);
   background: var(--ink);
   color: #dde3e9;
   display: flex;
   flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .sidebar-brand {
@@ -140,13 +148,18 @@
 .content {
   flex: 1;
   min-width: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
+/* El topbar queda quieto arriba; solo .main hace scroll internamente
+   (ver más abajo), así que la barra con el título y las acciones nunca
+   se mueve ni se tapa al desplazarse por una pantalla larga. */
 .topbar {
   height: var(--topbar-height);
-  background: #fff;
+  background: var(--card);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -154,6 +167,9 @@
   padding: 0 28px;
   flex: none;
   gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .topbar-left {
@@ -219,7 +235,8 @@
 .main {
   padding: 28px;
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* =========================================================

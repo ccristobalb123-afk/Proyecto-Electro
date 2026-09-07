@@ -60,6 +60,20 @@ export default function Finanzas() {
     empresa: "corevex", categoria: CATEGORIAS_GASTO[0], monto: "", fecha: "", proveedor: "", trabajador: "", descripcion: "",
   });
 
+  // Al cambiar de pestaña limpiamos la lista de inmediato: las 3 pestañas
+  // comparten `listaActual` pero tienen formas de dato distintas (facturas
+  // usan `montoTotal`, gastos usan `monto`), y la recarga es asíncrona.
+  // Sin este reset, el primer render tras el cambio de pestaña sigue
+  // mostrando los datos de la pestaña anterior con la forma equivocada,
+  // lo que rompe componentes como GastosGrid (soles(g.monto) sobre una
+  // factura, que no tiene `monto`, sino `montoTotal`).
+  function cambiarTab(nuevoTab) {
+    setTab(nuevoTab);
+    setFiltroEstado("");
+    setBusqueda("");
+    setListaActual([]);
+  }
+
   function abrirNuevo() {
     setFFactura({ empresa: "corevex", cliente: "", serie: "", numero: "", montoTotal: "", fechaEmision: "", fechaVencimiento: "", aplicaDetraccion: false, diasAviso: 7 });
     setFFacturaPagar({ empresa: "corevex", proveedor: "", motivo: "", montoTotal: "", fechaEmision: "", fechaVencimiento: "" });
@@ -135,13 +149,13 @@ export default function Finanzas() {
       }
     >
       <div className="tabs">
-        <button className={tab === "facturas" ? "active" : ""} onClick={() => { setTab("facturas"); setFiltroEstado(""); setBusqueda(""); }}>
+        <button className={tab === "facturas" ? "active" : ""} onClick={() => cambiarTab("facturas")}>
           Facturas
         </button>
-        <button className={tab === "facturasPagar" ? "active" : ""} onClick={() => { setTab("facturasPagar"); setFiltroEstado(""); setBusqueda(""); }}>
+        <button className={tab === "facturasPagar" ? "active" : ""} onClick={() => cambiarTab("facturasPagar")}>
           Facturas por pagar
         </button>
-        <button className={tab === "gastos" ? "active" : ""} onClick={() => { setTab("gastos"); setFiltroEstado(""); setBusqueda(""); }}>
+        <button className={tab === "gastos" ? "active" : ""} onClick={() => cambiarTab("gastos")}>
           Gastos
         </button>
       </div>

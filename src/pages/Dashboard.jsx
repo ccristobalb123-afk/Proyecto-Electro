@@ -35,33 +35,30 @@ const ICONO_POR_TIPO = {
 
 const TAG_POR_DIAS = (dias) => (dias <= 5 ? "red" : dias <= 15 ? "amber" : "gray");
 
-// TODO backend: GET /api/finanzas/comparativo?mes=2026-08 — suma de
-// DocumentoFinanciero/Gasto/Planilla agrupados por empresa, por mes.
-// Un gráfico por mes (no un año completo) para que los montos no se
-// vean chicos al compartir escala con 12 puntos.
-const comparativoPorMes = {
-  "2026-08": {
-    label: "Ago 2026",
-    labels: ["Por cobrar", "Por pagar", "Gastos", "Planilla"],
-    corevex: [14200, 6800, 9100, 15300],
-    electro: [10600, 9200, 7400, 18900],
-  },
-  "2026-07": {
-    label: "Jul 2026",
-    labels: ["Por cobrar", "Por pagar", "Gastos", "Planilla"],
-    corevex: [11800, 5200, 8400, 15300],
-    electro: [9200, 8100, 6900, 18900],
-  },
-  "2026-06": {
-    label: "Jun 2026",
-    labels: ["Por cobrar", "Por pagar", "Gastos", "Planilla"],
-    corevex: [9600, 7100, 7800, 14800],
-    electro: [12400, 6700, 8200, 18200],
-  },
+// TODO backend: GET /api/finanzas/comparativo — suma de Factura (facturado)
+// y Gasto (gastado) agrupada por empresa y por mes, de los últimos meses.
+const comparativoMeses = {
+  labels: ["Mar 2026", "Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026"],
+  corevexFacturado: [17200, 18900, 19800, 21400, 24600, 27200],
+  corevexGastado: [12800, 13400, 14100, 14900, 13600, 15900],
+  electroFacturado: [15600, 16800, 17900, 19100, 21300, 23800],
+  electroGastado: [13900, 14200, 14700, 15100, 15000, 16600],
 };
 
-function useComparativoChart(canvasRef, mesInicial) {
+function useComparativoChart(canvasRef, mesFinalIndex) {
   const chartRef = useRef(null);
+
+  function ventana() {
+    const fin = mesFinalIndex;
+    const inicio = Math.max(0, fin - 2);
+    return {
+      labels: comparativoMeses.labels.slice(inicio, fin + 1),
+      corevexFacturado: comparativoMeses.corevexFacturado.slice(inicio, fin + 1),
+      corevexGastado: comparativoMeses.corevexGastado.slice(inicio, fin + 1),
+      electroFacturado: comparativoMeses.electroFacturado.slice(inicio, fin + 1),
+      electroGastado: comparativoMeses.electroGastado.slice(inicio, fin + 1),
+    };
+  }
 
   // Crea el gráfico UNA sola vez al montar, y lo destruye al desmontar.
   // Separar creación/destrucción de la actualización de datos evita el
@@ -72,27 +69,47 @@ function useComparativoChart(canvasRef, mesInicial) {
   // React truena en silencio (pantalla en blanco, sin aviso claro).
   useEffect(() => {
     if (!canvasRef.current) return;
-    const data = comparativoPorMes[mesInicial];
+    const d = ventana();
 
     chartRef.current = new Chart(canvasRef.current, {
       type: "line",
       data: {
-        labels: data.labels,
+        labels: d.labels,
         datasets: [
           {
-            label: "CorevexSAC",
-            data: data.corevex,
-            borderColor: "#C9752E",
-            backgroundColor: "#C9752E",
+            label: "CorevexSAC — Facturado",
+            data: d.corevexFacturado,
+            borderColor: "#2563eb",
+            backgroundColor: "#2563eb",
             tension: 0.35,
             pointRadius: 4,
             borderWidth: 2,
           },
           {
-            label: "ElectroSAC",
-            data: data.electro,
-            borderColor: "#3B6E8F",
-            backgroundColor: "#3B6E8F",
+            label: "CorevexSAC — Gastado",
+            data: d.corevexGastado,
+            borderColor: "#2563eb",
+            backgroundColor: "#2563eb",
+            borderDash: [5, 4],
+            tension: 0.35,
+            pointRadius: 4,
+            borderWidth: 2,
+          },
+          {
+            label: "ElectroSAC — Facturado",
+            data: d.electroFacturado,
+            borderColor: "#64748b",
+            backgroundColor: "#64748b",
+            tension: 0.35,
+            pointRadius: 4,
+            borderWidth: 2,
+          },
+          {
+            label: "ElectroSAC — Gastado",
+            data: d.electroGastado,
+            borderColor: "#64748b",
+            backgroundColor: "#64748b",
+            borderDash: [5, 4],
             tension: 0.35,
             pointRadius: 4,
             borderWidth: 2,
@@ -101,18 +118,27 @@ function useComparativoChart(canvasRef, mesInicial) {
       },
       options: {
         responsive: true,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: {
+            display: true,
+            position: "bottom",
+            labels: { color: "#667085", font: { family: "Inter", size: 11.5 }, boxWidth: 14, padding: 14 },
+          },
+        },
         scales: {
           y: {
             ticks: {
               callback: (v) => "S/ " + v / 1000 + "k",
               font: { family: "JetBrains Mono", size: 11 },
-              color: "#6B7280",
+              color: "#667085",
             },
-            grid: { color: "#E4E0D6" },
+            // Sin líneas horizontales — solo los números del eje quedan
+            // como referencia, el fondo del panel ya está limpio.
+            grid: { display: false },
+            border: { display: false },
           },
           x: {
-            ticks: { font: { family: "Inter", size: 12, weight: 500 }, color: "#374151" },
+            ticks: { font: { family: "Inter", size: 12, weight: 500 }, color: "#1f2937" },
             grid: { display: false },
           },
         },
@@ -126,21 +152,28 @@ function useComparativoChart(canvasRef, mesInicial) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasRef]);
 
-  // Solo actualiza los datos cuando cambia el mes — no recrea el gráfico.
+  // Solo actualiza los datos cuando cambia el mes final elegido — no
+  // recrea el gráfico entero.
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    const data = comparativoPorMes[mesInicial];
-    chart.data.datasets[0].data = data.corevex;
-    chart.data.datasets[1].data = data.electro;
+    const d = ventana();
+    chart.data.labels = d.labels;
+    chart.data.datasets[0].data = d.corevexFacturado;
+    chart.data.datasets[1].data = d.corevexGastado;
+    chart.data.datasets[2].data = d.electroFacturado;
+    chart.data.datasets[3].data = d.electroGastado;
     chart.update();
-  }, [mesInicial]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mesFinalIndex]);
 }
 
 export default function Dashboard() {
   const chartRef = useRef(null);
-  const [mes, setMes] = useState("2026-08");
-  useComparativoChart(chartRef, mes);
+  // Índice del último mes de la ventana de 3 meses que se muestra —
+  // arranca en el más reciente (Ago 2026, el último de comparativoMeses).
+  const [mesFinalIndex, setMesFinalIndex] = useState(comparativoMeses.labels.length - 1);
+  useComparativoChart(chartRef, mesFinalIndex);
 
   const {
     data: proximosVencimientos,
@@ -224,31 +257,23 @@ export default function Dashboard() {
 
       <div className="panel">
         <div className="panel-head">
-          <h3>Comparativo por empresa</h3>
+          <h3>Facturado vs. gastado por empresa</h3>
           <select
             className="month-select"
-            value={mes}
-            onChange={(e) => setMes(e.target.value)}
+            value={mesFinalIndex}
+            onChange={(e) => setMesFinalIndex(Number(e.target.value))}
           >
-            {Object.entries(comparativoPorMes).map(([key, { label }]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
+            {comparativoMeses.labels.map((label, i) =>
+              i >= 2 ? (
+                <option key={label} value={i}>
+                  Hasta {label}
+                </option>
+              ) : null
+            )}
           </select>
         </div>
         <div className="panel-chart">
-          <canvas ref={chartRef} height="90" />
-          <div className="legend">
-            <span>
-              <i style={{ background: "var(--copper)" }} />
-              CorevexSAC
-            </span>
-            <span>
-              <i style={{ background: "var(--electro)" }} />
-              ElectroSAC
-            </span>
-          </div>
+          <canvas ref={chartRef} height="100" />
         </div>
       </div>
     </AppShell>

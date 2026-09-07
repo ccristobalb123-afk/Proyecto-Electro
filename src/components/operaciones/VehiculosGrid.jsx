@@ -1,3 +1,4 @@
+import { Row, Col } from "react-bootstrap";
 import { IconPlus, IconEye, IconFile } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
@@ -28,51 +29,60 @@ export default function VehiculosGrid({
   }
 
   return (
-    <div className="vehiculos-grid">
+    <Row xs={1} lg={2} className="g-3">
       {vehiculos.map((v) => (
-        <div className="vehiculo-card" key={v.id}>
-          <div className="vehiculo-card-top">
-            <div className="vehiculo-card-titulo">
-              <span className="vehiculo-placa">{v.placa}</span>
-              <span className={`co-badge ${v.empresaDueña}`}>{v.empresaDueña === "corevex" ? "COREVEXSAC" : "ELECTROSAC"}</span>
-              <span className="co-badge tipo">{v.tipoUnidad}</span>
+        <Col key={v.id}>
+          <div className="vehiculo-card h-100">
+            <div className="vehiculo-card-top">
+              <div className="vehiculo-card-titulo">
+                <span className="vehiculo-placa">{v.placa}</span>
+                <span className={`co-badge ${v.empresaDueña}`}>{v.empresaDueña === "corevex" ? "COREVEXSAC" : "ELECTROSAC"}</span>
+                <span className="co-badge tipo">{v.tipoUnidad}</span>
+              </div>
+              <div className="vehiculo-card-top-actions">
+                <button className="btn-outline-sm" type="button" onClick={() => onAbrirDocumentos(v)}>
+                  <IconPlus width={13} height={13} /> Agregar documento
+                </button>
+                <button className="icon-btn" type="button" title="Ver historial" onClick={() => onVerHistorial(v)}>
+                  <IconEye />
+                </button>
+              </div>
             </div>
-            <div className="vehiculo-card-top-actions">
-              <button className="btn-outline-sm" type="button" onClick={() => onAbrirDocumentos(v)}>
-                <IconPlus width={13} height={13} /> Agregar documento
-              </button>
-              <button className="icon-btn" type="button" title="Ver historial" onClick={() => onVerHistorial(v)}>
-                <IconEye />
-              </button>
+
+            {v.cuadrilla && <div className="vehiculo-card-cuadrilla">{v.cuadrilla}</div>}
+
+            <div className="vehiculo-docs-list">
+              {v.documentos.map((d, i) => {
+                const fechaTexto =
+                  d.dias === null
+                    ? null
+                    : (() => {
+                        const fecha = new Date();
+                        fecha.setDate(fecha.getDate() + d.dias);
+                        return fecha.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+                      })();
+                return (
+                  <div className="vehiculo-doc-item" key={i}>
+                    {d.archivo ? (
+                      <a className="vehiculo-doc-nombre vehiculo-doc-nombre--link" href={d.archivoUrl} target="_blank" rel="noreferrer">
+                        {d.tipo}
+                      </a>
+                    ) : (
+                      <span className="vehiculo-doc-nombre">{d.tipo}</span>
+                    )}
+                    <span className={`vehiculo-doc-vence vence-${d.estado}`}>
+                      {fechaTexto ? `Vence: ${fechaTexto}` : "Sin fecha aún"}
+                    </span>
+                    <button className="icon-btn" type="button" title="Adjuntar o ver documento" onClick={() => onAbrirDocumentos(v)}>
+                      <IconFile width={14} height={14} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
-
-          {v.cuadrilla && <div className="vehiculo-card-cuadrilla">{v.cuadrilla}</div>}
-
-          <div className="vehiculo-docs-list">
-            {v.documentos.map((d, i) => {
-              const fecha = new Date();
-              fecha.setDate(fecha.getDate() + d.dias);
-              const fechaTexto = fecha.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
-              return (
-                <div className="vehiculo-doc-item" key={i}>
-                  {d.archivo ? (
-                    <a className="vehiculo-doc-nombre vehiculo-doc-nombre--link" href={d.archivoUrl} target="_blank" rel="noreferrer">
-                      {d.tipo}
-                    </a>
-                  ) : (
-                    <span className="vehiculo-doc-nombre">{d.tipo}</span>
-                  )}
-                  <span className={`vehiculo-doc-vence vence-${d.estado}`}>Vence: {fechaTexto}</span>
-                  <button className="icon-btn" type="button" title="Adjuntar o ver documento" onClick={() => onAbrirDocumentos(v)}>
-                    <IconFile width={14} height={14} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        </Col>
       ))}
-    </div>
+    </Row>
   );
 }

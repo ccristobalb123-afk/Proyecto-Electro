@@ -6,7 +6,7 @@ export function Modal({ open, title, subtitle, onClose, children, wide }) {
   return (
     <div className="modal-overlay open" onClick={onClose}>
       <div
-        className={`modal ${wide ? "modal-wide" : ""}`}
+        className={`modal-electro ${wide ? "modal-wide" : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-head">

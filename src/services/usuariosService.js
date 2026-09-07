@@ -38,6 +38,18 @@ export async function crearUsuario({ nombre, correo, rol, empresas }) {
   return apiClient.post("/usuarios", { nombre, correo, rol, empresas });
 }
 
+export async function actualizarUsuario(usuarioId, { nombre, correo, rol, empresas }) {
+  if (MOCK_MODE) {
+    await delay();
+    usuariosMock = usuariosMock.map((u) =>
+      u.id === usuarioId ? { ...u, nombre: nombre.trim(), correo: correo.trim(), rol, empresas } : u
+    );
+    return usuariosMock.find((u) => u.id === usuarioId);
+  }
+  // TODO backend: PATCH /api/usuarios/:id { nombre, correo, rol, empresas }
+  return apiClient.patch(`/usuarios/${usuarioId}`, { nombre, correo, rol, empresas });
+}
+
 export async function resetearPassword(usuarioId) {
   if (MOCK_MODE) {
     await delay();
