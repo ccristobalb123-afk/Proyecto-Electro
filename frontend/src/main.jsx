@@ -1,8 +1,9 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "./styles/base.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/tokens.css";
+import "./styles/motion.css";
 import "./styles/buttons.css";
 import "./styles/badges.css";
 import "./styles/filters.css";

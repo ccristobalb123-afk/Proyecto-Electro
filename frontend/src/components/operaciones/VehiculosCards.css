@@ -2,7 +2,19 @@
    razón. Se importa desde Operaciones.jsx. */
 
 /* ===== Tarjetas de Vehículos ===== */
-/* .vehiculos-grid ahora se maneja con <Row> de react-bootstrap en VehiculosGrid.jsx */
+/* 1 columna; 2 desde 992px. minmax(0, 1fr) evita que un texto largo ensanche la
+   columna. Las tarjetas de una misma fila se igualan en alto por defecto. */
+.vehiculos-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 992px) {
+  .vehiculos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
 .vehiculo-card {
   background: var(--card);

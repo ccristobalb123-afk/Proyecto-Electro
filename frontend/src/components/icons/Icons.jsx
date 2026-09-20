@@ -65,7 +65,7 @@ export function IconAdministracion(props) {
 
 export function IconSearch(props) {
   return (
-    <svg {...base} stroke="#98A2B3" {...props}>
+    <svg {...base} stroke="var(--muted-2)" {...props}>
       <circle cx="11" cy="11" r="7" />
       <path d="m21 21-4.3-4.3" />
     </svg>

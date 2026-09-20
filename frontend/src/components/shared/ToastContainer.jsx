@@ -2,10 +2,11 @@ import { IconCheckCircle, IconAlertCircle, IconInfo, IconClose } from "../icons/
 import "./ToastContainer.css";
 
 export default function ToastContainer({ toasts, onCerrar }) {
-  if (toasts.length === 0) return null;
-
+  // El contenedor se monta siempre (vacío mide 0 de alto y no captura clics):
+  // una región aria-live debe existir antes de que llegue el mensaje para que
+  // los lectores de pantalla lo anuncien.
   return (
-    <div className="toast-container">
+    <div className="toast-container" role="status" aria-live="polite" aria-relevant="additions">
       {toasts.map((t) => (
         <div key={t.id} className={`toast toast--${t.tipo || "info"}`}>
           <div className="toast__icono-wrapper">

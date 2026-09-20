@@ -1,0 +1,148 @@
+/* ============================================================
+   Base mínima — el proyecto ya no usa Bootstrap.
+   Este archivo conserva SOLO las reglas del "reboot" de Bootstrap que la
+   interfaz daba por hechas y que el CSS propio nunca declaró (interlineado
+   del body, encabezados, formularios, <legend>, íconos SVG, tablas). Sin
+   ellas todo el texto y los formularios cambiarían de tamaño y de posición.
+   Va ANTES de tokens.css: tokens.css y el CSS de cada módulo tienen la
+   última palabra.
+   ============================================================ */
+
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Texto ---------- */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* Tamaños por defecto de los encabezados sin tamaño propio (el CSS de cada
+   módulo los sobrescribe con más especificidad). */
+h1 { font-size: calc(1.375rem + 1.5vw); }
+h2 { font-size: calc(1.325rem + 0.9vw); }
+h3 { font-size: calc(1.3rem + 0.6vw); }
+h4 { font-size: calc(1.275rem + 0.3vw); }
+h5 { font-size: 1.25rem; }
+h6 { font-size: 1rem; }
+
+@media (min-width: 1200px) {
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.75rem; }
+  h4 { font-size: 1.5rem; }
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+small {
+  font-size: 0.875em;
+}
+
+/* Alinea los íconos SVG en línea con el texto */
+img,
+svg {
+  vertical-align: middle;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- Formularios ---------- */
+label {
+  display: inline-block;
+}
+
+button,
+input,
+select,
+optgroup,
+textarea {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button {
+  border-radius: 0;
+}
+
+button,
+select {
+  text-transform: none;
+}
+
+textarea {
+  resize: vertical;
+}
+
+[type="search"] {
+  outline-offset: -2px;
+  -webkit-appearance: textfield;
+}
+
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+fieldset {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 0.5rem;
+  font-size: calc(1.275rem + 0.3vw);
+  line-height: inherit;
+}
+
+legend + * {
+  clear: left;
+}
+
+/* Contenedores enfocados por código (modales): sin anillo */
+[tabindex="-1"]:focus:not(:focus-visible) {
+  outline: 0 !important;
+}
+
+/* ---------- Tablas ---------- */
+table {
+  caption-side: bottom;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: inherit;
+  text-align: -webkit-match-parent;
+}
+
+thead,
+tbody,
+tfoot,
+tr,
+td,
+th {
+  border-color: inherit;
+  border-style: solid;
+  border-width: 0;
+}

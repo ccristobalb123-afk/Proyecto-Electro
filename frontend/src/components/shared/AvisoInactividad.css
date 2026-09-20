@@ -65,7 +65,7 @@
 .btn-seguir-conectado {
   width: 100%;
   background: var(--copper);
-  color: #fff;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--radius);
   padding: 11px 20px;

@@ -1,6 +1,7 @@
 .login {
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
 }
 
@@ -14,7 +15,7 @@
   flex-direction: column;
   justify-content: space-between;
   padding: 48px;
-  color: #edeae2;
+  color: var(--on-ink);
 }
 
 .login-brand svg.circuit {
@@ -63,7 +64,7 @@
   position: relative;
   z-index: 2;
   font-size: 13px;
-  color: #7c8794;
+  color: var(--on-ink-muted);
   display: flex;
   gap: 16px;
 }
@@ -190,7 +191,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 10px;
-  background: #fff;
+  background: var(--card);
 }
 
 .step-icon.success {

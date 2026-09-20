@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .menu-acciones__boton:hover,
@@ -32,7 +32,7 @@
   flex-direction: column;
   padding: 4px;
   transform-origin: top right;
-  animation: menu-acciones-aparecer 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: menu-acciones-aparecer 0.15s var(--ease-out);
 }
 
 @keyframes menu-acciones-aparecer {
@@ -60,7 +60,7 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-body);
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .menu-acciones__item:hover {
@@ -83,5 +83,5 @@
 
 .menu-acciones__item--exito:hover {
   background: var(--success-tint);
-  color: var(--success);
+  color: var(--success-dark);
 }

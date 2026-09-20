@@ -1,0 +1,47 @@
+/* ============================================================
+   Movimiento reducido (prefers-reduced-motion)
+   Quita el desplazamiento y el escalado, pero conserva la aparición
+   por opacidad y los cambios de color: el usuario sigue viendo QUE
+   pasó, solo que sin movimiento. Los spinners de carga se mantienen
+   (son la señal de "estoy trabajando").
+   Se antepone "html" para ganarle en especificidad a cada componente
+   sin depender del orden en que cargue el CSS.
+   ============================================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Entradas: solo opacidad, sin translate/scale */
+  html .notificaciones-bell__panel,
+  html .menu-acciones__lista--portal,
+  html .toast {
+    animation-name: fade-in;
+  }
+
+  /* Cajón lateral en móvil: aparece sin deslizarse */
+  html .sidebar {
+    transition: none;
+  }
+
+  /* Pulso infinito del aviso de inactividad: el mensaje y el color
+     ya comunican la advertencia */
+  html .aviso-inactividad-icono-container {
+    animation: none;
+  }
+
+  /* Zoom de la foto al pasar el cursor */
+  html .equipo-card-foto-btn img {
+    transition: none;
+  }
+
+  html .equipo-card-foto-btn:hover img {
+    transform: none;
+  }
+}

@@ -25,6 +25,22 @@ function soles(monto) {
   return `S/ ${monto.toFixed(0)}`;
 }
 
+// Texto equivalente del gráfico para lectores de pantalla: los mismos meses
+// y montos que dibuja la ventana de 3 meses de useComparativoChart.
+function resumenComparativo(datos, fin) {
+  const inicio = Math.max(0, fin - 2);
+  return datos.labels
+    .slice(inicio, fin + 1)
+    .map((mes, i) => {
+      const monto = (serie) => soles(datos[serie]?.[inicio + i] ?? 0);
+      return (
+        `${mes}: CorevexSAC facturó ${monto("corevexFacturado")} y gastó ${monto("corevexGastado")}; ` +
+        `ElectroSAC facturó ${monto("electroFacturado")} y gastó ${monto("electroGastado")}.`
+      );
+    })
+    .join(" ");
+}
+
 const ICONO_POR_TIPO = {
   curso: IconClipboardCheck,
   contrato: IconContrato,
@@ -178,7 +194,18 @@ export default function Dashboard() {
           )}
         </div>
         <div className="panel-chart">
-          <canvas ref={chartRef} height="100" />
+          <canvas
+            ref={chartRef}
+            height="100"
+            role="img"
+            aria-label="Gráfico de líneas: facturado y gastado por empresa"
+            aria-describedby="comparativo-resumen"
+          />
+          {comparativo && (
+            <p id="comparativo-resumen" className="sr-only">
+              {resumenComparativo(comparativo, mesFinalIndex ?? comparativo.labels.length - 1)}
+            </p>
+          )}
         </div>
       </div>
     </AppShell>

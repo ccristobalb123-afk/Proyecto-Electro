@@ -81,3 +81,75 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Pantallas táctiles (pointer: coarse) ----------
+   Se detecta el método de entrada, no el ancho: una tablet o un portátil
+   con pantalla táctil también necesitan objetivos de 44px. Con mouse
+   (pointer: fine) todo conserva la densidad de escritorio.
+   Se antepone "html" para ganarle en especificidad a cada componente. */
+@media (pointer: coarse) {
+  /* Botones solo-ícono */
+  html .icon-btn,
+  html .modal-close,
+  html .menu-acciones__boton,
+  html .notificaciones-bell__boton,
+  html .notificaciones-bell__cerrar,
+  html .hamburger-btn,
+  html .sidebar-cerrar,
+  html .logout-btn,
+  html .toast__cerrar,
+  html .lightbox-close {
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Botones sobre fotos: el círculo visible no cambia, solo crece el área
+     que responde al toque */
+  html .foto-equipo-quitar::after,
+  html .equipo-card-fotos-editar::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
+  }
+
+  /* Botones con texto, pestañas, chips y filas de menú */
+  html .btn-primary,
+  html .btn-secondary,
+  html .btn-outline-sm,
+  html .tabs button,
+  html .doc-chip,
+  html .menu-acciones__item,
+  html .nav a {
+    min-height: 44px;
+  }
+
+  /* Campos de formulario */
+  html .search,
+  html .month-select,
+  html .filters select,
+  html .aviso-input-row input {
+    min-height: 44px;
+  }
+
+  html .filters .search input {
+    height: 44px;
+  }
+
+  /* Casillas: toda la fila responde, no solo el cuadro de 16px */
+  html .field-check,
+  html .empresas-check label,
+  html .modulos-check label {
+    min-height: 44px;
+  }
+
+  /* iOS Safari amplía la página al enfocar un campo con menos de 16px y
+     rompe el layout. !important porque los campos del proyecto fijan su
+     tamaño con selectores de alta especificidad (.form-field input:not(...)). */
+  html input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  html select,
+  html textarea {
+    font-size: 16px !important;
+  }
+}

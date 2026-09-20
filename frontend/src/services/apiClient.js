@@ -115,7 +115,11 @@ export async function apiRequest(path, { method = "GET", body, params, signal } 
   let json = null;
   try {
     json = await respuesta.json();
-  } catch {
+  } catch (err) {
+    // Una cancelación durante la lectura del cuerpo NO es "sin cuerpo": se
+    // relanza para que quien llamó la ignore, en vez de tratarla como una
+    // respuesta vacía (json = null → lista vacía).
+    if (err.name === "AbortError") throw err;
     // Respuesta sin cuerpo (ej. 204 No Content) — no es un error.
   }
 

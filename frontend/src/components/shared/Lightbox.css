@@ -13,6 +13,7 @@
 .lightbox-img {
   max-width: 90vw;
   max-height: 90vh;
+  max-height: 90dvh;
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   cursor: default;
@@ -27,7 +28,7 @@
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;

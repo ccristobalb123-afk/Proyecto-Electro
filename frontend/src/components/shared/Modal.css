@@ -18,6 +18,7 @@
   width: 460px;
   max-width: 92vw;
   max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
   padding: 26px 28px;
 }
@@ -215,7 +216,7 @@ fieldset.form-field {
 }
 
 .aviso-hint {
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   color: var(--volt-dark);
   margin-top: 6px;
 }
@@ -231,7 +232,7 @@ fieldset.form-field {
 
 .dropzone:hover {
   border-color: var(--copper);
-  background: #fbf6ef;
+  background: var(--gray-tint);
 }
 
 .dropzone svg {
@@ -428,8 +429,8 @@ fieldset.form-field {
   justify-content: center;
   gap: 4px;
   background: rgba(15, 19, 24, 0.55);
-  color: #fff;
-  font-size: 11.5px;
+  color: var(--on-accent);
+  font-size: var(--fs-xs);
   font-weight: 600;
   opacity: 0;
   transition: opacity 0.15s ease;
@@ -448,7 +449,7 @@ fieldset.form-field {
   border-radius: 50%;
   border: none;
   background: rgba(15, 19, 24, 0.6);
-  color: #fff;
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;

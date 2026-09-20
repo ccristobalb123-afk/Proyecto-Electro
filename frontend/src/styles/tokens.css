@@ -10,6 +10,10 @@
   --ink: #243447;         /* sidebar — se mantiene oscuro a propósito */
   --ink-2: #1b2836;
   --ink-border: rgba(255, 255, 255, 0.08);
+  /* Texto sobre superficies oscuras (sidebar, login, toasts) y sobre rellenos de color */
+  --on-ink: #edeae2;
+  --on-ink-muted: #93a0ae;   /* ≥4.5:1 sobre --ink y --ink-2 (antes #7c8794: 3.47:1) */
+  --on-accent: #ffffff;
   --paper: #eaeef2;       /* fondo general */
   --card: #ffffff;        /* tarjetas, paneles, inputs */
   --border: #dce2e8;
@@ -45,8 +49,10 @@
   --success-tint: #dcfce7;
 
   --text: #1f2937;
-  --muted: #667085;
-  --muted-2: #98a2b3;
+  /* Texto secundario y terciario: ≥4.5:1 sobre --card, --paper,
+     --gray-tint y --electro-tint (antes --muted-2 daba 2.2–2.6:1). */
+  --muted: #4b5769;
+  --muted-2: #5c687d;
 
   --gray-tint: #f1f3f5;
   --gray-dark: #4b5563;
@@ -74,7 +80,7 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  --fs-xs: 11.5px;
+  --fs-xs: 12px;
   --fs-sm: 12.5px;
   --fs-base: 13.5px;
   --fs-md: 15px;
@@ -97,7 +103,8 @@
   --shadow-lg: 0 20px 50px -4px rgba(16, 24, 40, 0.18);
 
   --transition-fast: 0.12s ease;
-  --transition-base: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-base: 0.18s var(--ease-out);
 
   --z-modal: 50;
   --z-bell-panel: 400;
@@ -152,7 +159,7 @@ a {
   height: 42px;
   padding: 0 18px;
   background: var(--copper);
-  color: #fff;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--radius);
   font-size: 13.5px;
@@ -172,8 +179,8 @@ a {
   cursor: not-allowed;
 }
 
-input:focus,
-button:focus {
+input:focus-visible,
+button:focus-visible {
   outline: 2px solid var(--copper);
   outline-offset: 2px;
 }
@@ -184,6 +191,7 @@ button:focus {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  height: 100dvh;
   color: var(--muted);
   font-size: 14px;
 }

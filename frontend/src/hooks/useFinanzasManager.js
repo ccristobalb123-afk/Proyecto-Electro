@@ -143,6 +143,10 @@ export function useFinanzasManager() {
   // lo que rompe componentes como GastosGrid (soles(g.monto) sobre una
   // factura, que no tiene `monto`, sino `montoTotal`).
   function cambiarTab(nuevoTab) {
+    // Misma pestaña: no hay nada que limpiar ni que recargar. Sin esta guarda,
+    // el clic en la pestaña activa vaciaba la lista (setListaActual([])) y, al no
+    // cambiar ninguna dependencia de useAsyncList, nunca se volvía a pedir.
+    if (nuevoTab === tab) return;
     setTab(nuevoTab);
     setFiltroEstado("");
     setBusqueda("");
