@@ -1,0 +1,533 @@
+// ============================================================
+// Schema de base de datos — arrancamos solo con lo que necesita
+// Autenticación (Usuario, Empresa, recuperación de contraseña).
+// El resto de tablas (Equipo, Vehiculo, Contrato, Factura...) se
+// agregan módulo por módulo, seedeadas por los mismos "TODO backend"
+// que ya están documentados en cada service del frontend.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// CorevexSAC / ElectroSAC — un usuario puede tener acceso a una o ambas.
+model Empresa {
+  id      Int      @id @default(autoincrement())
+  nombre  String   @unique // "CorevexSAC" | "ElectroSAC"
+  slug    String   @unique // "corevex" | "electro" — el valor que ya usa el frontend
+  usuarios UsuarioEmpresa[]
+  contratos Contrato[]
+  cursos    Curso[]
+  equipos   Equipo[]
+  vehiculosDuena Vehiculo[] @relation("EmpresaDuena")
+  vehiculosUso   Vehiculo[] @relation("EmpresaUso")
+  facturas       Factura[]
+  facturasPorPagar FacturaPorPagar[]
+  gastos           Gasto[]
+
+  @@map("empresas")
+}
+
+// Antes los roles eran 3 valores fijos (ADMINISTRADOR/SUPERVISOR/USUARIO)
+// con su lista de módulos hardcodeada en el código — ahora son
+// registros reales, y cada uno elige libremente a qué ventanas tiene
+// acceso (ver RolModulo). El único caso especial es esSuperAdmin: ese
+// rol siempre tiene acceso a TODO (no se guarda fila por fila en
+// RolModulo para él) y no se puede editar ni borrar — es quien
+// gestiona los demás roles.
+model Usuario {
+  id            Int      @id @default(autoincrement())
+  usuario       String   @unique // nombre de usuario para iniciar sesión (ej. "ccorahua")
+  correo        String   @unique // solo se usa para recuperar contraseña, no para loguearse
+  passwordHash  String   @map("password_hash")
+  nombre        String
+  // Ya no hay un "rol" con nombre — cada usuario tiene directamente su
+  // propio interruptor de control total, y su propia lista de ventanas
+  // (ver UsuarioModulo). esSuperAdmin siempre implica acceso a TODO sin
+  // necesitar filas en UsuarioModulo, y es el único con control total
+  // real (nunca se le pueden restringir ventanas ni quitarlo si es el
+  // último).
+  esSuperAdmin  Boolean  @default(false) @map("es_super_admin")
+  modulos       UsuarioModulo[]
+
+  // MFA (TOTP — Google Authenticator / Authy / etc.)
+  // `mfaHabilitado`: el usuario ya escaneó el QR y confirmó el setup.
+  // Antes de eso, aunque su rol "requiera" MFA, todavía no tiene nada
+  // que verificar — ese caso se resuelve en el login (ver auth.service).
+  mfaSecret      String?  @map("mfa_secret")
+  mfaHabilitado  Boolean  @default(false) @map("mfa_habilitado")
+
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  empresas          UsuarioEmpresa[]
+  tokensRecuperacion PasswordResetToken[]
+  suscripcionesPush PushSubscription[]
+  refreshTokens     RefreshToken[]
+  historialEquipo   HistorialEquipo[]
+  historialVehiculo HistorialVehiculo[]
+
+  @@map("usuarios")
+}
+
+// Tabla puente — un usuario puede pertenecer a 1 o ambas empresas.
+model UsuarioEmpresa {
+  usuarioId Int     @map("usuario_id")
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresaId Int     @map("empresa_id")
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, empresaId])
+  @@map("usuarios_empresas")
+}
+
+// Qué ventanas puede ver cada usuario — directo, sin pasar por un
+// "rol" con nombre. Los SuperAdmin no tienen filas acá (siempre ven
+// todo, ver lib/roles.js).
+model UsuarioModulo {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int     @map("usuario_id")
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  modulo    String  // "dashboard" | "rrhh" | "operaciones" | "finanzas" | "administracion"
+
+  @@unique([usuarioId, modulo])
+  @@map("usuario_modulos")
+}
+
+// Token de un solo uso para "olvidé mi contraseña". Se guarda hasheado
+// (igual que una contraseña) — si la tabla se filtra, los tokens
+// crudos (los que sí funcionan) no quedan expuestos.
+model PasswordResetToken {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int      @map("usuario_id")
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique @map("token_hash")
+  expiraEn   DateTime @map("expira_en")
+  usadoEn    DateTime? @map("usado_en")
+  creadoEn   DateTime @default(now()) @map("creado_en")
+
+  @@map("password_reset_tokens")
+}
+
+// Antes el refresh token era solo un JWT firmado — válido por 7 días
+// pase lo que pase, sin forma de cortarlo antes de tiempo. Guardando su
+// hash acá, cambiar la contraseña o desactivar a alguien puede revocar
+// sus sesiones activas de inmediato en vez de esperar a que el token
+// expire solo.
+model RefreshToken {
+  id         Int       @id @default(autoincrement())
+  usuarioId  Int       @map("usuario_id")
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique @map("token_hash")
+  expiraEn   DateTime  @map("expira_en")
+  revocadoEn DateTime? @map("revocado_en")
+  creadoEn   DateTime  @default(now()) @map("creado_en")
+
+  @@map("refresh_tokens")
+}
+
+// ============================================================
+// RRHH — Personal, Contratos, Cursos/Fotocheck/EMO
+// ============================================================
+
+// Un trabajador real de la empresa. Antes en el mock "trabajador" era
+// solo un texto suelto repetido en cada contrato/curso — ahora es una
+// tabla propia, así "personal registrado" (el selector de Cursos) es
+// una consulta real en vez de un DISTINCT sobre texto libre, y evita
+// que un typo cree "otra persona" sin querer.
+model Personal {
+  id        Int        @id @default(autoincrement())
+  // La identidad real de la persona — antes se buscaba y se distinguía
+  // solo por el nombre, lo que rompe apenas hay 2 personas con el mismo
+  // nombre (o el mismo nombre escrito distinto). El DNI no cambia.
+  dni       String     @unique
+  nombre    String
+  creadoEn  DateTime   @default(now()) @map("creado_en")
+  contratos Contrato[]
+  cursos    Curso[]
+
+  @@map("personal")
+}
+
+enum TipoContrato {
+  PLAZO_FIJO
+  INDEFINIDO
+}
+
+// Vigente/Por vencer/Vencido se CALCULAN al leer (a partir de
+// fechaFin y diasAnticipacion), no se guardan — así nunca quedan
+// desactualizados sin necesitar un cron job que los recalcule todas
+// las noches. Renovado/Terminado sí son manuales (alguien lo marca a
+// propósito), por eso esos dos sí se guardan explícitamente.
+enum EstadoManual {
+  RENOVADO
+  TERMINADO
+}
+
+model Contrato {
+  id               Int           @id @default(autoincrement())
+  personalId       Int           @map("personal_id")
+  personal         Personal      @relation(fields: [personalId], references: [id])
+  empresaId        Int           @map("empresa_id")
+  empresa          Empresa       @relation(fields: [empresaId], references: [id])
+  tipo             TipoContrato
+  fechaInicio      DateTime      @map("fecha_inicio") @db.Date
+  fechaFin         DateTime      @map("fecha_fin") @db.Date
+  diasAnticipacion Int           @default(30) @map("dias_anticipacion")
+  estadoManual     EstadoManual? @map("estado_manual")
+  archivoNombre    String?       @map("archivo_nombre")
+  archivoUrl       String?       @map("archivo_url")
+  creadoEn         DateTime      @default(now()) @map("creado_en")
+
+  // Una persona no puede tener 2 contratos del mismo tipo en la misma
+  // empresa al mismo tiempo — si necesita renovarse, se edita este
+  // mismo registro (cambiando las fechas), no se crea uno nuevo.
+  @@unique([personalId, empresaId, tipo])
+  @@map("contratos")
+}
+
+enum TipoCurso {
+  CURSO
+  FOTOCHECK
+  EMO
+}
+
+model Curso {
+  id               Int           @id @default(autoincrement())
+  personalId       Int           @map("personal_id")
+  personal         Personal      @relation(fields: [personalId], references: [id])
+  empresaId        Int           @map("empresa_id")
+  empresa          Empresa       @relation(fields: [empresaId], references: [id])
+  tipo             TipoCurso
+  fechaInicio      DateTime      @map("fecha_inicio") @db.Date
+  fechaVencimiento DateTime      @map("fecha_vencimiento") @db.Date
+  diasAnticipacion Int           @default(30) @map("dias_anticipacion")
+  estadoManual     EstadoManual? @map("estado_manual")
+  creadoEn         DateTime      @default(now()) @map("creado_en")
+
+  // Un solo EMO, un solo Fotocheck y un solo Curso "vivo" por persona
+  // en cada empresa — exactamente el bug que reportaste: antes se podía
+  // crear un EMO nuevo para alguien que ya tenía uno. Ahora, para
+  // renovarlo, se edita este mismo registro con la fecha nueva.
+  @@unique([personalId, empresaId, tipo])
+  @@map("cursos")
+}
+
+// ============================================================
+// Operaciones — Equipos y Vehículos
+// ============================================================
+
+// Catálogo de categorías de equipo (Escaleras, Guantes, etc.), cada
+// una con sus propios campos personalizados — igual que CATEGORIAS en
+// el frontend, pero ahora persistido: "Nueva categoría" desde el modal
+// de Nuevo equipo pasa a ser un INSERT real acá, no una mutación en
+// memoria que se pierde al reiniciar el servidor.
+model CategoriaEquipo {
+  id      Int      @id @default(autoincrement())
+  nombre  String   @unique
+  campos  Json     // [{ nombre, placeholder }]
+  equipos Equipo[]
+
+  @@map("categorias_equipo")
+}
+
+enum EstadoEquipo {
+  DISPONIBLE
+  ASIGNADO
+  MANTENIMIENTO
+  VENCIDO
+  DEBAJA
+}
+
+model Equipo {
+  id                      Int             @id @default(autoincrement())
+  codigo                  String          @unique
+  categoriaId             Int             @map("categoria_id")
+  categoria               CategoriaEquipo @relation(fields: [categoriaId], references: [id])
+  empresaId               Int             @map("empresa_id")
+  empresa                 Empresa         @relation(fields: [empresaId], references: [id])
+  estado                  EstadoEquipo    @default(DISPONIBLE)
+
+  // Solo se puede asignar a un camión REGISTRADO (nunca a una persona
+  // ni a texto libre) — ver ModalAsignarEquipo en el frontend. El
+  // texto "Camión ABC-123" que se muestra en la tarjeta se arma al
+  // vuelo a partir de vehiculo.placa, no se guarda por separado.
+  vehiculoId              Int?            @map("vehiculo_id")
+  vehiculo                Vehiculo?       @relation(fields: [vehiculoId], references: [id])
+
+  camposValores           Json            @default("{}") @map("campos_valores")
+  fotos                   Json            @default("[]") // hasta 2 URLs/base64
+  comentarioMantenimiento String?         @map("comentario_mantenimiento")
+  motivoBaja              String?         @map("motivo_baja")
+  ultimaInspeccion        DateTime?       @map("ultima_inspeccion") @db.Date
+  proximaInspeccion       DateTime?       @map("proxima_inspeccion") @db.Date
+  creadoEn                DateTime        @default(now()) @map("creado_en")
+
+  historial HistorialEquipo[]
+
+  @@map("equipos")
+}
+
+// La "hoja de vida" del equipo — un registro por cada evento
+// relevante (registrado, asignado, mantenimiento, baja, inspección...).
+// Se agrega una fila nueva cada vez, nunca se edita ni se borra.
+model HistorialEquipo {
+  id        Int      @id @default(autoincrement())
+  equipoId  Int      @map("equipo_id")
+  equipo    Equipo   @relation(fields: [equipoId], references: [id], onDelete: Cascade)
+  // Opcional porque el primer registro ("Registrado en el sistema")
+  // puede venir del seed sin un usuario real detrás, y porque un
+  // usuario borrado no debe borrar su rastro en el historial (por eso
+  // SetNull en vez de Cascade acá).
+  usuarioId Int?     @map("usuario_id")
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  titulo    String
+  tono      String? // "success" | "volt" | "danger" | null — mismo valor que espera la UI
+  creadoEn  DateTime @default(now()) @map("creado_en")
+
+  @@map("historial_equipo")
+}
+
+enum TipoUnidad {
+  CAMIONETA
+  CAMION
+  MINIVAN
+  GRUA
+  AUTO
+}
+
+model Vehiculo {
+  id             Int        @id @default(autoincrement())
+  placa          String     @unique
+  tipoUnidad     TipoUnidad @map("tipo_unidad")
+
+  // Dueña y de uso pueden ser distintas empresas (ej. un camión de
+  // ElectroSAC prestado a un proyecto de CorevexSAC) — por eso son 2
+  // relaciones separadas, no la misma columna reusada.
+  empresaDuenaId Int        @map("empresa_duena_id")
+  empresaDuena   Empresa    @relation("EmpresaDuena", fields: [empresaDuenaId], references: [id])
+  empresaUsoId   Int        @map("empresa_uso_id")
+  empresaUso     Empresa    @relation("EmpresaUso", fields: [empresaUsoId], references: [id])
+
+  cuadrilla      String?
+  creadoEn       DateTime   @default(now()) @map("creado_en")
+
+  documentos DocumentoVehiculo[]
+  historial  HistorialVehiculo[]
+  equipos    Equipo[]
+
+  @@map("vehiculos")
+}
+
+// SOAT, Revisión técnica, etc. — igual que HistorialEquipo, "dias" y
+// el color (gray/amber/red) del semáforo de vencimiento NO se guardan,
+// se calculan al leer a partir de fechaVencimiento (mismo criterio que
+// calcularEstado en RRHH).
+model DocumentoVehiculo {
+  id               Int       @id @default(autoincrement())
+  vehiculoId       Int       @map("vehiculo_id")
+  vehiculo         Vehiculo  @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+  tipo             String
+  fechaVencimiento DateTime? @map("fecha_vencimiento") @db.Date
+  archivoNombre    String?   @map("archivo_nombre")
+  archivoUrl       String?       @map("archivo_url")
+  creadoEn         DateTime  @default(now()) @map("creado_en")
+
+  @@map("documentos_vehiculo")
+}
+
+model HistorialVehiculo {
+  id         Int      @id @default(autoincrement())
+  vehiculoId Int      @map("vehiculo_id")
+  vehiculo   Vehiculo @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+  usuarioId  Int?     @map("usuario_id")
+  usuario    Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  titulo     String
+  tono       String?
+  creadoEn   DateTime @default(now()) @map("creado_en")
+
+  @@map("historial_vehiculo")
+}
+
+// ============================================================
+// Finanzas — Facturas (por cobrar), Facturas por pagar, Gastos
+// ============================================================
+
+// Catálogo SUNAT de bienes/servicios sujetos a detracción (R.S.
+// 183-2004 y modificatorias) — el % NO se guarda suelto en cada
+// factura porque varía según el código de bien/servicio, y SUNAT lo
+// cambia de tanto en tanto (por eso vigenteDesde/vigenteHasta en vez
+// de una constante en el código).
+model CatalogoDetraccion {
+  id            Int       @id @default(autoincrement())
+  codigo        String    @unique // "030", "019", "021"...
+  descripcion   String
+  anexo         Int       // 1 | 2 | 3
+  porcentaje    Decimal   @db.Decimal(5, 4) // 0.0400, 0.1200, 0.0150...
+  montoMinimo   Decimal?  @map("monto_minimo") @db.Decimal(12, 2)
+  vigenteDesde  DateTime  @map("vigente_desde") @db.Date
+  vigenteHasta  DateTime? @map("vigente_hasta") @db.Date // null = sigue vigente
+
+  facturas         Factura[]
+  facturasPorPagar FacturaPorPagar[]
+
+  @@map("catalogo_detraccion")
+}
+
+// Pendiente/Parcial/Pagado NO se guarda — se calcula al leer comparando
+// montoTotal contra la suma de sus pagos (mismo criterio que
+// estadoPago() en el frontend). Mismo motivo que en RRHH/Operaciones:
+// evita que quede desactualizado.
+model Factura {
+  id                   Int          @id @default(autoincrement())
+  empresaId            Int          @map("empresa_id")
+  empresa              Empresa      @relation(fields: [empresaId], references: [id])
+  cliente              String
+  serie                String
+  numero               String
+  montoTotal           Decimal      @map("monto_total") @db.Decimal(12, 2)
+  fechaEmision         DateTime     @map("fecha_emision") @db.Date
+  fechaVencimiento     DateTime     @map("fecha_vencimiento") @db.Date
+
+  // Presente = "aplica detracción". Reemplaza al booleano suelto que
+  // había antes (aplicaDetraccion) — no hacía falta guardar las dos
+  // cosas por separado y arriesgar que queden inconsistentes.
+  catalogoDetraccionId Int?                @map("catalogo_detraccion_id")
+  catalogoDetraccion   CatalogoDetraccion? @relation(fields: [catalogoDetraccionId], references: [id])
+  // Snapshot calculado al crear/editar (montoTotal * catalogo.porcentaje).
+  // No se recalcula al leer: el % del catálogo puede cambiar con el
+  // tiempo y este monto ya fue depositado a SUNAT — es historia, no
+  // algo derivable como el estado de pago.
+  montoDetraccion      Decimal?     @map("monto_detraccion") @db.Decimal(12, 2)
+  detraccionMedioPago  String?      @map("detraccion_medio_pago")
+  detraccionCuentaBn   String?      @map("detraccion_cuenta_bn")
+
+  archivoNombre        String?      @map("archivo_nombre")
+  archivoUrl           String?      @map("archivo_url")
+  anulada              Boolean      @default(false)
+  creadoEn             DateTime     @default(now()) @map("creado_en")
+
+  pagos PagoFactura[]
+
+  // Una misma empresa no puede tener 2 facturas con la misma serie+número.
+  @@unique([empresaId, serie, numero])
+  @@map("facturas")
+}
+
+model PagoFactura {
+  id        Int      @id @default(autoincrement())
+  facturaId Int      @map("factura_id")
+  factura   Factura  @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  monto     Decimal  @db.Decimal(12, 2)
+  fecha     DateTime @default(now()) @db.Date
+
+  @@map("pagos_factura")
+}
+
+model FacturaPorPagar {
+  id                   Int      @id @default(autoincrement())
+  empresaId            Int      @map("empresa_id")
+  empresa              Empresa  @relation(fields: [empresaId], references: [id])
+  proveedor            String
+  motivo               String
+  montoTotal           Decimal  @map("monto_total") @db.Decimal(12, 2)
+  fechaEmision         DateTime @map("fecha_emision") @db.Date
+  fechaVencimiento     DateTime @map("fecha_vencimiento") @db.Date
+
+  catalogoDetraccionId Int?                @map("catalogo_detraccion_id")
+  catalogoDetraccion   CatalogoDetraccion? @relation(fields: [catalogoDetraccionId], references: [id])
+  montoDetraccion      Decimal?     @map("monto_detraccion") @db.Decimal(12, 2)
+  detraccionMedioPago  String?      @map("detraccion_medio_pago")
+  detraccionCuentaBn   String?      @map("detraccion_cuenta_bn")
+
+  archivoNombre        String?  @map("archivo_nombre")
+  archivoUrl           String?  @map("archivo_url")
+  anulada              Boolean  @default(false)
+  creadoEn             DateTime @default(now()) @map("creado_en")
+
+  pagos PagoFacturaPorPagar[]
+
+  @@map("facturas_por_pagar")
+}
+
+model PagoFacturaPorPagar {
+  id                Int             @id @default(autoincrement())
+  facturaPorPagarId Int             @map("factura_por_pagar_id")
+  facturaPorPagar   FacturaPorPagar @relation(fields: [facturaPorPagarId], references: [id], onDelete: Cascade)
+  monto             Decimal         @db.Decimal(12, 2)
+  fecha             DateTime        @default(now()) @db.Date
+
+  @@map("pagos_factura_por_pagar")
+}
+
+// TODO backend: hoy solo se listan (sembradas por el seed) — falta el
+// endpoint para que el usuario cree categorías nuevas, igual que ya
+// existe para CategoriaEquipo, cuando la UI de Finanzas lo pida.
+model CategoriaGasto {
+  id     Int    @id @default(autoincrement())
+  nombre String @unique
+  gastos Gasto[]
+
+  @@map("categorias_gasto")
+}
+
+model Gasto {
+  id            Int            @id @default(autoincrement())
+  empresaId     Int            @map("empresa_id")
+  empresa       Empresa        @relation(fields: [empresaId], references: [id])
+  categoriaId   Int            @map("categoria_id")
+  categoria     CategoriaGasto @relation(fields: [categoriaId], references: [id])
+  monto         Decimal        @db.Decimal(12, 2)
+  fecha         DateTime       @db.Date
+  proveedor     String?
+  trabajador    String?
+  descripcion   String?
+  archivoNombre String?        @map("archivo_nombre")
+  archivoUrl       String?       @map("archivo_url")
+  creadoEn      DateTime       @default(now()) @map("creado_en")
+
+  @@map("gastos")
+}
+
+// ============================================================
+// Notificaciones push (Web Push — funciona en Android/Chrome y
+// escritorio; en iPhone, Apple solo lo permite si la página está
+// agregada a la pantalla de inicio como app, no en Safari normal).
+// ============================================================
+
+// Un mismo usuario puede tener varias suscripciones (el celular y la
+// compu, por ejemplo) — cada una es un "endpoint" distinto que el
+// navegador genera al aceptar las notificaciones.
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int      @map("usuario_id")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  creadoEn  DateTime @default(now()) @map("creado_en")
+
+  @@map("push_subscriptions")
+}
+
+// Registro de qué alertas ya se mandaron, para no re-notificar la
+// misma cosa muchas veces el mismo día si el chequeo corre más de una
+// vez (o si el servidor se reinicia). Sí se vuelve a notificar al día
+// siguiente mientras el vencimiento siga vigente — es un recordatorio
+// que se repite a medida que se acerca la fecha, no una alerta única.
+model AlertaNotificada {
+  id        Int      @id @default(autoincrement())
+  tipo      String   // "contrato" | "curso" | "documento_vehiculo" | "equipo_inspeccion"
+  entidadId Int      @map("entidad_id")
+  fecha     DateTime @default(now()) @db.Date
+  creadoEn  DateTime @default(now()) @map("creado_en")
+
+  @@unique([tipo, entidadId, fecha])
+  @@map("alertas_notificadas")
+}

@@ -1,0 +1,321 @@
+/* ===== Compartidas ===== */
+/* ===== Tarjetas de usuario ===== */
+.usuarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.usuario-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+}
+
+.usuario-card--inactivo {
+  opacity: 0.6;
+}
+
+.usuario-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 16px 14px;
+}
+
+.usuario-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.usuario-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.usuario-card-nombre {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.usuario-card-correo {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rol-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.rol-superadmin {
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.rol-generico {
+  background: var(--gray-tint);
+  color: var(--gray-dark);
+}
+
+.usuario-card-body {
+  padding: 0 16px 14px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.usuario-card-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+}
+
+.usuario-card-empresas {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.usuario-inactivo-tag {
+  align-self: flex-start;
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.usuario-card-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ===== Formulario: elegir rol ===== */
+.rol-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rol-choice label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.rol-choice label.sel {
+  border-color: var(--copper);
+  background: var(--copper-tint);
+}
+
+.rol-choice label div {
+  display: flex;
+  flex-direction: column;
+}
+
+.rol-choice label strong {
+  font-size: 13px;
+}
+
+.rol-choice label span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* ===== Formulario: empresas con acceso (checkboxes) ===== */
+.empresas-check {
+  display: flex;
+  gap: 10px;
+}
+
+.empresas-check-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.empresas-check label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.empresas-check label.sel-corevex {
+  border-color: var(--copper);
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.empresas-check label.sel-electro {
+  border-color: var(--electro);
+  background: var(--electro-tint);
+  color: var(--electro-dark);
+}
+
+.usuario-modal-texto {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.password-generada-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+}
+
+.password-generada-valor {
+  flex: 1;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+.password-generada-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+.password-generada-aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  margin-bottom: 14px;
+}
+
+.usuario-card-modulos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.modulo-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* ===== Formulario: SuperAdmin y qué ventanas tiene un usuario ===== */
+.superadmin-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.superadmin-toggle input {
+  width: auto;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.superadmin-toggle div {
+  display: flex;
+  flex-direction: column;
+}
+
+.superadmin-toggle strong {
+  font-size: 13px;
+}
+
+.superadmin-toggle span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.modulos-check {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modulos-check label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.modulos-check label.sel {
+  border-color: var(--copper);
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.rol-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
