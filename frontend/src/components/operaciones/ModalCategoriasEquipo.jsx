@@ -46,6 +46,7 @@ export default function ModalCategoriasEquipo({ open, onClose, categorias, onRen
               <>
                 <input
                   autoFocus
+                  aria-label={`Nuevo nombre para la categoría ${nombre}`}
                   value={nombreNuevo}
                   onChange={(e) => setNombreNuevo(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && guardarRenombre(nombre)}

@@ -115,11 +115,13 @@ export default function ModalNuevoEquipo({
             {camposNuevaCategoria.map((campo, i) => (
               <div className="campo-nuevo-row" key={campo.id}>
                 <input
+                  aria-label={`Nombre del campo ${i + 1}`}
                   value={campo.nombre}
                   onChange={(e) => actualizarCampoNuevo(i, "nombre", e.target.value)}
                   placeholder="Nombre del campo (ej. Serie)"
                 />
                 <input
+                  aria-label={`Ejemplo a mostrar del campo ${i + 1}`}
                   value={campo.placeholder}
                   onChange={(e) => actualizarCampoNuevo(i, "placeholder", e.target.value)}
                   placeholder="Ejemplo a mostrar (ej. SC-2201)"

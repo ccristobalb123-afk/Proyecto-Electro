@@ -180,6 +180,7 @@ export default function Dashboard() {
           {comparativo && (
             <select
               className="month-select"
+              aria-label="Mes final del gráfico comparativo"
               value={mesFinalIndex ?? comparativo.labels.length - 1}
               onChange={(e) => setMesFinalIndex(Number(e.target.value))}
             >

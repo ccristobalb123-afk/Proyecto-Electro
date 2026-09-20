@@ -25,13 +25,15 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
         <table>
           <thead>
             <tr>
-              <th>Trabajador</th>
-              <th>Empresa</th>
-              <th>Tipo</th>
-              <th>Vence</th>
-              {tab === "contratos" && <th>Documento</th>}
-              <th>Estado</th>
-              <th></th>
+              <th scope="col">Trabajador</th>
+              <th scope="col">Empresa</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Vence</th>
+              {tab === "contratos" && <th scope="col">Documento</th>}
+              <th scope="col">Estado</th>
+              <th scope="col">
+                <span className="sr-only">Acciones</span>
+              </th>
             </tr>
           </thead>
           <tbody>
