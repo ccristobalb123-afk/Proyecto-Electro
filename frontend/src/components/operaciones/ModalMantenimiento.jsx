@@ -21,8 +21,9 @@ export default function ModalMantenimiento({ open, equipo, comentario, setComent
       </div>
 
       <div className="form-field">
-        <label>¿Qué tiene el equipo?</label>
+        <label htmlFor="mantenimiento-comentario">¿Qué tiene el equipo?</label>
         <textarea
+          id="mantenimiento-comentario"
           rows={4}
           placeholder="Ej. Cable deshilachado en el mosquetón, falla en el cierre automático..."
           value={comentario}
