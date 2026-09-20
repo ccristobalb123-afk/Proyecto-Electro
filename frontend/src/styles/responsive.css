@@ -144,7 +144,6 @@
   }
 
   /* Casillas: toda la fila responde, no solo el cuadro de 16px */
-  html .field-check,
   html .empresas-check label,
   html .modulos-check label {
     min-height: 44px;

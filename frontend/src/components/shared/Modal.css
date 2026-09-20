@@ -491,10 +491,6 @@ fieldset.form-field {
   }
 }
 
-.password-strength-wrap {
-  margin-top: 8px;
-}
-
 /* Selector de IGV incluido/agregar — 2 opciones lado a lado, mismo
    patrón visual que .rol-choice pero más compacto (solo texto, sin
    descripción debajo de cada opción). */

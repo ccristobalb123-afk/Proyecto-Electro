@@ -16,6 +16,10 @@
   margin: 0 0 var(--space-2);
 }
 
+.auth-form h2:focus {
+  outline: none; /* recibe el foco por código al cambiar de paso; no es un control */
+}
+
 .auth-sub {
   font-size: 14px;
   line-height: 1.5;

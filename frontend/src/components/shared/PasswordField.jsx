@@ -54,7 +54,7 @@ export default function PasswordField({
           className="password-field__toggle"
           onClick={() => setVisible((v) => !v)}
           aria-pressed={visible}
-          aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
+          aria-label="Mostrar contraseña"
         >
           {visible ? <IconEyeOff width={18} height={18} /> : <IconEye width={18} height={18} />}
         </button>

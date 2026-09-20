@@ -133,11 +133,15 @@ export function useLoginFlow() {
   // ---- Recuperación de contraseña (por correo) ----
   async function handleRecoverySubmit(e) {
     e.preventDefault();
+    setError("");
     setLoading(true);
     try {
       // Respuesta siempre genérica (no confirma si el correo existe).
       await authService.recuperarPassword(correoRecovery);
       setStep(LOGIN_STEPS.RECOVERY_SENT);
+    } catch (err) {
+      // Solo llegan fallos de red o del servidor: el usuario ve qué pasó y puede reintentar.
+      setError(err.message || "No se pudo enviar el enlace. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }

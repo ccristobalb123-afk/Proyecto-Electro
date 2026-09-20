@@ -11,6 +11,8 @@ const PASOS = [
   { id: "listo", etiqueta: "Listo" },
 ];
 
+const MENSAJE_SIN_TOKEN = "Este enlace no es válido. Solicita uno nuevo desde la pantalla de inicio de sesión.";
+
 export default function RestablecerPassword() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
@@ -26,7 +28,7 @@ export default function RestablecerPassword() {
     setError("");
 
     if (!token) {
-      setError("Este enlace no es válido. Solicita uno nuevo desde la pantalla de inicio de sesión.");
+      setError(MENSAJE_SIN_TOKEN);
       return;
     }
     if (passwordNueva.length < 8) {
@@ -48,6 +50,9 @@ export default function RestablecerPassword() {
       setLoading(false);
     }
   }
+
+  // Sin token el formulario no puede funcionar: el aviso se ve desde el principio.
+  const mensajeError = error || (!token ? MENSAJE_SIN_TOKEN : "");
 
   return (
     <AuthShell flujo="restablecer" pasos={PASOS} actual={listo ? 1 : 0} paso={listo ? "listo" : "formulario"}>
@@ -80,8 +85,8 @@ export default function RestablecerPassword() {
             onChange={(e) => setPasswordNueva(e.target.value)}
             autoComplete="new-password"
             autoFocus
-            invalid={!!error}
-            describedBy={error ? "restablecer-error" : undefined}
+            invalid={!!mensajeError}
+            describedBy={mensajeError ? "restablecer-error" : undefined}
           >
             <PasswordStrength password={passwordNueva} />
           </PasswordField>
@@ -92,17 +97,17 @@ export default function RestablecerPassword() {
             value={confirmarNueva}
             onChange={(e) => setConfirmarNueva(e.target.value)}
             autoComplete="new-password"
-            invalid={!!error}
-            describedBy={error ? "restablecer-error" : undefined}
+            invalid={!!mensajeError}
+            describedBy={mensajeError ? "restablecer-error" : undefined}
           />
 
-          {error && (
+          {mensajeError && (
             <p id="restablecer-error" className="auth-error" role="alert">
-              {error}
+              {mensajeError}
             </p>
           )}
 
-          <button className="btn-primary" type="submit" disabled={loading}>
+          <button className="btn-primary" type="submit" disabled={loading || !token}>
             {loading ? "Guardando..." : "Guardar contraseña"}
           </button>
 

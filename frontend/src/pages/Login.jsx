@@ -168,8 +168,11 @@ export default function Login() {
               onChange={(e) => l.setCorreoRecovery(e.target.value)}
               autoFocus
               autoComplete="email"
+              aria-invalid={l.error ? true : undefined}
+              aria-describedby={errorId}
             />
           </div>
+          {mensajeError}
           <button className="btn-primary" type="submit" disabled={l.loading}>
             {l.loading ? "Enviando..." : "Enviar enlace"}
           </button>
