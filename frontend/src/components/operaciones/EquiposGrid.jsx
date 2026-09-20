@@ -71,7 +71,7 @@ export default function EquiposGrid({
                               title="Ver foto en grande"
                               onClick={() => setFotoMaximizada(foto)}
                             >
-                              <img src={foto} alt={`${eq.codigo} — foto ${i + 1}`} />
+                              <img src={foto} alt={`${eq.codigo} — foto ${i + 1}`} loading="lazy" decoding="async" />
                             </button>
                           ) : (
                             <div key={i} className="equipo-card-foto-vacia" />

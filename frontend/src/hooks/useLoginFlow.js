@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import QRCode from "qrcode";
 import { useAuth } from "../context/AuthContext";
 import * as authService from "../services/authService";
 
@@ -80,6 +79,9 @@ export function useLoginFlow() {
         // Primera vez: hay que mostrarle el QR antes de pedirle un código.
         setMfaToken(resultado.mfaToken);
         const { otpauthUrl } = await authService.iniciarConfiguracionMfa(resultado.mfaToken);
+        // qrcode solo se necesita la primera vez que alguien configura MFA: se descarga
+        // en ese momento y no viaja con el chunk del Login de todos los demás.
+        const { default: QRCode } = await import("qrcode");
         const dataUrl = await QRCode.toDataURL(otpauthUrl, { width: 220, margin: 1 });
         setQrDataUrl(dataUrl);
         setStep(LOGIN_STEPS.MFA_SETUP);

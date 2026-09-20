@@ -1,5 +1,18 @@
 import { useEffect, useRef } from "react";
-import Chart from "chart.js/auto";
+
+// Chart.js pesa ~200 kB: viaja en su propio chunk (import dinámico) en vez de dentro
+// de la página del Dashboard. Se pide apenas se monta la página, EN PARALELO con los
+// datos del backend, así las tarjetas se pintan sin esperar a parsear la librería.
+let promesaChart = null;
+function cargarChart() {
+  promesaChart ??= import("chart.js/auto")
+    .then((modulo) => modulo.default)
+    .catch((err) => {
+      promesaChart = null; // si falló la descarga, el próximo intento vuelve a pedirla
+      throw err;
+    });
+  return promesaChart;
+}
 
 // Gráfico de línea de facturado/gastado por empresa del Dashboard — se
 // separó a su propio hook porque la configuración de Chart.js (colores,
@@ -8,6 +21,7 @@ import Chart from "chart.js/auto";
 // los datos ya traídos del backend (ver dashboardService.obtenerComparativo).
 export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
   const chartRef = useRef(null);
+  const ventanaRef = useRef(null);
 
   // Muestra el mes elegido y los 2 anteriores, para que la línea
   // realmente tenga una tendencia que mirar — un solo punto no dice
@@ -25,6 +39,17 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
     };
   }
 
+  // Siempre la última versión de ventana(): el gráfico se crea de forma asíncrona
+  // (Chart.js se descarga aparte) y el mes elegido pudo cambiar mientras tanto.
+  useEffect(() => {
+    ventanaRef.current = ventana;
+  });
+
+  // Empieza a descargar Chart.js ya, sin esperar a los datos.
+  useEffect(() => {
+    cargarChart().catch(() => {});
+  }, []);
+
   // Crea el gráfico UNA sola vez que llegan los datos, y lo destruye al
   // desmontar. Separar creación/destrucción de la actualización evita
   // el bug clásico de Chart.js + React StrictMode: en desarrollo, React
@@ -34,92 +59,100 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
   // React truena en silencio (pantalla en blanco, sin aviso claro).
   useEffect(() => {
     if (!canvasRef.current || !datos) return;
-    const d = ventana();
+    let cancelado = false; // el componente pudo desmontarse mientras se descargaba Chart.js
 
-    // Chart.js dibuja en un canvas y no entiende var(--x): se leen los tokens ya
-    // resueltos, así el gráfico sigue a la paleta en vez de repetir los hex.
-    const estilos = getComputedStyle(document.documentElement);
-    const token = (nombre) => estilos.getPropertyValue(nombre).trim();
-    const colorCorevex = token("--copper");
-    const colorElectro = token("--electro");
-    const colorSecundario = token("--muted");
-    const colorTexto = token("--text");
+    cargarChart()
+      .then((Chart) => {
+        if (cancelado || !canvasRef.current) return;
+        const d = ventanaRef.current();
 
-    chartRef.current = new Chart(canvasRef.current, {
-      type: "line",
-      data: {
-        labels: d.labels,
-        datasets: [
-          {
-            label: "CorevexSAC — Facturado",
-            data: d.corevexFacturado,
-            borderColor: colorCorevex,
-            backgroundColor: colorCorevex,
-            tension: 0.35,
-            pointRadius: 4,
-            borderWidth: 2,
+        // Chart.js dibuja en un canvas y no entiende var(--x): se leen los tokens ya
+        // resueltos, así el gráfico sigue a la paleta en vez de repetir los hex.
+        const estilos = getComputedStyle(document.documentElement);
+        const token = (nombre) => estilos.getPropertyValue(nombre).trim();
+        const colorCorevex = token("--copper");
+        const colorElectro = token("--electro");
+        const colorSecundario = token("--muted");
+        const colorTexto = token("--text");
+
+        chartRef.current = new Chart(canvasRef.current, {
+          type: "line",
+          data: {
+            labels: d.labels,
+            datasets: [
+              {
+                label: "CorevexSAC — Facturado",
+                data: d.corevexFacturado,
+                borderColor: colorCorevex,
+                backgroundColor: colorCorevex,
+                tension: 0.35,
+                pointRadius: 4,
+                borderWidth: 2,
+              },
+              {
+                label: "CorevexSAC — Gastado",
+                data: d.corevexGastado,
+                borderColor: colorCorevex,
+                backgroundColor: colorCorevex,
+                borderDash: [5, 4],
+                tension: 0.35,
+                pointRadius: 4,
+                borderWidth: 2,
+              },
+              {
+                label: "ElectroSAC — Facturado",
+                data: d.electroFacturado,
+                borderColor: colorElectro,
+                backgroundColor: colorElectro,
+                tension: 0.35,
+                pointRadius: 4,
+                borderWidth: 2,
+              },
+              {
+                label: "ElectroSAC — Gastado",
+                data: d.electroGastado,
+                borderColor: colorElectro,
+                backgroundColor: colorElectro,
+                borderDash: [5, 4],
+                tension: 0.35,
+                pointRadius: 4,
+                borderWidth: 2,
+              },
+            ],
           },
-          {
-            label: "CorevexSAC — Gastado",
-            data: d.corevexGastado,
-            borderColor: colorCorevex,
-            backgroundColor: colorCorevex,
-            borderDash: [5, 4],
-            tension: 0.35,
-            pointRadius: 4,
-            borderWidth: 2,
-          },
-          {
-            label: "ElectroSAC — Facturado",
-            data: d.electroFacturado,
-            borderColor: colorElectro,
-            backgroundColor: colorElectro,
-            tension: 0.35,
-            pointRadius: 4,
-            borderWidth: 2,
-          },
-          {
-            label: "ElectroSAC — Gastado",
-            data: d.electroGastado,
-            borderColor: colorElectro,
-            backgroundColor: colorElectro,
-            borderDash: [5, 4],
-            tension: 0.35,
-            pointRadius: 4,
-            borderWidth: 2,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: true,
-            position: "bottom",
-            labels: { color: colorSecundario, font: { family: "Inter", size: 11.5 }, boxWidth: 14, padding: 14 },
-          },
-        },
-        scales: {
-          y: {
-            ticks: {
-              callback: (v) => "S/ " + v / 1000 + "k",
-              font: { family: "JetBrains Mono", size: 11 },
-              color: colorSecundario,
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: "bottom",
+                labels: { color: colorSecundario, font: { family: "Inter", size: 11.5 }, boxWidth: 14, padding: 14 },
+              },
             },
-            // Sin líneas horizontales — solo los números del eje quedan
-            // como referencia, el fondo del panel ya está limpio.
-            grid: { display: false },
-            border: { display: false },
+            scales: {
+              y: {
+                ticks: {
+                  callback: (v) => "S/ " + v / 1000 + "k",
+                  font: { family: "JetBrains Mono", size: 11 },
+                  color: colorSecundario,
+                },
+                // Sin líneas horizontales — solo los números del eje quedan
+                // como referencia, el fondo del panel ya está limpio.
+                grid: { display: false },
+                border: { display: false },
+              },
+              x: {
+                ticks: { font: { family: "Inter", size: 12, weight: 500 }, color: colorTexto },
+                grid: { display: false },
+              },
+            },
           },
-          x: {
-            ticks: { font: { family: "Inter", size: 12, weight: 500 }, color: colorTexto },
-            grid: { display: false },
-          },
-        },
-      },
-    });
+        });
+      })
+      .catch(() => {}); // sin Chart.js el panel queda sin gráfico; el resto de la página sigue
 
     return () => {
+      cancelado = true;
       chartRef.current?.destroy();
       chartRef.current = null; // clave: sin esto, la próxima actualización apunta a un gráfico destruido
     };
