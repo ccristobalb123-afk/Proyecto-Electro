@@ -55,8 +55,10 @@ tbody tr:last-child td {
   border-bottom: none;
 }
 
-tbody tr:hover {
-  background: var(--gray-tint);
+@media (hover: hover) {
+  tbody tr:hover {
+    background: var(--gray-tint);
+  }
 }
 
 .code {
@@ -147,8 +149,10 @@ tbody tr:hover {
   border: none;
 }
 
-.doc-chip:hover {
-  background: color-mix(in srgb, var(--copper-tint), var(--copper) 12%);
+@media (hover: hover) {
+  .doc-chip:hover {
+    background: color-mix(in srgb, var(--copper-tint), var(--copper) 12%);
+  }
 }
 
 .row-actions {
@@ -272,8 +276,10 @@ tbody tr:hover {
   cursor: pointer;
 }
 
-.docs-row-title--link:hover {
-  color: var(--copper-dark);
+@media (hover: hover) {
+  .docs-row-title--link:hover {
+    color: var(--copper-dark);
+  }
 }
 
 .docs-row-sub {
@@ -287,8 +293,10 @@ tbody tr:hover {
   text-decoration: underline;
 }
 
-.docs-row-sub--link:hover {
-  color: var(--copper);
+@media (hover: hover) {
+  .docs-row-sub--link:hover {
+    color: var(--copper);
+  }
 }
 
 .docs-row-sub--pendiente {

@@ -39,7 +39,7 @@
 .auth-field input {
   width: 100%;
   height: var(--control-height-lg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius);
   padding: 0 14px;
   font-size: 14px;
@@ -171,7 +171,7 @@
   font-size: 20px;
   font-family: var(--font-mono);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius);
   background: var(--card);
   transition: border-color var(--transition-fast);

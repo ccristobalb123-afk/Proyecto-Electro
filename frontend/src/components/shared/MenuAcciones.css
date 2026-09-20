@@ -12,11 +12,18 @@
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.menu-acciones__boton:hover,
 .menu-acciones__boton--activo {
   background: var(--copper-tint);
   border-color: var(--copper);
   color: var(--copper-dark);
+}
+
+@media (hover: hover) {
+  .menu-acciones__boton:hover {
+    background: var(--copper-tint);
+    border-color: var(--copper);
+    color: var(--copper-dark);
+  }
 }
 
 .menu-acciones__lista--portal {
@@ -63,25 +70,31 @@
   transition: background-color 0.12s ease, color 0.12s ease;
 }
 
-.menu-acciones__item:hover {
-  background: var(--gray-tint);
-  color: var(--text);
+@media (hover: hover) {
+  .menu-acciones__item:hover {
+    background: var(--gray-tint);
+    color: var(--text);
+  }
 }
 
 .menu-acciones__item--peligro {
   color: var(--danger-dark);
 }
 
-.menu-acciones__item--peligro:hover {
-  background: var(--danger-tint);
-  color: var(--danger);
+@media (hover: hover) {
+  .menu-acciones__item--peligro:hover {
+    background: var(--danger-tint);
+    color: var(--danger);
+  }
 }
 
 .menu-acciones__item--exito {
   color: var(--success-dark);
 }
 
-.menu-acciones__item--exito:hover {
-  background: var(--success-tint);
-  color: var(--success-dark);
+@media (hover: hover) {
+  .menu-acciones__item--exito:hover {
+    background: var(--success-tint);
+    color: var(--success-dark);
+  }
 }

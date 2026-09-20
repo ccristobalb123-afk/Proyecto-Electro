@@ -57,8 +57,13 @@
   color: var(--text);
 }
 
-.global-search-grupo button:hover,
 .global-search-grupo button:focus-visible,
 .global-search-grupo button.activo {
   background: var(--paper);
+}
+
+@media (hover: hover) {
+  .global-search-grupo button:hover {
+    background: var(--paper);
+  }
 }

@@ -34,6 +34,8 @@
   justify-content: center;
 }
 
-.lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.22);
+@media (hover: hover) {
+  .lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
 }

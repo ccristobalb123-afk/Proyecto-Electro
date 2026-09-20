@@ -17,10 +17,12 @@
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.notificaciones-bell__boton:hover {
-  border-color: var(--copper);
-  background: var(--copper-tint);
-  color: var(--copper-dark);
+@media (hover: hover) {
+  .notificaciones-bell__boton:hover {
+    border-color: var(--copper);
+    background: var(--copper-tint);
+    color: var(--copper-dark);
+  }
 }
 
 .notificaciones-bell__badge {
@@ -90,9 +92,11 @@
   border-radius: 4px;
 }
 
-.notificaciones-bell__cerrar:hover {
-  color: var(--text);
-  background: var(--paper);
+@media (hover: hover) {
+  .notificaciones-bell__cerrar:hover {
+    color: var(--text);
+    background: var(--paper);
+  }
 }
 
 .notificaciones-bell__vacio {
@@ -151,8 +155,10 @@
   transition: background 0.12s ease;
 }
 
-.notificacion-item:hover {
-  background: var(--paper);
+@media (hover: hover) {
+  .notificacion-item:hover {
+    background: var(--paper);
+  }
 }
 
 .notificacion-item:last-child {

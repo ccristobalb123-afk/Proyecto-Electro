@@ -96,8 +96,10 @@
   cursor: pointer;
 }
 
-.vehiculo-doc-nombre--link:hover {
-  color: var(--copper-dark);
+@media (hover: hover) {
+  .vehiculo-doc-nombre--link:hover {
+    color: var(--copper-dark);
+  }
 }
 
 .vehiculo-doc-vence {

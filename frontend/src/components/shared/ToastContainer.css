@@ -86,8 +86,10 @@
   transition: opacity 0.15s ease;
 }
 
-.toast__deshacer:hover {
-  opacity: 0.8;
+@media (hover: hover) {
+  .toast__deshacer:hover {
+    opacity: 0.8;
+  }
 }
 
 .toast__cerrar {
@@ -103,7 +105,9 @@
   transition: background-color 0.12s ease, color 0.12s ease;
 }
 
-.toast__cerrar:hover {
-  color: var(--on-ink);
-  background: rgba(255, 255, 255, 0.06);
+@media (hover: hover) {
+  .toast__cerrar:hover {
+    color: var(--on-ink);
+    background: rgba(255, 255, 255, 0.06);
+  }
 }

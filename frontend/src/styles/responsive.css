@@ -115,12 +115,18 @@
   }
 
   /* Botones con texto, pestañas, chips y filas de menú */
+  html .notificaciones-bell__push-toggle {
+    display: flex;
+    align-items: center;
+  }
+
   html .btn-primary,
   html .btn-secondary,
   html .btn-outline-sm,
   html .tabs button,
   html .doc-chip,
   html .menu-acciones__item,
+  html .notificaciones-bell__push-toggle,
   html .nav a {
     min-height: 44px;
   }

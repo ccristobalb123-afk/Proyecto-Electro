@@ -143,8 +143,10 @@
   text-underline-offset: 3px;
 }
 
-.fin-card-archivo--link:hover {
-  color: var(--copper-dark);
+@media (hover: hover) {
+  .fin-card-archivo--link:hover {
+    color: var(--copper-dark);
+  }
 }
 
 .fin-card-footer {

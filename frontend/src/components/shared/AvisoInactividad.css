@@ -75,8 +75,10 @@
   transition: background 0.15s ease;
 }
 
-.btn-seguir-conectado:hover {
-  background: var(--copper-dark);
+@media (hover: hover) {
+  .btn-seguir-conectado:hover {
+    background: var(--copper-dark);
+  }
 }
 
 @keyframes pulso-advertencia {

@@ -79,8 +79,10 @@
   transition: background 0.15s ease;
 }
 
-.btn-confirm-secondary:hover {
-  background: var(--gray-tint);
+@media (hover: hover) {
+  .btn-confirm-secondary:hover {
+    background: var(--gray-tint);
+  }
 }
 
 .btn-confirm-primary {
@@ -95,8 +97,10 @@
   transition: background 0.15s ease;
 }
 
-.btn-confirm-primary:hover {
-  background: var(--electro-dark);
+@media (hover: hover) {
+  .btn-confirm-primary:hover {
+    background: var(--electro-dark);
+  }
 }
 
 .btn-confirm-danger {
@@ -111,6 +115,8 @@
   transition: background 0.15s ease;
 }
 
-.btn-confirm-danger:hover {
-  background: var(--danger-dark);
+@media (hover: hover) {
+  .btn-confirm-danger:hover {
+    background: var(--danger-dark);
+  }
 }

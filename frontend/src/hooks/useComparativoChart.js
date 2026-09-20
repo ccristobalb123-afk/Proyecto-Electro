@@ -36,6 +36,15 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
     if (!canvasRef.current || !datos) return;
     const d = ventana();
 
+    // Chart.js dibuja en un canvas y no entiende var(--x): se leen los tokens ya
+    // resueltos, así el gráfico sigue a la paleta en vez de repetir los hex.
+    const estilos = getComputedStyle(document.documentElement);
+    const token = (nombre) => estilos.getPropertyValue(nombre).trim();
+    const colorCorevex = token("--copper");
+    const colorElectro = token("--electro");
+    const colorSecundario = token("--muted");
+    const colorTexto = token("--text");
+
     chartRef.current = new Chart(canvasRef.current, {
       type: "line",
       data: {
@@ -44,8 +53,8 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
           {
             label: "CorevexSAC — Facturado",
             data: d.corevexFacturado,
-            borderColor: "#2563eb",
-            backgroundColor: "#2563eb",
+            borderColor: colorCorevex,
+            backgroundColor: colorCorevex,
             tension: 0.35,
             pointRadius: 4,
             borderWidth: 2,
@@ -53,8 +62,8 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
           {
             label: "CorevexSAC — Gastado",
             data: d.corevexGastado,
-            borderColor: "#2563eb",
-            backgroundColor: "#2563eb",
+            borderColor: colorCorevex,
+            backgroundColor: colorCorevex,
             borderDash: [5, 4],
             tension: 0.35,
             pointRadius: 4,
@@ -63,8 +72,8 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
           {
             label: "ElectroSAC — Facturado",
             data: d.electroFacturado,
-            borderColor: "#64748b",
-            backgroundColor: "#64748b",
+            borderColor: colorElectro,
+            backgroundColor: colorElectro,
             tension: 0.35,
             pointRadius: 4,
             borderWidth: 2,
@@ -72,8 +81,8 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
           {
             label: "ElectroSAC — Gastado",
             data: d.electroGastado,
-            borderColor: "#64748b",
-            backgroundColor: "#64748b",
+            borderColor: colorElectro,
+            backgroundColor: colorElectro,
             borderDash: [5, 4],
             tension: 0.35,
             pointRadius: 4,
@@ -87,7 +96,7 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
           legend: {
             display: true,
             position: "bottom",
-            labels: { color: "#667085", font: { family: "Inter", size: 11.5 }, boxWidth: 14, padding: 14 },
+            labels: { color: colorSecundario, font: { family: "Inter", size: 11.5 }, boxWidth: 14, padding: 14 },
           },
         },
         scales: {
@@ -95,7 +104,7 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
             ticks: {
               callback: (v) => "S/ " + v / 1000 + "k",
               font: { family: "JetBrains Mono", size: 11 },
-              color: "#667085",
+              color: colorSecundario,
             },
             // Sin líneas horizontales — solo los números del eje quedan
             // como referencia, el fondo del panel ya está limpio.
@@ -103,7 +112,7 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
             border: { display: false },
           },
           x: {
-            ticks: { font: { family: "Inter", size: 12, weight: 500 }, color: "#1f2937" },
+            ticks: { font: { family: "Inter", size: 12, weight: 500 }, color: colorTexto },
             grid: { display: false },
           },
         },

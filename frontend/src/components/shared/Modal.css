@@ -55,8 +55,10 @@
   color: var(--muted);
 }
 
-.modal-close:hover {
-  background: var(--paper);
+@media (hover: hover) {
+  .modal-close:hover {
+    background: var(--paper);
+  }
 }
 
 .modal-sub {
@@ -105,7 +107,7 @@ fieldset.form-field {
 .form-field textarea {
   width: 100%;
   height: var(--control-height-lg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius);
   padding: 0 12px;
   font-size: 13.5px;
@@ -202,7 +204,7 @@ fieldset.form-field {
 .aviso-input-row input {
   width: 80px;
   height: 38px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius);
   text-align: center;
   font-family: var(--font-mono);
@@ -230,9 +232,11 @@ fieldset.form-field {
   cursor: pointer;
 }
 
-.dropzone:hover {
-  border-color: var(--copper);
-  background: var(--gray-tint);
+@media (hover: hover) {
+  .dropzone:hover {
+    border-color: var(--copper);
+    background: var(--gray-tint);
+  }
 }
 
 .dropzone svg {
@@ -436,8 +440,10 @@ fieldset.form-field {
   transition: opacity 0.15s ease;
 }
 
-.foto-equipo-reemplazar:hover .foto-equipo-reemplazar-hint {
-  opacity: 1;
+@media (hover: hover) {
+  .foto-equipo-reemplazar:hover .foto-equipo-reemplazar-hint {
+    opacity: 1;
+  }
 }
 
 .foto-equipo-quitar {
@@ -455,8 +461,10 @@ fieldset.form-field {
   justify-content: center;
 }
 
-.foto-equipo-quitar:hover {
-  background: rgba(15, 19, 24, 0.8);
+@media (hover: hover) {
+  .foto-equipo-quitar:hover {
+    background: rgba(15, 19, 24, 0.8);
+  }
 }
 
 .foto-equipo-vacio {
@@ -476,9 +484,11 @@ fieldset.form-field {
   cursor: pointer;
 }
 
-.foto-equipo-vacio:hover {
-  border-color: var(--copper);
-  color: var(--copper-dark);
+@media (hover: hover) {
+  .foto-equipo-vacio:hover {
+    border-color: var(--copper);
+    color: var(--copper-dark);
+  }
 }
 
 .password-strength-wrap {
