@@ -127,21 +127,6 @@ fieldset.form-field {
   gap: 14px;
 }
 
-.field-check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text);
-  margin: 4px 0 14px;
-  cursor: pointer;
-}
-
-.field-check input {
-  width: 16px;
-  height: 16px;
-}
-
 .co-choice {
   display: flex;
   gap: 10px;

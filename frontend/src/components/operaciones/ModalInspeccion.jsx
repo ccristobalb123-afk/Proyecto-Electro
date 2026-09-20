@@ -20,8 +20,10 @@ export default function ModalInspeccion({ open, equipo, fInspeccion, setFInspecc
           </label>
         </div>
 
-        <div className="form-field">
-          <label>{fInspeccion.tipo === "interna" ? "Foto de la inspección" : "Certificado (PDF)"}</label>
+        <div className="form-field" role="group" aria-labelledby="inspeccion-archivo-titulo">
+          <span id="inspeccion-archivo-titulo" className="form-field-heading">
+            {fInspeccion.tipo === "interna" ? "Foto de la inspección" : "Certificado (PDF)"}
+          </span>
           <label className="dropzone">
             <IconUpload width={22} height={22} />
             <p><b>Haz clic para subir</b> — {fInspeccion.tipo === "interna" ? "foto (JPG/PNG)" : "certificado (PDF)"}</p>

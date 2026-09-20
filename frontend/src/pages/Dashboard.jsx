@@ -126,7 +126,7 @@ export default function Dashboard() {
       <div className="cols">
         <div className="panel">
           <div className="panel-head">
-            <h3>Próximos vencimientos</h3>
+            <h2>Próximos vencimientos</h2>
             <span>Ver todos</span>
           </div>
           {cargandoAlertas ? (
@@ -158,7 +158,7 @@ export default function Dashboard() {
 
         <div className="panel">
           <div className="panel-head">
-            <h3>Actividad reciente</h3>
+            <h2>Actividad reciente</h2>
           </div>
           {actividadReciente.map((item, i) => (
             <div className="act-item" key={`${item.actor}-${item.detalle}-${i}`}>
@@ -176,7 +176,7 @@ export default function Dashboard() {
 
       <div className="panel">
         <div className="panel-head">
-          <h3>Facturado vs. gastado por empresa</h3>
+          <h2>Facturado vs. gastado por empresa</h2>
           {comparativo && (
             <select
               className="month-select"
