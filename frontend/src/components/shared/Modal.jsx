@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from "react";
 import { IconClose } from "../icons/Icons";
 import "./Modal.css";
 
-export function Modal({ open, title, subtitle, onClose, children, wide }) {
+export function Modal({ open, title, subtitle, onClose, children, wide, variant }) {
   const tituloId = useId();
   const dialogRef = useRef(null);
 
@@ -47,7 +47,7 @@ export function Modal({ open, title, subtitle, onClose, children, wide }) {
 
     function onKeyDown(e) {
       if (e.key === "Escape") {
-        onCloseRef.current();
+        onCloseRef.current?.();
         return;
       }
       if (e.key !== "Tab") return;
@@ -75,21 +75,24 @@ export function Modal({ open, title, subtitle, onClose, children, wide }) {
 
   if (!open) return null;
   return (
-    <div className="modal-overlay open" onClick={onClose}>
+    <div className={`modal-overlay open ${variant ? `modal-overlay--${variant}` : ""}`} onClick={onClose}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
         tabIndex={-1}
-        className={`modal-electro ${wide ? "modal-wide" : ""}`}
+        className={`modal-electro ${wide ? "modal-wide" : ""} ${variant ? `modal--${variant}` : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-head">
           <h2 id={tituloId} className="font-display">{title}</h2>
-          <button className="modal-close" onClick={onClose} type="button" aria-label="Cerrar">
-            <IconClose width={16} height={16} />
-          </button>
+          {/* Un modal sin onClose (ej. cambio de contraseña obligatorio) no se puede cerrar: sin botón */}
+          {onClose && (
+            <button className="modal-close" onClick={onClose} type="button" aria-label="Cerrar">
+              <IconClose width={16} height={16} />
+            </button>
+          )}
         </div>
         {subtitle && <p className="modal-sub">{subtitle}</p>}
         {children}

@@ -12,6 +12,7 @@
   --ink-border: rgba(255, 255, 255, 0.08);
   /* Texto sobre superficies oscuras (sidebar, login, toasts) y sobre rellenos de color */
   --on-ink: #edeae2;
+  --on-ink-soft: #b9c2cc;    /* texto de apoyo sobre navy (7:1) — párrafos del acceso */
   --on-ink-muted: #93a0ae;   /* ≥4.5:1 sobre --ink y --ink-2 (antes #7c8794: 3.47:1) */
   --on-accent: #ffffff;
   --paper: #eaeef2;       /* fondo general */

@@ -45,3 +45,29 @@
     transform: none;
   }
 }
+
+/* Acceso (Login / Restablecer) y modal de cambiar contraseña: solo fundido.
+   Sin desplazamiento, sin dibujo del trazo ni escalado al presionar; los
+   cambios de color del riel se conservan, que es lo que comunica el paso. */
+@media (prefers-reduced-motion: reduce) {
+  html .auth-paso,
+  html .auth-rail,
+  html .auth-error,
+  html .modal--seguridad {
+    animation-name: fade-in;
+  }
+
+  html .auth-rail__nodo:not(:last-child)::after {
+    transition: none;
+  }
+
+  html .modal--seguridad::before {
+    animation: none;
+  }
+
+  html .auth-form .btn-primary:active:not(:disabled),
+  html .password-field__toggle:active {
+    transform: none;
+  }
+}
+

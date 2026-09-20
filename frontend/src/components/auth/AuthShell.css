@@ -1,0 +1,306 @@
+/* ============================================================
+   Carcasa del acceso (Login y Restablecer contraseña)
+   Panel navy con el riel de pasos + hoja limpia para el formulario.
+   Solo se animan transform y opacity. La rama de prefers-reduced-motion
+   vive en styles/motion.css.
+   ============================================================ */
+
+.auth {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+}
+
+/* ---------- Panel de marca ---------- */
+.auth-panel {
+  flex: 0 0 40%;
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--on-ink);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-12);
+}
+
+.auth-panel > * {
+  position: relative; /* por encima del dibujo de fondo */
+}
+
+.auth-fondo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--volt);
+  opacity: 0.12;
+  animation: auth-fondo-entrada 700ms ease-out both;
+}
+
+.auth-marca {
+  font-size: 44px; /* mayor que el título (34px): la marca lidera el panel */
+  font-weight: var(--fw-bold);
+  line-height: 1; /* sin esto hereda 1.5 y el bloque crece a 66px de alto */
+  letter-spacing: -0.03em;
+}
+
+.auth-marca span {
+  color: var(--volt);
+}
+
+.auth-copy {
+  margin-top: auto; /* empuja el bloque copy + riel + empresas hacia abajo */
+  max-width: 360px;
+}
+
+.auth-copy h1 {
+  font-size: 34px;
+  font-weight: var(--fw-semibold);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin: 0 0 14px;
+}
+
+.auth-copy p {
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  color: var(--on-ink-soft);
+  margin: 0;
+}
+
+.auth-empresas {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-12);
+  font-size: var(--fs-sm);
+  color: var(--on-ink-muted);
+}
+
+.auth-empresas span {
+  border: 1px solid var(--ink-border);
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+
+/* ---------- Riel de pasos (vertical) ---------- */
+.auth-rail {
+  list-style: none;
+  margin: var(--space-10) 0 0;
+  padding: 0 0 0 4px; /* aire para el anillo del nodo actual */
+  display: flex;
+  flex-direction: column;
+  animation: auth-rail-entrada 500ms var(--ease-out) both;
+}
+
+.auth-rail__nodo {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 28px;
+}
+
+.auth-rail__nodo:last-child {
+  padding-bottom: 0;
+}
+
+.auth-rail__punto {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 4px; /* centra el punto con la primera línea de la etiqueta */
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--on-ink-muted);
+  background: transparent;
+  transition:
+    background-color 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    outline-color 180ms var(--ease-out);
+}
+
+.auth-rail__etiqueta {
+  font-size: var(--fs-base);
+  line-height: 20px;
+  color: var(--on-ink-muted);
+  transition: color 180ms var(--ease-out);
+}
+
+/* Trazo entre nodos: una pista tenue (::before) y, encima, el relleno ámbar
+   (::after) que se extiende hacia el siguiente nodo cuando este ya se pasó. */
+.auth-rail__nodo:not(:last-child)::before,
+.auth-rail__nodo:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 5px; /* centro del punto (6px) menos la mitad del trazo (1px) */
+  top: 20px;
+  bottom: 0;
+  width: 2px;
+}
+
+.auth-rail__nodo:not(:last-child)::before {
+  background: var(--ink-border);
+}
+
+.auth-rail__nodo:not(:last-child)::after {
+  background: var(--volt);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 300ms var(--ease-out);
+}
+
+.auth-rail__nodo--hecho:not(:last-child)::after {
+  transform: scaleY(1);
+}
+
+.auth-rail__nodo--hecho .auth-rail__punto {
+  background: var(--volt);
+  border-color: var(--volt);
+}
+
+.auth-rail__nodo--hecho .auth-rail__etiqueta {
+  color: var(--on-ink-soft);
+}
+
+.auth-rail__nodo--actual .auth-rail__punto {
+  background: var(--volt);
+  border-color: var(--volt);
+  outline: 2px solid color-mix(in srgb, var(--volt) 45%, transparent);
+  outline-offset: 3px;
+}
+
+.auth-rail__nodo--actual .auth-rail__etiqueta {
+  color: var(--on-ink);
+  font-weight: var(--fw-semibold);
+}
+
+/* ---------- Zona del formulario ---------- */
+/* El formulario se ancla arriba (no se centra en vertical): entre pasos de
+   distinta altura lo de arriba se queda quieto y solo cambia lo de abajo. */
+.auth-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(var(--space-10), 18vh, 160px) var(--space-10) var(--space-10);
+  background: var(--card);
+}
+
+.auth-marco {
+  width: 100%;
+  max-width: 360px;
+}
+
+.auth-paso {
+  animation: auth-paso-entrada 220ms var(--ease-out) both;
+}
+
+@keyframes auth-paso-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes auth-rail-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes auth-fondo-entrada {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Menos de 960px: el panel pasa a franja superior ---------- */
+@media (max-width: 959px) {
+  .auth {
+    flex-direction: column;
+  }
+
+  .auth-panel {
+    flex: none;
+    gap: var(--space-5);
+    padding: max(var(--space-5), env(safe-area-inset-top)) max(var(--space-5), env(safe-area-inset-right))
+      var(--space-5) max(var(--space-5), env(safe-area-inset-left));
+  }
+
+  .auth-marca {
+    font-size: 32px;
+  }
+
+  .auth-copy,
+  .auth-empresas {
+    display: none;
+  }
+
+  /* Riel horizontal: punto, etiqueta y, al final de cada nodo, el tramo de
+     trazo hacia el siguiente. */
+  .auth-rail {
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+  }
+
+  .auth-rail__nodo {
+    padding: 0 40px 0 0;
+  }
+
+  .auth-rail__nodo:last-child {
+    padding-right: 0;
+  }
+
+  .auth-rail__nodo:not(:last-child)::before,
+  .auth-rail__nodo:not(:last-child)::after {
+    left: auto;
+    right: 8px;
+    top: 9px;
+    bottom: auto;
+    width: 24px;
+    height: 2px;
+  }
+
+  .auth-rail__nodo:not(:last-child)::after {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .auth-rail__nodo--hecho:not(:last-child)::after {
+    transform: scaleX(1);
+  }
+
+  .auth-main {
+    padding: var(--space-8) max(var(--space-5), env(safe-area-inset-right))
+      max(var(--space-8), env(safe-area-inset-bottom)) max(var(--space-5), env(safe-area-inset-left));
+  }
+
+  .auth-marco {
+    max-width: 440px;
+    margin: 0 auto;
+  }
+}
+
+/* ---------- Ventanas de escritorio poco altas ----------
+   El texto del panel es largo: en menos de ~620px de alto el bloque de copy,
+   el riel y las empresas no cabrían. Se recortan solo los márgenes verticales
+   (unos 70px en total); tipografía y composición quedan igual. */
+@media (min-width: 960px) and (max-height: 620px) {
+  .auth-panel {
+    padding-block: var(--space-8);
+  }
+
+  .auth-rail {
+    margin-top: var(--space-6);
+  }
+
+  .auth-empresas {
+    margin-top: var(--space-6);
+  }
+}
+

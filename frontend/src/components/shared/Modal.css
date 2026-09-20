@@ -526,3 +526,77 @@ fieldset.form-field {
 .igv-resultado b {
   color: var(--text);
 }
+
+/* ============================================================
+   Variante «seguridad» — cambio de contraseña.
+   Se activa con <Modal variant="seguridad">; los demás modales no cambian.
+   Entra en 200ms (ease-out) desde un desplazamiento corto y una línea ámbar
+   se dibuja en el borde superior, el mismo lenguaje del riel del Login. En
+   pantallas de celular pasa a hoja inferior, al alcance del pulgar.
+   ============================================================ */
+.modal-overlay--seguridad {
+  animation: modal-seguridad-fondo 150ms ease-out both;
+}
+
+.modal--seguridad {
+  position: relative;
+  animation: modal-seguridad-entrada 200ms var(--ease-out) both;
+}
+
+.modal--seguridad::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 28px;
+  right: 28px;
+  height: 2px;
+  background: var(--volt);
+  transform-origin: left;
+  animation: modal-seguridad-trazo 300ms var(--ease-out) 120ms both;
+}
+
+.modal--seguridad .modal-head h2 {
+  letter-spacing: -0.01em;
+}
+
+@keyframes modal-seguridad-fondo {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-seguridad-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes modal-seguridad-trazo {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes modal-seguridad-hoja {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-overlay--seguridad {
+    align-items: flex-end;
+  }
+
+  .modal--seguridad {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 16px 16px 0 0;
+    padding-bottom: max(26px, env(safe-area-inset-bottom));
+    animation: modal-seguridad-hoja 280ms var(--ease-out) both;
+  }
+}
+

@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import AuthShell from "../components/auth/AuthShell";
+import PasswordField from "../components/shared/PasswordField";
 import PasswordStrength from "../components/shared/PasswordStrength";
+import { IconChevronLeft } from "../components/icons/Icons";
 import * as authService from "../services/authService";
-import "./Login.css";
+
+const PASOS = [
+  { id: "nueva", etiqueta: "Nueva contraseña" },
+  { id: "listo", etiqueta: "Listo" },
+];
 
 export default function RestablecerPassword() {
   const [searchParams] = useSearchParams();
@@ -43,79 +50,67 @@ export default function RestablecerPassword() {
   }
 
   return (
-    <div className="login">
-      <div className="login-brand">
-        <div className="brand-mark">
-          <div className="wordmark font-display">
-            Activo<span>360</span>
+    <AuthShell flujo="restablecer" pasos={PASOS} actual={listo ? 1 : 0} paso={listo ? "listo" : "formulario"}>
+      {listo ? (
+        <div className="auth-form">
+          <div className="auth-step-icon auth-step-icon--exito">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
           </div>
+          <h2 className="font-display" tabIndex={-1}>
+            Contraseña actualizada
+          </h2>
+          <p className="auth-sub">Ya puedes iniciar sesión con tu contraseña nueva.</p>
+          <Link className="btn-primary auth-link-btn" to="/login">
+            Ir a iniciar sesión
+          </Link>
         </div>
-        <div className="brand-copy">
-          <h1 className="font-display">Un solo lugar para tus dos empresas.</h1>
-          <p>
-            RRHH, equipos, camiones y finanzas de CorevexSAC y ElectroSAC, con
-            alertas de vencimiento automáticas.
-          </p>
-        </div>
-      </div>
+      ) : (
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <h2 className="font-display" tabIndex={-1}>
+            Crea una contraseña nueva
+          </h2>
+          <p className="auth-sub">Elige una contraseña que no hayas usado antes.</p>
 
-      <div className="login-form-wrap">
-        {listo ? (
-          <div className="login-form">
-            <div className="step-icon success">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            </div>
-            <h2 className="font-display">Contraseña actualizada</h2>
-            <p className="sub">Ya puedes iniciar sesión con tu contraseña nueva.</p>
-            <Link className="btn-primary" to="/login" style={{ textAlign: "center", textDecoration: "none" }}>
-              Ir a iniciar sesión
-            </Link>
-          </div>
-        ) : (
-          <form className="login-form" onSubmit={handleSubmit}>
-            <h2 className="font-display">Crea una contraseña nueva</h2>
-            <p className="sub">Elige una contraseña que no hayas usado antes.</p>
+          <PasswordField
+            id="passwordNueva"
+            label="Contraseña nueva"
+            value={passwordNueva}
+            onChange={(e) => setPasswordNueva(e.target.value)}
+            autoComplete="new-password"
+            autoFocus
+            invalid={!!error}
+            describedBy={error ? "restablecer-error" : undefined}
+          >
+            <PasswordStrength password={passwordNueva} />
+          </PasswordField>
 
-            <div className="field">
-              <label htmlFor="passwordNueva">Contraseña nueva</label>
-              <input
-                type="password"
-                id="passwordNueva"
-                placeholder="••••••••"
-                value={passwordNueva}
-                onChange={(e) => setPasswordNueva(e.target.value)}
-                autoFocus
-              />
-              <div className="password-strength-wrap">
-                <PasswordStrength password={passwordNueva} />
-              </div>
-            </div>
+          <PasswordField
+            id="confirmarNueva"
+            label="Confirmar contraseña"
+            value={confirmarNueva}
+            onChange={(e) => setConfirmarNueva(e.target.value)}
+            autoComplete="new-password"
+            invalid={!!error}
+            describedBy={error ? "restablecer-error" : undefined}
+          />
 
-            <div className="field">
-              <label htmlFor="confirmarNueva">Confirmar contraseña</label>
-              <input
-                type="password"
-                id="confirmarNueva"
-                placeholder="••••••••"
-                value={confirmarNueva}
-                onChange={(e) => setConfirmarNueva(e.target.value)}
-              />
-            </div>
+          {error && (
+            <p id="restablecer-error" className="auth-error" role="alert">
+              {error}
+            </p>
+          )}
 
-            {error && <p className="field-error">{error}</p>}
+          <button className="btn-primary" type="submit" disabled={loading}>
+            {loading ? "Guardando..." : "Guardar contraseña"}
+          </button>
 
-            <button className="btn-primary" type="submit" disabled={loading}>
-              {loading ? "Guardando..." : "Guardar contraseña"}
-            </button>
-
-            <Link className="back-link below" to="/login">
-              ‹ Volver a inicio de sesión
-            </Link>
-          </form>
-        )}
-      </div>
-    </div>
+          <Link className="auth-back auth-back--abajo" to="/login">
+            <IconChevronLeft width={16} height={16} /> Volver a inicio de sesión
+          </Link>
+        </form>
+      )}
+    </AuthShell>
   );
 }

@@ -146,7 +146,7 @@ export function useLoginFlow() {
     usuario, setUsuario,
     clave, setClave,
     correoRecovery, setCorreoRecovery,
-    otp, handleOtpChange,
+    otp, setOtp, handleOtpChange,
     error, loading,
     qrDataUrl, handleContinuarDesdeSetup,
     handleCredentialsSubmit, handleMfaSubmit, handleRecoverySubmit,

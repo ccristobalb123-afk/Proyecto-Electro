@@ -20,6 +20,18 @@ CSS Grid con `minmax(0, 1fr)`, sin librería y con `gap: var(--space-4)`:
 Las tarjetas de una misma fila se igualan en alto solas (`align-items: stretch`),
 no hace falta ninguna clase extra.
 
+### Acceso (Login y Restablecer contraseña)
+- `components/auth/AuthShell.jsx`: carcasa compartida (panel navy + riel de pasos + hoja del
+  formulario). Sus clases llevan prefijo `auth-` para no mezclarse con estilos globales de los
+  modales (`.field-error` y similares).
+- `components/auth/AuthRail.jsx`: el riel; cada paso es un nodo con texto y `aria-current`.
+- `components/auth/OtpInput.jsx`: las 6 casillas del código (pegado, retroceso y autocompletado).
+- `components/shared/PasswordField.jsx`: campo de contraseña con mostrar/ocultar, usado también
+  por el modal de cambiar contraseña. Pasar siempre `autoComplete` (`current-password` o
+  `new-password`).
+- `<Modal variant="seguridad">`: variante opcional del modal (entrada con trazo ámbar; hoja
+  inferior en celular). Los demás modales no la usan.
+
 ### Al agregar algo nuevo
 - Copiar la estructura del módulo más parecido que ya exista (por ejemplo
   `.usuario-card` para una tarjeta nueva) y usar las variables de `tokens.css`

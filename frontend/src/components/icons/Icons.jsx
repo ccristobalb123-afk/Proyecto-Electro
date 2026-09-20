@@ -127,6 +127,24 @@ export function IconEye(props) {
   );
 }
 
+export function IconEyeOff(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M4 4l16 16" />
+    </svg>
+  );
+}
+
+export function IconChevronLeft(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
 export function IconFile(props) {
   return (
     <svg {...base} {...props}>

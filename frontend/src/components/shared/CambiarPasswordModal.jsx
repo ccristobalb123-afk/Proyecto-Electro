@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Modal, ModalActions } from "./Modal";
+import PasswordField from "./PasswordField";
 import PasswordStrength from "./PasswordStrength";
 import * as authService from "../../services/authService";
 
@@ -39,6 +40,7 @@ export default function CambiarPasswordModal({ open, obligatorio, onClose, onExi
   return (
     <Modal
       open={open}
+      variant="seguridad"
       title="Cambiar contraseña"
       subtitle={
         obligatorio ? "Por seguridad, tienes que cambiar tu contraseña antes de seguir." : undefined
@@ -47,41 +49,38 @@ export default function CambiarPasswordModal({ open, obligatorio, onClose, onExi
     >
       <form onSubmit={handleSubmit}>
         {!obligatorio && (
-          <div className="form-field">
-            <label htmlFor="passwordActual">Contraseña actual</label>
-            <input
-              type="password"
-              id="passwordActual"
-              value={passwordActual}
-              onChange={(e) => setPasswordActual(e.target.value)}
-              required
-            />
-          </div>
+          <PasswordField
+            id="passwordActual"
+            label="Contraseña actual"
+            value={passwordActual}
+            onChange={(e) => setPasswordActual(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
         )}
-        <div className="form-field">
-          <label htmlFor="passwordNueva">Contraseña nueva</label>
-          <input
-            type="password"
-            id="passwordNueva"
-            value={passwordNueva}
-            onChange={(e) => setPasswordNueva(e.target.value)}
-            required
-          />
-          <div className="password-strength-wrap">
-            <PasswordStrength password={passwordNueva} />
-          </div>
-        </div>
-        <div className="form-field">
-          <label htmlFor="confirmarNueva">Confirmar contraseña nueva</label>
-          <input
-            type="password"
-            id="confirmarNueva"
-            value={confirmarNueva}
-            onChange={(e) => setConfirmarNueva(e.target.value)}
-            required
-          />
-        </div>
-        {error && <p className="field-error">{error}</p>}
+        <PasswordField
+          id="passwordNueva"
+          label="Contraseña nueva"
+          value={passwordNueva}
+          onChange={(e) => setPasswordNueva(e.target.value)}
+          autoComplete="new-password"
+          required
+        >
+          <PasswordStrength password={passwordNueva} />
+        </PasswordField>
+        <PasswordField
+          id="confirmarNueva"
+          label="Confirmar contraseña nueva"
+          value={confirmarNueva}
+          onChange={(e) => setConfirmarNueva(e.target.value)}
+          autoComplete="new-password"
+          required
+        />
+        {error && (
+          <p className="field-error" role="alert">
+            {error}
+          </p>
+        )}
         {obligatorio ? (
           <div className="modal-actions">
             <button type="submit" className="btn-primary" disabled={guardando}>
