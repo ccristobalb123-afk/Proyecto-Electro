@@ -1,4 +1,6 @@
 import express from "express";
+import path from "node:path";
+import fs from "node:fs";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -76,6 +78,24 @@ app.use("/api/catalogo-detraccion", catalogoDetraccionRoutes);
 app.use("/api/uploads", uploadsRoutes);
 app.use("/api/notificaciones", notificacionesRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+
+// Sirve el frontend ya compilado (frontend/dist) desde este mismo
+// backend — así, en producción, alcanza con exponer un solo puerto
+// (útil para Cloudflare Tunnel, que apunta a un solo origen), en vez
+// de correr 2 procesos separados. En desarrollo esta carpeta no
+// existe todavía (recién se genera con `npm run build` dentro de
+// frontend/), así que este bloque completo se salta solo.
+const distFrontend = path.join(process.cwd(), "..", "frontend", "dist");
+if (fs.existsSync(distFrontend)) {
+  app.use(express.static(distFrontend));
+  // Cualquier ruta que NO empiece con /api cae acá — así el router de
+  // React (ej. /operaciones, /finanzas) sigue funcionando aunque el
+  // usuario refresque la página estando en esa URL, en vez de darle
+  // un 404 porque el servidor no conoce esa ruta.
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(distFrontend, "index.html"));
+  });
+}
 
 // Siempre al final — Express solo lo usa si algo antes llamó a next(error).
 app.use(manejadorDeErrores);
