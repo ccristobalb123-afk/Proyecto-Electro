@@ -14,6 +14,17 @@ function cargarChart() {
   return promesaChart;
 }
 
+const SERIES = ["corevexFacturado", "corevexGastado", "electroFacturado", "electroGastado"];
+
+// Con la base sin facturas ni gastos todas las series valen 0. Chart.js, al ver que el
+// mínimo y el máximo coinciden, abre el eje en −1…1: de ahí salían etiquetas como
+// «S/ 0.001k» y media gráfica vacía bajo el cero. Sin montos se fija el eje de 0 a
+// S/ 1k; con datos no se toca nada (undefined = escala automática).
+function limitesEjeY(d) {
+  const hayMonto = SERIES.some((serie) => d[serie].some((v) => Number(v) > 0));
+  return hayMonto ? { min: undefined, max: undefined } : { min: 0, max: 1000 };
+}
+
 // Gráfico de línea de facturado/gastado por empresa del Dashboard — se
 // separó a su propio hook porque la configuración de Chart.js (colores,
 // escalas, leyenda) es larga y no tiene nada que ver con el resto de la
@@ -131,8 +142,9 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
             },
             scales: {
               y: {
+                ...limitesEjeY(d),
                 ticks: {
-                  callback: (v) => "S/ " + v / 1000 + "k",
+                  callback: (v) => (v === 0 ? "S/ 0" : "S/ " + v / 1000 + "k"),
                   font: { family: "JetBrains Mono", size: 11 },
                   color: colorSecundario,
                 },
@@ -170,6 +182,9 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
     chart.data.datasets[1].data = d.corevexGastado;
     chart.data.datasets[2].data = d.electroFacturado;
     chart.data.datasets[3].data = d.electroGastado;
+    const { min, max } = limitesEjeY(d);
+    chart.options.scales.y.min = min;
+    chart.options.scales.y.max = max;
     chart.update();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mesFinalIndex, datos]);
