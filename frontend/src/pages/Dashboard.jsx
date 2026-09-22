@@ -197,7 +197,6 @@ export default function Dashboard() {
         <div className="panel-chart">
           <canvas
             ref={chartRef}
-            height="100"
             role="img"
             aria-label="Gráfico de líneas: facturado y gastado por empresa"
             aria-describedby="comparativo-resumen"

@@ -240,8 +240,33 @@
   display: inline-block;
 }
 
+/* Alto fijo (no una proporción ancho/alto): el canvas de Chart.js usa
+   maintainAspectRatio: false (useComparativoChart.js) y toma su tamaño de este
+   contenedor. Sin un alto propio, el canvas no tiene de qué medirse y el
+   resultado dependía del navegador y de en qué momento se hubiera descargado
+   Chart.js — en algunos casos dejaba un hueco vacío debajo del gráfico. */
 .panel-chart {
   padding: 18px 20px;
+  height: 320px;
+}
+
+.panel-chart canvas {
+  /* Mismo tamaño que fijará Chart.js al cargar — evita un salto de layout
+     mientras el chunk de Chart.js todavía se está descargando. */
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 960px) {
+  .panel-chart {
+    height: 260px;
+  }
+}
+
+@media (max-width: 640px) {
+  .panel-chart {
+    height: 220px;
+  }
 }
 
 .month-select {

@@ -133,6 +133,14 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
           },
           options: {
             responsive: true,
+            // El canvas toma el alto fijo de .panel-chart (Dashboard.css), no el que
+            // resultaría de mantener una proporción ancho/alto. Sin esto, Chart.js
+            // calculaba su alto a partir de la relación 2:1 por defecto contra el
+            // ancho real del contenedor — y ese ancho depende de en qué momento del
+            // ciclo de carga se ejecuta (la librería se descarga aparte, ver
+            // cargarChart arriba), lo que en algunos navegadores dejaba un alto
+            // desproporcionado y, con eso, el hueco vacío debajo del gráfico.
+            maintainAspectRatio: false,
             plugins: {
               legend: {
                 display: true,
