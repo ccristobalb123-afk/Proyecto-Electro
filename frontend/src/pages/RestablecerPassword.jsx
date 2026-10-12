@@ -4,6 +4,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import AuthShell from "../components/auth/AuthShell";
 import PasswordField from "../components/shared/PasswordField";
 import PasswordStrength from "../components/shared/PasswordStrength";
+import { MIN_LARGO_PASSWORD } from "../utils/password";
 import { IconChevronLeft } from "../components/icons/Icons";
 import * as authService from "../services/authService";
 
@@ -32,8 +33,8 @@ export default function RestablecerPassword() {
       setError(MENSAJE_SIN_TOKEN);
       return;
     }
-    if (passwordNueva.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres.");
+    if (passwordNueva.length < MIN_LARGO_PASSWORD) {
+      setError(`La contraseña debe tener al menos ${MIN_LARGO_PASSWORD} caracteres.`);
       return;
     }
     if (passwordNueva !== confirmarNueva) {

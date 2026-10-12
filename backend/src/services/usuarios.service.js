@@ -42,31 +42,62 @@ async function validarUsuarioYCorreoLibres({ usuario, correo, excluirId }) {
   }
 }
 
-export async function listarUsuarios({ q }) {
+// `solicitante` = { id, esSuperAdmin, empresas: [slugs] } (ver el controller).
+// Un administrador que no es SuperAdmin solo ve y gestiona usuarios cuyas
+// empresas son todas suyas — antes veía (y podía tocar) a todos.
+function filtroAlcance(solicitante) {
+  if (solicitante.esSuperAdmin) return {};
+  return {
+    empresas: { some: {}, every: { empresa: { slug: { in: solicitante.empresas } } } },
+  };
+}
+
+function verificarAlcance(usuarioObjetivo, solicitante) {
+  if (solicitante.esSuperAdmin) return;
+  const ajenas = usuarioObjetivo.empresas.map((ue) => ue.empresa.slug).filter((e) => !solicitante.empresas.includes(e));
+  if (ajenas.length > 0) {
+    throw new ApiError(403, "SIN_PERMISO", "Este usuario tiene acceso a una empresa que tú no administras.");
+  }
+}
+
+// Nadie sin control total puede dar acceso a una empresa a la que él
+// mismo no pertenece (antes, un admin de Corevex podía crear usuarios
+// de Electro, o agregarse Electro a sí mismo).
+function verificarEmpresasAsignables(empresas, solicitante) {
+  if (solicitante.esSuperAdmin) return;
+  const ajenas = empresas.filter((e) => !solicitante.empresas.includes(e));
+  if (ajenas.length > 0) {
+    throw new ApiError(403, "SIN_PERMISO", "No puedes dar acceso a una empresa a la que tú no perteneces.");
+  }
+}
+
+export async function listarUsuarios({ q }, solicitante) {
   const usuarios = await db.usuario.findMany({
-    where: q
-      ? {
-          OR: [
-            { nombre: { contains: q, mode: "insensitive" } },
-            { correo: { contains: q, mode: "insensitive" } },
-            { usuario: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : undefined,
+    where: {
+      ...filtroAlcance(solicitante),
+      ...(q
+        ? {
+            OR: [
+              { nombre: { contains: q, mode: "insensitive" } },
+              { correo: { contains: q, mode: "insensitive" } },
+              { usuario: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    },
     include: INCLUDE,
     orderBy: { creadoEn: "desc" },
   });
   return usuarios.map(serializarUsuarioAdmin);
 }
 
-// otorgaSuperAdmin: true si quien hace el pedido (req.usuario) YA es
-// SuperAdmin — se necesita para decidir si se le permite marcar a
-// alguien más como SuperAdmin (ver crearUsuario/actualizarUsuario).
-// Nadie sin control total puede otorgárselo a otro, ni a sí mismo.
-export async function crearUsuario({ usuario, nombre, correo, esSuperAdmin, modulos, empresas }, otorgaSuperAdmin) {
-  if (esSuperAdmin && !otorgaSuperAdmin) {
+// Solo un SuperAdmin puede marcar a alguien como SuperAdmin (ni a otro,
+// ni a sí mismo), y nadie asigna empresas que no tiene.
+export async function crearUsuario({ usuario, nombre, correo, esSuperAdmin, modulos, empresas }, solicitante) {
+  if (esSuperAdmin && !solicitante.esSuperAdmin) {
     throw new ApiError(403, "SIN_PERMISO", "Solo un SuperAdmin puede crear a otro SuperAdmin.");
   }
+  verificarEmpresasAsignables(empresas, solicitante);
 
   await validarUsuarioYCorreoLibres({ usuario, correo, excluirId: null });
 
@@ -109,13 +140,20 @@ export async function crearUsuario({ usuario, nombre, correo, esSuperAdmin, modu
   return { ...serializarUsuarioAdmin(nuevo), correoEnviado, passwordTemporal };
 }
 
-export async function actualizarUsuario(usuarioId, { usuario, nombre, correo, esSuperAdmin, modulos, empresas }, otorgaSuperAdmin) {
+export async function actualizarUsuario(usuarioId, { usuario, nombre, correo, esSuperAdmin, modulos, empresas }, solicitante) {
   const existente = await buscarPorId(usuarioId);
   if (!existente) throw new ApiError(404, "NO_ENCONTRADO", "El usuario no existe.");
 
-  if (esSuperAdmin && !existente.esSuperAdmin && !otorgaSuperAdmin) {
+  // Editar a un SuperAdmin (por ejemplo, cambiarle el correo y después
+  // pedir "olvidé mi contraseña") era una vía para quedarse con su cuenta.
+  if (existente.esSuperAdmin && !solicitante.esSuperAdmin) {
+    throw new ApiError(403, "SIN_PERMISO", "Solo un SuperAdmin puede editar a otro SuperAdmin.");
+  }
+  if (esSuperAdmin && !existente.esSuperAdmin && !solicitante.esSuperAdmin) {
     throw new ApiError(403, "SIN_PERMISO", "Solo un SuperAdmin puede convertir a otro usuario en SuperAdmin.");
   }
+  verificarAlcance(existente, solicitante);
+  verificarEmpresasAsignables(empresas, solicitante);
   if (existente.esSuperAdmin && !esSuperAdmin) {
     await verificarNoEsElUltimoSuperAdmin(usuarioId);
   }
@@ -168,6 +206,7 @@ export async function cambiarEstadoUsuario(usuarioId, activo, solicitante) {
 
   // Reactivar no tiene riesgo; desactivar sí (quedarse sin acceso,
   // dejar al sistema sin SuperAdmin), por eso las reglas solo aplican ahí.
+  verificarAlcance(usuario, solicitante);
   if (!activo) verificarPuedeGestionar(usuario, solicitante, "desactivar");
   if (!activo && usuario.esSuperAdmin) {
     await verificarNoEsElUltimoSuperAdmin(usuarioId);
@@ -207,6 +246,7 @@ export async function eliminarUsuario(usuarioId, solicitante) {
   const usuario = await buscarPorId(usuarioId);
   if (!usuario) throw new ApiError(404, "NO_ENCONTRADO", "El usuario no existe.");
 
+  verificarAlcance(usuario, solicitante);
   verificarPuedeGestionar(usuario, solicitante, "eliminar");
   if (usuario.esSuperAdmin && usuario.activo) {
     const otros = await db.usuario.count({ where: { esSuperAdmin: true, activo: true, id: { not: usuarioId } } });
@@ -241,9 +281,19 @@ export async function eliminarUsuario(usuarioId, solicitante) {
   return { ok: true };
 }
 
-export async function resetearPassword(usuarioId) {
-  const usuario = await db.usuario.findUnique({ where: { id: usuarioId } });
-  if (!usuario) throw validacionFallida("El usuario no existe.");
+export async function resetearPassword(usuarioId, solicitante) {
+  const usuario = await buscarPorId(usuarioId);
+  if (!usuario) throw new ApiError(404, "NO_ENCONTRADO", "El usuario no existe.");
+  // Antes cualquiera con el módulo Administración podía restablecer la
+  // contraseña de un SuperAdmin y recibir la temporal en la respuesta:
+  // tomaba control total del sistema.
+  if (usuario.id === solicitante.id) {
+    throw conflicto("Para cambiar tu propia contraseña usa \"Cambiar contraseña\" en tu perfil.", "ACCION_SOBRE_SI_MISMO");
+  }
+  if (usuario.esSuperAdmin && !solicitante.esSuperAdmin) {
+    throw new ApiError(403, "SIN_PERMISO", "Solo un SuperAdmin puede restablecer la contraseña de otro SuperAdmin.");
+  }
+  verificarAlcance(usuario, solicitante);
 
   const passwordTemporal = generarPasswordTemporal();
   const passwordHash = await bcrypt.hash(passwordTemporal, RONDAS_BCRYPT);

@@ -171,6 +171,16 @@ export default function Administracion() {
   // Las mismas reglas que valida el backend, para no ofrecer botones
   // que solo devolverían un error: nadie se desactiva ni se elimina a
   // sí mismo, y solo un SuperAdmin gestiona a otro SuperAdmin.
+  // Mismas reglas que el backend (usuarios.service.js): solo un SuperAdmin
+  // edita o restablece a otro SuperAdmin, y tu propia contraseña se
+  // cambia desde "Cambiar contraseña", no desde acá.
+  function puedeEditar(u) {
+    return !u.esSuperAdmin || !!usuarioActual?.esSuperAdmin;
+  }
+  function puedeRestablecer(u) {
+    return u.id !== usuarioActual?.id && puedeEditar(u);
+  }
+
   function puedeGestionar(u) {
     if (!usuarioActual || u.id === usuarioActual.id) return false;
     return !u.esSuperAdmin || usuarioActual.esSuperAdmin;
@@ -279,10 +289,14 @@ export default function Administracion() {
               </div>
 
               <div className="usuario-card-footer">
-                <button className="btn-outline-sm" type="button" onClick={() => { setErrorReset(""); modalReset.abrir(u); }}>
-                  Restablecer contraseña
-                </button>
-                <button className="btn-outline-sm" type="button" onClick={() => abrirEditar(u)}>Editar</button>
+                {puedeRestablecer(u) && (
+                  <button className="btn-outline-sm" type="button" onClick={() => { setErrorReset(""); modalReset.abrir(u); }}>
+                    Restablecer contraseña
+                  </button>
+                )}
+                {puedeEditar(u) && (
+                  <button className="btn-outline-sm" type="button" onClick={() => abrirEditar(u)}>Editar</button>
+                )}
                 {puedeGestionar(u) && (
                   <>
                     <button className="btn-outline-sm" type="button" onClick={() => handleCambiarEstado(u)}>

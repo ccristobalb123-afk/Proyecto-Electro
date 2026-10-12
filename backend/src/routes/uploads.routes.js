@@ -6,6 +6,8 @@ import { subirArchivo } from "../middleware/upload.middleware.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { asyncHandler, validacionFallida, ApiError, sinPermiso } from "../lib/errors.js";
 import { empresasDelArchivo } from "../lib/archivos.js";
+import { contenidoCoincideConTipo } from "../lib/seguridad.js";
+import { limiteSubidas } from "../middleware/rateLimit.js";
 
 const CARPETA_UPLOADS = path.resolve("uploads");
 
@@ -19,6 +21,7 @@ router.use(requireAuth);
 // resto del formulario (ej. crear un contrato ya con su archivoUrl).
 router.post(
   "/",
+  limiteSubidas,
   (req, res, next) =>
     subirArchivo(req, res, (err) => {
       if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
@@ -28,6 +31,13 @@ router.post(
     }),
   asyncHandler(async (req, res) => {
     if (!req.file) throw validacionFallida("No se recibió ningún archivo.");
+    // El tipo MIME lo declara el navegador (se puede falsificar): se
+    // revisa también el contenido real del archivo. Antes se aceptaba,
+    // por ejemplo, un HTML con script declarado como "image/png".
+    if (!(await contenidoCoincideConTipo(req.file.path, req.file.mimetype))) {
+      await fs.promises.unlink(req.file.path).catch(() => {});
+      throw validacionFallida("El contenido del archivo no corresponde a un PDF, JPG, PNG o WEBP válido.");
+    }
     res.status(201).json({
       // Bajo /api para que pase por requireAuth de acá abajo — antes se
       // servía como estático en /uploads, accesible sin sesión por
@@ -66,7 +76,16 @@ router.get(
       throw sinPermiso();
     }
 
-    res.sendFile(rutaCompleta);
+    // Aunque algo raro llegara a guardarse, el navegador no ejecuta nada:
+    // CSP "sandbox" sin permisos, nombre de descarga controlado y sin caché
+    // compartida (son documentos privados).
+    res.set({
+      "Content-Security-Policy": "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
+      "Content-Disposition": `inline; filename="${filename.replace(/[^\w.-]/g, "")}"`,
+      "Cross-Origin-Resource-Policy": "same-origin",
+      "Cache-Control": "private, no-store",
+    });
+    res.sendFile(rutaCompleta, { dotfiles: "deny" });
   })
 );
 

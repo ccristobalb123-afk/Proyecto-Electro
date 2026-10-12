@@ -2,7 +2,7 @@ import { Router } from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { validar } from "../middleware/validar.js";
-import { limiteLogin, limiteMfa, limiteRecuperarPassword } from "../middleware/rateLimit.js";
+import { limiteLogin, limiteLoginPorUsuario, limiteMfa, limiteRecuperarPassword } from "../middleware/rateLimit.js";
 import {
   loginSchema,
   verificarMfaSchema,
@@ -14,11 +14,11 @@ import {
 const router = Router();
 
 // Públicas
-router.post("/login", limiteLogin, validar(loginSchema), authController.postLogin);
+router.post("/login", limiteLogin, validar(loginSchema), limiteLoginPorUsuario, authController.postLogin);
 router.post("/verify-mfa", limiteMfa, validar(verificarMfaSchema), authController.postVerifyMfa);
 router.get("/mfa-setup", authController.getMfaSetup);
 router.post("/forgot-password", limiteRecuperarPassword, validar(forgotPasswordSchema), authController.postForgotPassword);
-router.post("/reset-password", validar(resetPasswordSchema), authController.postResetPassword);
+router.post("/reset-password", limiteMfa, validar(resetPasswordSchema), authController.postResetPassword);
 router.post("/refresh", authController.postRefresh);
 router.post("/logout", authController.postLogout);
 

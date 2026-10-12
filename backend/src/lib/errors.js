@@ -54,6 +54,15 @@ export function manejadorDeErrores(err, req, res, next) { // eslint-disable-line
   if (err instanceof ApiError) {
     return res.status(err.status).json({ ok: false, error: { code: err.code, message: err.message } });
   }
+  // Errores del lector de JSON (cuerpo mal formado o demasiado grande):
+  // son errores del cliente, no del servidor — antes respondían 500 y
+  // llenaban el log de "Error no controlado".
+  if (err?.type === "entity.parse.failed") {
+    return res.status(400).json({ ok: false, error: { code: "VALIDACION", message: "El cuerpo de la petición no es JSON válido." } });
+  }
+  if (err?.type === "entity.too.large") {
+    return res.status(413).json({ ok: false, error: { code: "DEMASIADO_GRANDE", message: "La petición es demasiado grande." } });
+  }
   console.error("Error no controlado:", err);
   return res.status(500).json({
     ok: false,

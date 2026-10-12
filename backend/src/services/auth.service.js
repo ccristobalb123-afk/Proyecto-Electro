@@ -10,6 +10,19 @@ import { firmarMfaPendingToken, verificarMfaPendingToken } from "../lib/jwt.js";
 import { revocarTodosLosRefreshTokens } from "./refreshTokens.service.js";
 
 const RONDAS_BCRYPT = 12;
+
+// Hash de una contraseña que nadie conoce, con el mismo costo que los
+// reales: si el usuario no existe se compara igual contra este, para que
+// la respuesta tarde lo mismo. Antes, "no existe" respondía en ~5 ms y
+// "contraseña incorrecta" en ~500 ms: se podía averiguar qué usuarios
+// existen midiendo el tiempo.
+const HASH_SEÑUELO = bcrypt.hashSync(crypto.randomBytes(16).toString("hex"), RONDAS_BCRYPT);
+
+// Último paso de 30 s aceptado por usuario: un código TOTP solo sirve UNA
+// vez (antes el mismo código valía varias veces durante ~90 s). Vive en
+// memoria: un reinicio lo borra, y en ese caso a lo sumo ese mismo
+// código vale una vez más dentro de su ventana.
+const ultimoPasoMfa = new Map();
 const EMISOR_TOTP = "Activo360";
 
 function crearTotp(secretBase32, etiqueta) {
@@ -41,10 +54,10 @@ function usuarioIdDesdeMfaToken(mfaToken) {
 // correo se guarda para un único propósito: "olvidé mi contraseña".
 export async function login(nombreUsuario, clave) {
   const usuario = await buscarPorNombreUsuario(nombreUsuario);
-  if (!usuario) throw credencialesInvalidas();
-
-  const claveValida = await bcrypt.compare(clave, usuario.passwordHash);
-  if (!claveValida) throw credencialesInvalidas();
+  // Se compara SIEMPRE (contra el señuelo si el usuario no existe), así
+  // "no existe" y "contraseña incorrecta" tardan lo mismo.
+  const claveValida = await bcrypt.compare(clave, usuario?.passwordHash ?? HASH_SEÑUELO);
+  if (!usuario || !claveValida) throw credencialesInvalidas();
 
   // Sin esto, alguien desactivado podía completar el paso 1 (contraseña
   // correcta) y quedarse con un mfaToken válido por 5 minutos — incluso
@@ -118,6 +131,11 @@ export async function verificarMfa(mfaToken, codigo) {
   if (delta === null) {
     throw new ApiError(401, "CODIGO_INVALIDO", "Código incorrecto o vencido.");
   }
+  const paso = Math.floor(Date.now() / 30_000) + delta;
+  if (paso <= (ultimoPasoMfa.get(usuario.id) ?? -1)) {
+    throw new ApiError(401, "CODIGO_USADO", "Ese código ya se usó. Espera el siguiente código de tu app.");
+  }
+  ultimoPasoMfa.set(usuario.id, paso);
 
   if (!usuario.mfaHabilitado) {
     await db.usuario.update({ where: { id: usuario.id }, data: { mfaHabilitado: true } });
@@ -145,7 +163,11 @@ export async function solicitarRecuperacion(correo) {
     });
 
     const linkRecuperacion = `${process.env.FRONTEND_URL}/restablecer-password?token=${tokenCrudo}`;
-    await enviarCorreoRecuperacion(usuario.correo, usuario.nombre, linkRecuperacion);
+    // Sin esperar al correo: si se esperara, la respuesta tardaría más
+    // cuando el correo existe y se podría averiguar quién está registrado.
+    enviarCorreoRecuperacion(usuario.correo, usuario.nombre, linkRecuperacion).catch((err) =>
+      console.error("No se pudo enviar el correo de recuperación:", err.message)
+    );
   }
   return { ok: true };
 }
@@ -159,10 +181,21 @@ export async function restablecerPassword(tokenCrudo, passwordNueva) {
   }
 
   const passwordHash = await bcrypt.hash(passwordNueva, RONDAS_BCRYPT);
-  await db.$transaction([
-    db.usuario.update({ where: { id: registro.usuarioId }, data: { passwordHash } }),
-    db.passwordResetToken.update({ where: { id: registro.id }, data: { usadoEn: new Date() } }),
-  ]);
+  await db.$transaction(async (tx) => {
+    // Marcar como usado SOLO si nadie lo usó ya: dos pedidos simultáneos
+    // con el mismo enlace ya no pueden pasar los dos.
+    const { count } = await tx.passwordResetToken.updateMany({
+      where: { id: registro.id, usadoEn: null },
+      data: { usadoEn: new Date() },
+    });
+    if (count !== 1) throw validacionFallida("El enlace es inválido o ya venció. Solicita uno nuevo.");
+    await tx.usuario.update({ where: { id: registro.usuarioId }, data: { passwordHash } });
+    // Cualquier otro enlace pendiente del mismo usuario deja de servir.
+    await tx.passwordResetToken.updateMany({
+      where: { usuarioId: registro.usuarioId, usadoEn: null },
+      data: { usadoEn: new Date() },
+    });
+  });
   // Si alguien restableció la contraseña es porque probablemente la
   // anterior estaba comprometida — cualquier sesión que siguiera activa
   // con la contraseña vieja se corta acá, no espera a que expire sola.

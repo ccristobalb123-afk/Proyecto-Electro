@@ -1,0 +1,7 @@
+# ElectroSAC — respaldos (ver scripts/backup/README.md)
+# 03:00 todos los días:
+0 3 * * * $HOME/Proyecto/Grupo-Activo/Proyecto-Electro/scripts/backup/backup.sh >/dev/null 2>&1
+# Cada hora y al arrancar: solo si el último respaldo correcto tiene más de 20 h
+# (la laptop estaba apagada o suspendida a las 03:00).
+15 * * * * $HOME/Proyecto/Grupo-Activo/Proyecto-Electro/scripts/backup/backup.sh --si-falta >/dev/null 2>&1
+@reboot sleep 300 && $HOME/Proyecto/Grupo-Activo/Proyecto-Electro/scripts/backup/backup.sh --si-falta >/dev/null 2>&1

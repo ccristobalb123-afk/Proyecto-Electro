@@ -3,6 +3,7 @@ import { Modal, ModalActions } from "./Modal";
 import { BotonCarga } from "./Carga";
 import PasswordField from "./PasswordField";
 import PasswordStrength from "./PasswordStrength";
+import { MIN_LARGO_PASSWORD } from "../../utils/password";
 import * as authService from "../../services/authService";
 
 // TODO backend: POST /api/auth/cambiar-password { passwordActual, passwordNueva }
@@ -18,8 +19,8 @@ export default function CambiarPasswordModal({ open, obligatorio, onClose, onExi
     e.preventDefault();
     setError("");
 
-    if (!passwordNueva || passwordNueva.length < 6) {
-      setError("La nueva contraseña debe tener al menos 6 caracteres.");
+    if (!passwordNueva || passwordNueva.length < MIN_LARGO_PASSWORD) {
+      setError(`La nueva contraseña debe tener al menos ${MIN_LARGO_PASSWORD} caracteres.`);
       return;
     }
     if (passwordNueva !== confirmarNueva) {

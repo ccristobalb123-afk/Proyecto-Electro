@@ -1,4 +1,17 @@
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
+
+// Solo HS256: jwt.verify sin `algorithms` acepta cualquier HMAC; fijarlo
+// evita confusiones de algoritmo si algún día cambia la librería o la clave.
+const ALGORITMOS = ["HS256"];
+
+// Además de la firma, cada verificación exige el `tipo` correcto: un
+// token de un tipo nunca sirve como otro, aunque compartieran secreto.
+function verificarConTipo(token, secreto, tipo) {
+  const payload = jwt.verify(token, secreto, { algorithms: ALGORITMOS });
+  if (payload.tipo !== tipo) throw new Error("Token de tipo incorrecto.");
+  return payload;
+}
 
 // Dos tokens con secretos y duraciones distintas:
 // - accessToken: vive poco (15 min por defecto), es el que se manda en
@@ -8,22 +21,27 @@ import jwt from "jsonwebtoken";
 //   accessToken se filtra, el daño está acotado a esos 15 minutos.
 export function firmarAccessToken(usuarioId) {
   return jwt.sign({ sub: usuarioId, tipo: "access" }, process.env.JWT_ACCESS_SECRET, {
+    algorithm: "HS256",
     expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
   });
 }
 
 export function firmarRefreshToken(usuarioId) {
-  return jwt.sign({ sub: usuarioId, tipo: "refresh" }, process.env.JWT_REFRESH_SECRET, {
+  // jti aleatorio: sin él, dos inicios de sesión del mismo usuario en el
+  // mismo segundo generaban EXACTAMENTE el mismo token, chocaban con la
+  // clave única de refresh_tokens y el segundo recibía un error 500.
+  return jwt.sign({ sub: usuarioId, tipo: "refresh", jti: crypto.randomUUID() }, process.env.JWT_REFRESH_SECRET, {
+    algorithm: "HS256",
     expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   });
 }
 
 export function verificarAccessToken(token) {
-  return jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  return verificarConTipo(token, process.env.JWT_ACCESS_SECRET, "access");
 }
 
 export function verificarRefreshToken(token) {
-  return jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+  return verificarConTipo(token, process.env.JWT_REFRESH_SECRET, "refresh");
 }
 
 // Se emite justo después de validar la contraseña, cuando el usuario
@@ -42,11 +60,9 @@ export function verificarRefreshToken(token) {
 const SECRETO_MFA_PENDING = process.env.JWT_MFA_PENDING_SECRET || process.env.JWT_ACCESS_SECRET;
 
 export function firmarMfaPendingToken(usuarioId) {
-  return jwt.sign({ sub: usuarioId, tipo: "mfa_pending" }, SECRETO_MFA_PENDING, { expiresIn: "5m" });
+  return jwt.sign({ sub: usuarioId, tipo: "mfa_pending" }, SECRETO_MFA_PENDING, { algorithm: "HS256", expiresIn: "5m" });
 }
 
 export function verificarMfaPendingToken(token) {
-  const payload = jwt.verify(token, SECRETO_MFA_PENDING);
-  if (payload.tipo !== "mfa_pending") throw new Error("Token de tipo incorrecto.");
-  return payload;
+  return verificarConTipo(token, SECRETO_MFA_PENDING, "mfa_pending");
 }

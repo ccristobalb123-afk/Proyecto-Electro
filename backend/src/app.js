@@ -2,7 +2,6 @@ import express from "express";
 import path from "node:path";
 import fs from "node:fs";
 import cors from "cors";
-import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
 import usuariosRoutes from "./routes/usuarios.routes.js";
@@ -21,32 +20,24 @@ import uploadsRoutes from "./routes/uploads.routes.js";
 import notificacionesRoutes from "./routes/notificaciones.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import { manejadorDeErrores } from "./lib/errors.js";
+import { cabecerasDeSeguridad, permissionsPolicy, auditoria, PROXY_DE_CONFIANZA } from "./lib/seguridad.js";
 
 export const app = express();
 
-// Solo en producción: si esto termina corriendo detrás de Nginx u otro
-// proxy en el servidor real, Express necesita esto para que
-// req.ip sea la IP real del navegante y no la del proxy — sin esto,
-// el límite de intentos de login vería a TODOS los usuarios como si
-// fueran una sola IP compartida (la del proxy), y bastaría con que uno
-// solo agote el límite para bloquear a todos los demás.
-if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1);
-}
+// En producción todo llega por el túnel de Cloudflare (cloudflared corre
+// en esta misma máquina): solo se confía en las cabeceras de proxy si la
+// conexión viene de localhost. Antes era `trust proxy = 1`, y cualquiera
+// que se conectara directo al puerto desde la red local podía inventar
+// su IP con X-Forwarded-For y saltarse el límite de intentos.
+// (ver ipCliente en lib/seguridad.js)
+app.set("trust proxy", PROXY_DE_CONFIANZA);
+app.disable("x-powered-by");
 
-// helmet agrega varias cabeceras HTTP de seguridad estándar (evita que
-// el navegador adivine el tipo de archivo, bloquea que esta API se
-// cargue dentro de un <iframe> ajeno, etc.). Se desactiva el CSP
-// (pensado para servir HTML) porque acá el backend es puro JSON +
-// archivos — y crossOriginResourcePolicy se relaja a "cross-origin"
-// porque el frontend vive en otro puerto/dominio y necesita poder
-// mostrar las fotos/PDFs que sirve /uploads.
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-  })
-);
+// Cabeceras de seguridad con una CSP real (este backend también sirve
+// el frontend), HSTS, sin <iframe> ajenos y Permissions-Policy.
+// Ver lib/seguridad.js.
+app.use(cabecerasDeSeguridad());
+app.use(permissionsPolicy);
 
 // credentials:true es obligatorio para que el navegador acepte enviar
 // y recibir las cookies httpOnly entre el frontend (Vite, otro puerto)
@@ -57,7 +48,11 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+// 2 MB: las fotos de equipos viajan en base64 dentro del JSON (2 fotos
+// comprimidas pueden pasar de los 100 KB que trae Express por defecto).
+// Los archivos grandes van por /api/uploads (multipart, hasta 10 MB).
+app.use(express.json({ limit: "2mb" }));
+app.use(auditoria);
 app.use(cookieParser());
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
@@ -78,6 +73,12 @@ app.use("/api/catalogo-detraccion", catalogoDetraccionRoutes);
 app.use("/api/uploads", uploadsRoutes);
 app.use("/api/notificaciones", notificacionesRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+
+// Cualquier otra ruta de la API: 404 en JSON (antes respondía la página
+// HTML de error de Express, que además delataba el framework).
+app.use("/api", (req, res) => {
+  res.status(404).json({ ok: false, error: { code: "NO_ENCONTRADO", message: "La ruta no existe." } });
+});
 
 // Sirve el frontend ya compilado (frontend/dist) desde este mismo
 // backend — así, en producción, alcanza con exponer un solo puerto
