@@ -92,7 +92,7 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
                     <button className="icon-btn" type="button" title="Ver detalle" onClick={() => onVerDetalle(item)}>
                       <IconEye />
                     </button>
-                    <button className="icon-btn" type="button" title="Eliminar" onClick={() => onEliminar(item)}>
+                    <button className="icon-btn icon-btn--peligro" type="button" title="Eliminar" aria-label={`Eliminar registro de ${item.trabajador}`} onClick={() => onEliminar(item)}>
                       <IconTrash />
                     </button>
                   </div>
@@ -147,7 +147,7 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
                 <button className="icon-btn" type="button" title="Ver detalle" aria-label="Ver detalle" onClick={() => onVerDetalle(item)}>
                   <IconEye />
                 </button>
-                <button className="icon-btn" type="button" title="Eliminar" aria-label="Eliminar" onClick={() => onEliminar(item)}>
+                <button className="icon-btn icon-btn--peligro" type="button" title="Eliminar" aria-label={`Eliminar registro de ${item.trabajador}`} onClick={() => onEliminar(item)}>
                   <IconTrash />
                 </button>
               </div>

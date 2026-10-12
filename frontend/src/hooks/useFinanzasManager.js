@@ -205,33 +205,52 @@ export function useFinanzasManager() {
     setModalNuevo(true);
   }
 
+  // Anular no borra la factura: la marca como anulada y queda visible
+  // (tachada) para el historial contable. Con pagos registrados no se
+  // puede — se explica antes de pedir confirmación, no con un error.
   async function handleAnularFactura(f) {
-    const seguro = await confirmar(
-      `¿Anular la factura ${f.serie}-${f.numero} de ${f.cliente}? Esta acción no se puede deshacer.`,
-      { tipo: "peligro" }
-    );
-    if (!seguro) return;
-    try {
-      const actualizada = await facturasService.anularFactura(f.id);
-      setListaActual((prev) => prev.map((x) => (x.id === actualizada.id ? actualizada : x)));
-    } catch (err) {
-      alertar(err.message || "No se pudo anular la factura.");
+    if (totalPagado(f.pagos) > 0) {
+      return alertar({
+        titulo: "No se puede anular esta factura",
+        mensaje: `La factura ${f.serie}-${f.numero} ya tiene pagos registrados por ${soles(totalPagado(f.pagos))}. Para revertirla se necesita emitir una nota de crédito.`,
+      });
     }
+    const ok = await confirmar({
+      titulo: `¿Anular la factura ${f.serie}-${f.numero}?`,
+      mensaje: `La factura de ${f.cliente} por ${soles(f.montoTotal)} quedará anulada: seguirá visible en la lista, pero ya no se le podrán registrar pagos. Esta acción no se puede deshacer.`,
+      tipo: "peligro",
+      textoConfirmar: "Anular factura",
+      textoCargando: "Anulando...",
+      accion: async () => {
+        const actualizada = await facturasService.anularFactura(f.id);
+        setListaActual((prev) => prev.map((x) => (x.id === actualizada.id ? actualizada : x)));
+      },
+    });
+    if (ok) mostrarToast("Factura anulada", { tipo: "success" });
   }
 
+
   async function handleAnularFacturaPagar(f) {
-    const seguro = await confirmar(
-      `¿Anular esta factura por pagar a ${f.proveedor}? Esta acción no se puede deshacer.`,
-      { tipo: "peligro" }
-    );
-    if (!seguro) return;
-    try {
-      const actualizada = await facturasService.anularFacturaPorPagar(f.id);
-      setListaActual((prev) => prev.map((x) => (x.id === actualizada.id ? actualizada : x)));
-    } catch (err) {
-      alertar(err.message || "No se pudo anular la factura por pagar.");
+    if (totalPagado(f.pagos) > 0) {
+      return alertar({
+        titulo: "No se puede anular esta factura por pagar",
+        mensaje: `Ya tiene pagos registrados a ${f.proveedor} por ${soles(totalPagado(f.pagos))}. Para revertirla se necesita una nota de crédito del proveedor.`,
+      });
     }
+    const ok = await confirmar({
+      titulo: `¿Anular la factura por pagar a ${f.proveedor}?`,
+      mensaje: `La factura por ${soles(f.montoTotal)} quedará anulada: seguirá visible en la lista, pero ya no se le podrán registrar pagos. Esta acción no se puede deshacer.`,
+      tipo: "peligro",
+      textoConfirmar: "Anular factura",
+      textoCargando: "Anulando...",
+      accion: async () => {
+        const actualizada = await facturasService.anularFacturaPorPagar(f.id);
+        setListaActual((prev) => prev.map((x) => (x.id === actualizada.id ? actualizada : x)));
+      },
+    });
+    if (ok) mostrarToast("Factura por pagar anulada", { tipo: "success" });
   }
+
 
   async function handleGuardarFactura(e) {
     e.preventDefault();
@@ -302,15 +321,28 @@ export function useFinanzasManager() {
   }
 
   async function handleEliminarGasto(g) {
-    const seguro = await confirmar(`¿Eliminar este gasto de ${g.categoria}? Esta acción no se puede deshacer.`, { tipo: "peligro" });
-    if (!seguro) return;
-    try {
-      await finanzasService.eliminarGasto(g.id);
-      setListaActual((prev) => prev.filter((x) => x.id !== g.id));
-    } catch (err) {
-      alertar(err.message || "No se pudo eliminar el gasto.");
+    // Regla del negocio: un gasto con su comprobante adjunto no se borra
+    // (es el respaldo contable). El backend también lo rechaza.
+    if (g.archivo) {
+      return alertar({
+        titulo: "No se puede eliminar este gasto",
+        mensaje: `El gasto de ${g.categoria} por ${soles(g.monto)} ya tiene su comprobante adjunto, que es el respaldo contable del egreso. Si el monto o la categoría están mal, corrígelos con "Editar".`,
+      });
     }
+    const ok = await confirmar({
+      titulo: `¿Eliminar el gasto de ${g.categoria}?`,
+      mensaje: `Se eliminará el gasto de ${soles(g.monto)} de forma permanente. Esta acción no se puede deshacer.`,
+      tipo: "peligro",
+      textoConfirmar: "Eliminar gasto",
+      textoCargando: "Eliminando...",
+      accion: async () => {
+        await finanzasService.eliminarGasto(g.id);
+        setListaActual((prev) => prev.filter((x) => x.id !== g.id));
+      },
+    });
+    if (ok) mostrarToast("Gasto eliminado", { tipo: "success" });
   }
+
 
   function abrirRegistrarPago(tipo, doc) {
     setMontoPago("");

@@ -29,6 +29,19 @@
   color: var(--muted);
 }
 
+/* Ícono de una acción destructiva (eliminar): se distingue en color
+   del resto de íconos de la fila, sin gritar. */
+.icon-btn--peligro svg {
+  color: var(--danger-dark);
+}
+
+@media (hover: hover) {
+  .icon-btn--peligro:hover {
+    border-color: var(--danger);
+    background: var(--danger-tint);
+  }
+}
+
 .icon-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

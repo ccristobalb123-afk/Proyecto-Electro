@@ -2,6 +2,7 @@ import { db } from "../lib/db.js";
 import { buscarPersonalConContratoEnEmpresa } from "./personal.service.js";
 import { calcularEstado, formatearFecha, iniciales } from "../lib/estadoVencimiento.js";
 import { ApiError, sinPermiso } from "../lib/errors.js";
+import { borrarArchivoSiHuerfano } from "../lib/archivos.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 
 // "EMO" tiene que quedar en mayúsculas (es una sigla, no una palabra),
@@ -135,7 +136,8 @@ export async function adjuntarArchivoCurso(cursoId, archivoNombre, archivoUrl, e
 }
 
 export async function eliminarCurso(cursoId, empresasPermitidas) {
-  await buscarCurso(cursoId, empresasPermitidas);
+  const curso = await buscarCurso(cursoId, empresasPermitidas);
   await db.curso.delete({ where: { id: cursoId } });
+  await borrarArchivoSiHuerfano(curso.archivoUrl);
   return { ok: true };
 }

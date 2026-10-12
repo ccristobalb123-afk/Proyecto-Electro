@@ -50,7 +50,7 @@ export default function GastosGrid({ cargando, error, onReintentar, gastos, onNu
 
           <div className="fin-card-footer">
             <button className="btn-outline-sm" type="button" onClick={() => onEditar(g)}>Editar</button>
-            <button className="icon-btn" type="button" title="Eliminar gasto" onClick={() => onEliminar(g)}>
+            <button className="icon-btn icon-btn--peligro" type="button" title="Eliminar gasto" aria-label={`Eliminar el gasto de ${g.categoria}`} onClick={() => onEliminar(g)}>
               <IconTrash width={15} height={15} />
             </button>
           </div>

@@ -48,7 +48,7 @@ export default function VehiculosGrid({
                 <IconEye />
               </button>
               <button className="btn-outline-sm" type="button" onClick={() => onEditar(v)}>Editar</button>
-              <button className="icon-btn" type="button" title="Eliminar vehículo" onClick={() => onEliminar(v)}>
+              <button className="icon-btn icon-btn--peligro" type="button" title="Eliminar vehículo" aria-label={`Eliminar el vehículo ${v.placa}`} onClick={() => onEliminar(v)}>
                 <IconTrash />
               </button>
             </div>

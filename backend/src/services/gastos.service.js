@@ -1,5 +1,5 @@
 import { db } from "../lib/db.js";
-import { validacionFallida, ApiError, sinPermiso } from "../lib/errors.js";
+import { validacionFallida, ApiError, sinPermiso, conflicto } from "../lib/errors.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 
 function fecha(v) {
@@ -57,7 +57,7 @@ export async function eliminarCategoriaGasto(nombre) {
 
   const enUso = await db.gasto.count({ where: { categoriaId: categoria.id } });
   if (enUso > 0) {
-    throw validacionFallida(`Hay ${enUso} gasto(s) usando esta categoría — no se puede eliminar mientras esté en uso.`);
+    throw conflicto(`No se puede eliminar: hay ${enUso} ${enUso === 1 ? "gasto registrado" : "gastos registrados"} con esta categoría. Puedes renombrarla en su lugar.`, "CATEGORIA_EN_USO");
   }
   await db.categoriaGasto.delete({ where: { id: categoria.id } });
   return { ok: true };
@@ -136,7 +136,15 @@ export async function actualizarGasto(gastoId, datos, empresasPermitidas) {
 }
 
 export async function eliminarGasto(gastoId, empresasPermitidas) {
-  await buscarGasto(gastoId, empresasPermitidas);
+  const gasto = await buscarGasto(gastoId, empresasPermitidas);
+  // Regla del negocio: un gasto con su comprobante adjunto ya es un
+  // respaldo contable — no se fuerza su eliminación.
+  if (gasto.archivoUrl) {
+    throw conflicto(
+      "No se puede eliminar este gasto porque ya tiene su comprobante adjunto: es el respaldo contable del egreso. Si el monto o la categoría están mal, corrígelos con \"Editar\".",
+      "GASTO_CON_COMPROBANTE"
+    );
+  }
   await db.gasto.delete({ where: { id: gastoId } });
   return { ok: true };
 }

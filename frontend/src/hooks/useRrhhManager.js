@@ -46,7 +46,7 @@ function formCursoVacio() {
 // Rrhh.jsx mezclada con el JSX. Ahora la página solo arma la vista con
 // lo que este hook le devuelve.
 export function useRrhhManager() {
-  const { confirmar, alertar } = useConfirm();
+  const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
   const [tab, setTab] = useState("contratos"); // "contratos" | "cursos"
   const [modalOpen, setModalOpen] = useState(false);
@@ -209,20 +209,25 @@ export function useRrhhManager() {
   }
 
   async function handleEliminar(item) {
-    const etiqueta = tab === "contratos" ? `el contrato de ${item.trabajador}` : `el ${item.tipo.toLowerCase()} de ${item.trabajador}`;
-    const seguro = await confirmar(`¿Eliminar ${etiqueta}? Esta acción no se puede deshacer.`, { tipo: "peligro" });
-    if (!seguro) return;
-    try {
-      if (tab === "contratos") {
-        await contratosService.eliminarContrato(item.id);
-      } else {
-        await rrhhService.eliminarCurso(item.id);
-      }
-      setLista((prev) => prev.filter((x) => x.id !== item.id));
-    } catch (err) {
-      alertar(err.message || "No se pudo eliminar.");
-    }
+    const esContrato = tab === "contratos";
+    const que = esContrato ? `el contrato ${item.tipo.toLowerCase()}` : item.tipo === "EMO" ? "el EMO" : `el ${item.tipo.toLowerCase()}`;
+    const ok = await confirmar({
+      titulo: `¿Eliminar ${que} de ${item.trabajador}?`,
+      mensaje: `Se eliminará ${que} (vence ${item.vence})${item.archivo ? " junto con su documento adjunto" : ""} de forma permanente. Esta acción no se puede deshacer.`,
+      tipo: "peligro",
+      textoConfirmar: esContrato ? "Eliminar contrato" : `Eliminar ${item.tipo === "EMO" ? "EMO" : item.tipo.toLowerCase()}`,
+      textoCargando: "Eliminando...",
+      accion: async () => {
+        if (esContrato) await contratosService.eliminarContrato(item.id);
+        else await rrhhService.eliminarCurso(item.id);
+        setLista((prev) => prev.filter((x) => x.id !== item.id));
+      },
+    });
+    if (!ok) return;
+    if (esContrato) cargarTrabajadoresRegistrados(); // quizá ya no tiene contrato en ninguna empresa
+    mostrarToast(esContrato ? "Contrato eliminado" : `${item.tipo} eliminado`, { tipo: "success" });
   }
+
 
   function handleArchivoChange(e) {
     const file = e.target.files?.[0];

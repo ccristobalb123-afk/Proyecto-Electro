@@ -23,3 +23,9 @@ export async function resetearPassword(usuarioId) {
 export async function cambiarEstadoUsuario(usuarioId, activo) {
   return apiClient.patch(`/usuarios/${usuarioId}`, { activo });
 }
+
+// Borrado definitivo. El backend responde 409 si el usuario tiene
+// registros en el historial (ahí se ofrece desactivarlo en su lugar).
+export async function eliminarUsuario(usuarioId) {
+  return apiClient.delete(`/usuarios/${usuarioId}`);
+}

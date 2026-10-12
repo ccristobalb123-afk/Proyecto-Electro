@@ -77,7 +77,7 @@ export default function FacturasPorPagarGrid({ cargando, error, onReintentar, fa
                 <button className="btn-outline-sm" type="button" onClick={() => onEditar(f)}>Editar</button>
               )}
               <button
-                className="icon-btn"
+                className="icon-btn icon-btn--peligro"
                 type="button"
                 title={f.anulada ? "Ya está anulada" : "Anular factura por pagar"}
                 disabled={f.anulada}

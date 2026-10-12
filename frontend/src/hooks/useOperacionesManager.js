@@ -33,7 +33,7 @@ function formInspeccionVacio() {
 // vista con lo que este hook le devuelve.
 export function useOperacionesManager() {
   const { mostrarToast } = useToast();
-  const { confirmar, alertar } = useConfirm();
+  const { confirmar } = useConfirm();
   const [tab, setTab] = useState("equipos"); // "equipos" | "vehiculos"
   const [errorEquipo, setErrorEquipo] = useState("");
   const [errorVehiculo, setErrorVehiculo] = useState("");
@@ -368,15 +368,21 @@ export function useOperacionesManager() {
   }
 
   async function handleEliminarEquipo(eq) {
-    const seguro = await confirmar(`¿Eliminar el equipo ${eq.codigo}? Esta acción no se puede deshacer.`, { tipo: "peligro" });
-    if (!seguro) return;
-    try {
-      await equiposService.eliminarEquipo(eq.id);
-      setEquipos((prev) => prev.filter((x) => x.id !== eq.id));
-    } catch (err) {
-      alertar(err.message || "No se pudo eliminar el equipo.");
-    }
+    const ok = await confirmar({
+      titulo: `¿Eliminar el equipo ${eq.codigo}?`,
+      mensaje: `Se eliminará el equipo ${eq.codigo} (${eq.categoria}) con sus fotos y su hoja de vida, de forma permanente. Esta acción no se puede deshacer. Si solo quieres retirarlo de uso, usa "Dar de baja".`,
+      tipo: "peligro",
+      textoConfirmar: "Eliminar equipo",
+      textoCargando: "Eliminando...",
+      palabraConfirmacion: eq.codigo,
+      accion: async () => {
+        await equiposService.eliminarEquipo(eq.id);
+        setEquipos((prev) => prev.filter((x) => x.id !== eq.id));
+      },
+    });
+    if (ok) mostrarToast("Equipo eliminado", { tipo: "success" });
   }
+
 
   function abrirEditarVehiculo(v) {
     setFVehiculoEditar({ placa: v.placa, cuadrilla: v.cuadrilla || "" });
@@ -397,15 +403,21 @@ export function useOperacionesManager() {
   }
 
   async function handleEliminarVehiculo(v) {
-    const seguro = await confirmar(`¿Eliminar el vehículo ${v.placa}? Esta acción no se puede deshacer.`, { tipo: "peligro" });
-    if (!seguro) return;
-    try {
-      await vehiculosService.eliminarVehiculo(v.id);
-      setVehiculos((prev) => prev.filter((x) => x.id !== v.id));
-    } catch (err) {
-      alertar(err.message || "No se pudo eliminar el vehículo.");
-    }
+    const ok = await confirmar({
+      titulo: `¿Eliminar el vehículo ${v.placa}?`,
+      mensaje: `Se eliminará el vehículo ${v.placa} con sus fechas de documentos y su historial, de forma permanente. Esta acción no se puede deshacer.`,
+      tipo: "peligro",
+      textoConfirmar: "Eliminar vehículo",
+      textoCargando: "Eliminando...",
+      palabraConfirmacion: v.placa,
+      accion: async () => {
+        await vehiculosService.eliminarVehiculo(v.id);
+        setVehiculos((prev) => prev.filter((x) => x.id !== v.id));
+      },
+    });
+    if (ok) mostrarToast("Vehículo eliminado", { tipo: "success" });
   }
+
 
   function abrirInspeccion(eq) {
     setFInspeccion(formInspeccionVacio());

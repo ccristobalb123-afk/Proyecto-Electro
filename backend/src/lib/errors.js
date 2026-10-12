@@ -30,6 +30,14 @@ export function validacionFallida(mensaje) {
   return new ApiError(400, "VALIDACION", mensaje);
 }
 
+// 409: el pedido es válido, pero el estado actual del registro no lo
+// permite (ej. eliminar algo que tiene pagos, historial o archivos que
+// no se deben perder). El frontend lo muestra como explicación en un
+// modal, no como un error genérico.
+export function conflicto(mensaje, code = "CONFLICTO") {
+  return new ApiError(409, code, mensaje);
+}
+
 // Envuelve un handler async de Express para que cualquier error (throw
 // o promesa rechazada) llegue al middleware de errores en vez de colgar
 // el request — evita escribir try/catch en cada controller.

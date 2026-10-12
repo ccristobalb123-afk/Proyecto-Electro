@@ -1,6 +1,6 @@
 import { db } from "../lib/db.js";
 import { formatearFecha } from "../lib/estadoVencimiento.js";
-import { ApiError, validacionFallida } from "../lib/errors.js";
+import { ApiError, validacionFallida, conflicto } from "../lib/errors.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 
 const INCLUDE = { categoria: true, empresa: true, vehiculo: true };
@@ -136,7 +136,10 @@ export async function eliminarEquipo(equipoId, empresasPermitidas) {
   const equipo = await buscarEquipo(equipoId, empresasPermitidas);
   const eventosDeHistorial = await db.historialEquipo.count({ where: { equipoId } });
   if (eventosDeHistorial > 1) {
-    throw validacionFallida("Este equipo ya tiene actividad registrada — usa \"Dar de baja\" en vez de eliminarlo.");
+    throw conflicto(
+      `No se puede eliminar el equipo ${equipo.codigo}: ya tiene ${eventosDeHistorial - 1} ${eventosDeHistorial - 1 === 1 ? "evento" : "eventos"} en su hoja de vida (asignaciones, inspecciones, mantenimientos). Usa "Dar de baja" para retirarlo sin perder ese historial.`,
+      "EQUIPO_CON_HISTORIAL"
+    );
   }
   await db.equipo.delete({ where: { id: equipoId } });
   return { ok: true };

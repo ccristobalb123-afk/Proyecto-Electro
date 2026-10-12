@@ -5,7 +5,7 @@ import { generarPasswordTemporal } from "../lib/password.js";
 import { enviarCorreoPasswordTemporal } from "./email.service.js";
 import { revocarTodosLosRefreshTokens } from "./refreshTokens.service.js";
 import { MODULOS_DISPONIBLES } from "../lib/roles.js";
-import { validacionFallida, ApiError } from "../lib/errors.js";
+import { validacionFallida, ApiError, conflicto } from "../lib/errors.js";
 
 const RONDAS_BCRYPT = 12;
 const INCLUDE = { empresas: { include: { empresa: true } }, modulos: true };
@@ -151,10 +151,24 @@ export async function actualizarUsuario(usuarioId, { usuario, nombre, correo, es
   return serializarUsuarioAdmin(actualizado);
 }
 
-export async function cambiarEstadoUsuario(usuarioId, activo) {
+// Reglas comunes a desactivar y eliminar — se validan acá, en el
+// backend, aunque la interfaz ya oculte o deshabilite los botones.
+function verificarPuedeGestionar(usuario, solicitante, accion) {
+  if (usuario.id === solicitante.id) {
+    throw conflicto(`No puedes ${accion}te a ti mismo. Pídele a otro administrador que lo haga.`, "ACCION_SOBRE_SI_MISMO");
+  }
+  if (usuario.esSuperAdmin && !solicitante.esSuperAdmin) {
+    throw new ApiError(403, "SIN_PERMISO", `Solo un SuperAdmin puede ${accion} a otro SuperAdmin.`);
+  }
+}
+
+export async function cambiarEstadoUsuario(usuarioId, activo, solicitante) {
   const usuario = await buscarPorId(usuarioId);
   if (!usuario) throw new ApiError(404, "NO_ENCONTRADO", "El usuario no existe.");
 
+  // Reactivar no tiene riesgo; desactivar sí (quedarse sin acceso,
+  // dejar al sistema sin SuperAdmin), por eso las reglas solo aplican ahí.
+  if (!activo) verificarPuedeGestionar(usuario, solicitante, "desactivar");
   if (!activo && usuario.esSuperAdmin) {
     await verificarNoEsElUltimoSuperAdmin(usuarioId);
   }
@@ -171,6 +185,60 @@ export async function cambiarEstadoUsuario(usuarioId, activo) {
   if (!activo) await revocarTodosLosRefreshTokens(usuarioId);
 
   return serializarUsuarioAdmin(actualizado);
+}
+
+// Registros que guardan QUIÉN hizo algo y que no se deben perder. Si el
+// usuario se borrara, su nombre desaparecería de la hoja de vida de
+// equipos y vehículos (onDelete: SetNull → "Sistema").
+async function contarRegistrosAsociados(tx, usuarioId) {
+  const [historialEquipo, historialVehiculo] = await Promise.all([
+    tx.historialEquipo.count({ where: { usuarioId } }),
+    tx.historialVehiculo.count({ where: { usuarioId } }),
+  ]);
+  return historialEquipo + historialVehiculo;
+}
+
+// Borrado definitivo. A diferencia de desactivar, no se puede deshacer:
+// solo se permite si el usuario no dejó rastro en el historial — si lo
+// dejó, se responde 409 para que la interfaz ofrezca desactivarlo.
+// No tiene archivos propios en disco (no hay foto de perfil): todo lo
+// suyo vive en tablas que se borran acá mismo.
+export async function eliminarUsuario(usuarioId, solicitante) {
+  const usuario = await buscarPorId(usuarioId);
+  if (!usuario) throw new ApiError(404, "NO_ENCONTRADO", "El usuario no existe.");
+
+  verificarPuedeGestionar(usuario, solicitante, "eliminar");
+  if (usuario.esSuperAdmin && usuario.activo) {
+    const otros = await db.usuario.count({ where: { esSuperAdmin: true, activo: true, id: { not: usuarioId } } });
+    if (otros === 0) {
+      throw conflicto("No se puede eliminar al último SuperAdmin activo: el sistema se quedaría sin nadie con control total.", "ULTIMO_SUPERADMIN");
+    }
+  }
+
+  // Serializable: si justo mientras tanto se registra algo a su nombre
+  // en el historial, la transacción falla en vez de borrarlo igual.
+  await db.$transaction(
+    async (tx) => {
+      const asociados = await contarRegistrosAsociados(tx, usuarioId);
+      if (asociados > 0) {
+        throw conflicto(
+          `No se puede eliminar a ${usuario.nombre}: tiene ${asociados} ${asociados === 1 ? "registro asociado" : "registros asociados"} en el historial de equipos y vehículos. Puedes desactivarlo en su lugar.`,
+          "USUARIO_CON_REGISTROS"
+        );
+      }
+      // Primero lo propio del usuario (aunque la base ya lo haría en
+      // cascada, queda explícito qué se borra), y al final el usuario.
+      await tx.usuarioEmpresa.deleteMany({ where: { usuarioId } });
+      await tx.usuarioModulo.deleteMany({ where: { usuarioId } });
+      await tx.refreshToken.deleteMany({ where: { usuarioId } });
+      await tx.passwordResetToken.deleteMany({ where: { usuarioId } });
+      await tx.pushSubscription.deleteMany({ where: { usuarioId } });
+      await tx.usuario.delete({ where: { id: usuarioId } });
+    },
+    { isolationLevel: "Serializable" }
+  );
+
+  return { ok: true };
 }
 
 export async function resetearPassword(usuarioId) {

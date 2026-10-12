@@ -1,7 +1,8 @@
 import { db } from "../lib/db.js";
 import { buscarOCrearPersonal } from "./personal.service.js";
 import { calcularEstado, formatearFecha, iniciales } from "../lib/estadoVencimiento.js";
-import { ApiError, sinPermiso } from "../lib/errors.js";
+import { ApiError, sinPermiso, conflicto } from "../lib/errors.js";
+import { borrarArchivoSiHuerfano } from "../lib/archivos.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 
 const TIPO_A_ENUM = { "Plazo fijo": "PLAZO_FIJO", "Indefinido": "INDEFINIDO" };
@@ -136,7 +137,23 @@ export async function adjuntarArchivoContrato(contratoId, archivoNombre, archivo
 }
 
 export async function eliminarContrato(contratoId, empresasPermitidas) {
-  await buscarContrato(contratoId, empresasPermitidas);
+  const contrato = await buscarContrato(contratoId, empresasPermitidas);
+
+  // Cursos/Fotocheck/EMO solo se registran para personal con contrato
+  // en esa empresa — si este es su único contrato ahí, borrarlo dejaría
+  // esos registros colgando de alguien que "ya no trabaja" en la empresa.
+  const [otrosContratos, cursos] = await Promise.all([
+    db.contrato.count({ where: { personalId: contrato.personalId, empresaId: contrato.empresaId, id: { not: contratoId } } }),
+    db.curso.count({ where: { personalId: contrato.personalId, empresaId: contrato.empresaId } }),
+  ]);
+  if (otrosContratos === 0 && cursos > 0) {
+    throw conflicto(
+      `No se puede eliminar: el trabajador tiene ${cursos} ${cursos === 1 ? "curso, fotocheck o EMO registrado" : "cursos, fotochecks o EMO registrados"} en esta empresa. Elimínalos primero en la pestaña Cursos / Fotocheck / EMO.`,
+      "CONTRATO_CON_CURSOS"
+    );
+  }
+
   await db.contrato.delete({ where: { id: contratoId } });
+  await borrarArchivoSiHuerfano(contrato.archivoUrl);
   return { ok: true };
 }

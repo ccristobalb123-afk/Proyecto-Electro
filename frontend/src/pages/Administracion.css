@@ -116,6 +116,13 @@
   border-radius: 999px;
 }
 
+.usuario-tu-tag {
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--muted);
+}
+
 .usuario-card-footer {
   margin-top: auto;
   border-top: 1px solid var(--border);

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Modal, ModalActions } from "../shared/Modal";
 import { IconTrash } from "../icons/Icons";
 import { useConfirm } from "../../context/ConfirmContext";
+import { useToast } from "../../context/ToastContext";
 
 export default function ModalCategoriasEquipo({ open, onClose, categorias, onRenombrar, onEliminar }) {
-  const { confirmar, alertar } = useConfirm();
+  const { confirmar } = useConfirm();
+  const { mostrarToast } = useToast();
   const [editando, setEditando] = useState(null); // nombre de la categoría que se está editando
   const [nombreNuevo, setNombreNuevo] = useState("");
   const [error, setError] = useState("");
@@ -25,14 +27,18 @@ export default function ModalCategoriasEquipo({ open, onClose, categorias, onRen
     }
   }
 
+  // Si la categoría está en uso, el backend responde 409 y el mensaje
+  // se muestra dentro del mismo diálogo (sugiere renombrarla).
   async function eliminar(nombre) {
-    const seguro = await confirmar(`¿Eliminar la categoría "${nombre}"?`, { tipo: "peligro" });
-    if (!seguro) return;
-    try {
-      await onEliminar(nombre);
-    } catch (err) {
-      alertar(err.message || "No se pudo eliminar la categoría.");
-    }
+    const ok = await confirmar({
+      titulo: `¿Eliminar la categoría "${nombre}"?`,
+      mensaje: `Dejará de aparecer al registrar equipos. Solo se puede eliminar si ningún registro la usa. Esta acción no se puede deshacer.`,
+      tipo: "peligro",
+      textoConfirmar: "Eliminar categoría",
+      textoCargando: "Eliminando...",
+      accion: () => onEliminar(nombre),
+    });
+    if (ok) mostrarToast("Categoría eliminada", { tipo: "success" });
   }
 
   const nombres = Object.keys(categorias);
@@ -60,7 +66,7 @@ export default function ModalCategoriasEquipo({ open, onClose, categorias, onRen
                   {nombre} <small>({categorias[nombre].length} campo{categorias[nombre].length !== 1 ? "s" : ""})</small>
                 </span>
                 <button className="btn-outline-sm" type="button" onClick={() => abrirEdicion(nombre)}>Renombrar</button>
-                <button className="icon-btn" type="button" title="Eliminar categoría" onClick={() => eliminar(nombre)}>
+                <button className="icon-btn icon-btn--peligro" type="button" title="Eliminar categoría" aria-label={`Eliminar la categoría ${nombre}`} onClick={() => eliminar(nombre)}>
                   <IconTrash width={15} height={15} />
                 </button>
               </>

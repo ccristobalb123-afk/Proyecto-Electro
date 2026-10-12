@@ -16,8 +16,11 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 26px;
-  max-width: 380px;
+  max-width: 400px;
   width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  margin: 0;
   box-shadow: var(--shadow-lg);
 }
 
@@ -54,11 +57,72 @@
   box-sizing: border-box;
 }
 
-.confirm-mensaje {
+.confirm-titulo {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
   color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.confirm-mensaje {
+  color: var(--muted);
   font-size: 14.5px;
   line-height: 1.5;
-  margin: 0 0 24px;
+  margin: 0 0 var(--space-6);
+  overflow-wrap: anywhere;
+}
+
+/* Sin título (llamadas viejas con un solo texto), el mensaje es lo
+   principal y conserva el color fuerte de antes. */
+.confirm-icono-container + .confirm-mensaje {
+  color: var(--text);
+}
+
+/* "Para confirmar, escribe ELIMINAR" */
+.confirm-palabra {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-5);
+}
+
+.confirm-palabra label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--fs-base);
+  color: var(--text);
+}
+
+.confirm-palabra b {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+
+.confirm-palabra input {
+  width: 100%;
+  height: var(--control-height-lg);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--card);
+  font-family: var(--font-body);
+  font-size: var(--fs-md);
+  color: var(--text);
+}
+
+.confirm-palabra input:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+.confirm-error {
+  margin: calc(-1 * var(--space-3)) 0 var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+  font-size: var(--fs-base);
+  line-height: 1.45;
 }
 
 .confirm-acciones {
@@ -68,6 +132,11 @@
 }
 
 .btn-confirm-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height-md);
   background: var(--paper);
   color: var(--text);
   border: 1px solid var(--border);
@@ -86,6 +155,11 @@
 }
 
 .btn-confirm-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height-md);
   background: var(--electro);
   color: var(--on-accent);
   border: none;
@@ -104,6 +178,11 @@
 }
 
 .btn-confirm-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height-md);
   background: var(--danger);
   color: var(--on-accent);
   border: none;
@@ -118,6 +197,38 @@
 @media (hover: hover) {
   .btn-confirm-danger:hover {
     background: var(--danger-dark);
+  }
+}
+
+.btn-confirm-primary:disabled,
+.btn-confirm-danger:disabled,
+.btn-confirm-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Mientras se ejecuta la acción, el botón muestra el spinner con su
+   opacidad normal: está ocupado, no deshabilitado por el usuario. */
+.confirm-card[aria-busy="true"] .btn-confirm-primary:disabled,
+.confirm-card[aria-busy="true"] .btn-confirm-danger:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+
+.confirm-spinner {
+  flex-shrink: 0;
+  animation: confirm-girar 0.8s linear infinite;
+}
+
+@keyframes confirm-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-spinner {
+    animation-duration: 2.4s;
   }
 }
 

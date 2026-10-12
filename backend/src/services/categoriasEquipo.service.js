@@ -1,5 +1,5 @@
 import { db } from "../lib/db.js";
-import { ApiError, validacionFallida } from "../lib/errors.js";
+import { ApiError, validacionFallida, conflicto } from "../lib/errors.js";
 
 export async function listarCategorias() {
   const categorias = await db.categoriaEquipo.findMany({ orderBy: { id: "asc" } });
@@ -55,7 +55,7 @@ export async function eliminarCategoria(nombre) {
 
   const enUso = await db.equipo.count({ where: { categoriaId: categoria.id } });
   if (enUso > 0) {
-    throw validacionFallida(`Hay ${enUso} equipo(s) usando esta categoría — no se puede eliminar mientras esté en uso.`);
+    throw conflicto(`No se puede eliminar: hay ${enUso} ${enUso === 1 ? "equipo registrado" : "equipos registrados"} con esta categoría. Puedes renombrarla en su lugar.`, "CATEGORIA_EN_USO");
   }
 
   await db.categoriaEquipo.delete({ where: { id: categoria.id } });

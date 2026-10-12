@@ -3,78 +3,86 @@ import ConfirmDialog from "../components/shared/ConfirmDialog";
 
 const ConfirmContext = createContext(null);
 
+// Acepta tanto el formato viejo confirmar("¿Seguro?", { tipo }) como
+// el nuevo confirmar({ titulo, mensaje, ... }).
+function normalizar(mensajeUOpciones, opciones) {
+  return typeof mensajeUOpciones === "string" ? { ...opciones, mensaje: mensajeUOpciones } : { ...mensajeUOpciones };
+}
+
 export function ConfirmProvider({ children }) {
-  const [dialogo, setDialogo] = useState(null); // { mensaje, tipo, soloInformativo } | null
+  const [dialogo, setDialogo] = useState(null);
   const resolverRef = useRef(null);
 
-  /**
-   * Dispara un diálogo de confirmación asíncrono.
-   * Retorna una Promesa que se resuelve a `true` (Confirmar) o `false` (Cancelar).
-   *
-   * @param {string} mensaje - Texto principal del modal.
-   * @param {Object} [opciones]
-   * @param {'normal'|'peligro'} [opciones.tipo='normal']
-   * @returns {Promise<boolean>}
-   */
-  const confirmar = useCallback((mensaje, { tipo = "normal" } = {}) => {
+  const abrir = useCallback((config) => {
     return new Promise((resolve) => {
-      if (resolverRef.current) {
-        resolverRef.current(false);
-      }
+      // Si había otro diálogo abierto, se da por cancelado.
+      if (resolverRef.current) resolverRef.current(false);
       resolverRef.current = resolve;
-      setDialogo({ mensaje, tipo, soloInformativo: false });
+      setDialogo(config);
     });
   }, []);
 
   /**
-   * Muestra un aviso con un solo botón "Entendido" — para cuando el
-   * backend rechaza una acción por una razón de negocio (ej. "no se
-   * puede eliminar porque ya tiene pagos registrados"). Antes esto
-   * salía como un toast que se podía confundir con un error genérico
-   * o pasar desapercibido; un modal obliga a leerlo.
-   * @param {string} mensaje
-   * @param {Object} [opciones]
-   * @param {'normal'|'peligro'} [opciones.tipo='peligro']
+   * Diálogo de confirmación. Devuelve una promesa que se resuelve a:
+   *   - true          → confirmó (y, si hay `accion`, la acción terminó bien)
+   *   - "alternativa" → eligió la acción alternativa (ej. "Desactivar en su lugar")
+   *   - false         → canceló
+   *
+   * @param {string|Object} mensajeUOpciones - Texto, u objeto con las opciones:
+   * @param {string} [opciones.titulo] - Ej. "¿Eliminar a Juan Pérez?"
+   * @param {string} opciones.mensaje - Qué se pierde y si se puede deshacer.
+   * @param {'normal'|'peligro'} [opciones.tipo='normal']
+   * @param {string} [opciones.textoConfirmar='Confirmar'] - Ej. "Eliminar usuario".
+   * @param {string} [opciones.textoCargando] - Ej. "Eliminando...".
+   * @param {string} [opciones.palabraConfirmacion] - Texto a escribir para habilitar el botón.
+   * @param {() => Promise<any>} [opciones.accion] - Se ejecuta DENTRO del diálogo:
+   *   botón con estado de carga, y el diálogo solo se cierra si sale bien.
+   *   Si falla, el error se muestra en el mismo diálogo.
+   * @param {(err) => ({ texto: string, textoCargando?: string, accion: () => Promise<any> } | null)} [opciones.alternativa]
+   *   Para un error de negocio (409), ofrece otra acción en vez de solo mostrar el error.
+   * @returns {Promise<boolean|"alternativa">}
+   */
+  const confirmar = useCallback(
+    (mensajeUOpciones, opciones) => abrir({ tipo: "normal", ...normalizar(mensajeUOpciones, opciones), soloInformativo: false }),
+    [abrir]
+  );
+
+  /**
+   * Aviso con un solo botón "Entendido" — para explicar por qué algo no
+   * se puede hacer (ej. "no se puede eliminar porque ya tiene pagos").
+   * Un modal obliga a leerlo; un toast se puede pasar por alto.
+   * @param {string|Object} mensajeUOpciones - Texto, u objeto { titulo, mensaje, tipo }.
    * @returns {Promise<void>}
    */
-  const alertar = useCallback((mensaje, { tipo = "peligro" } = {}) => {
-    return new Promise((resolve) => {
-      if (resolverRef.current) {
-        resolverRef.current(false);
-      }
-      resolverRef.current = () => resolve();
-      setDialogo({ mensaje, tipo, soloInformativo: true });
-    });
-  }, []);
+  const alertar = useCallback(
+    (mensajeUOpciones, opciones) =>
+      abrir({ tipo: "peligro", ...normalizar(mensajeUOpciones, opciones), soloInformativo: true }).then(() => undefined),
+    [abrir]
+  );
 
   const responder = useCallback((valor) => {
-    if (resolverRef.current) {
-      resolverRef.current(valor);
-      resolverRef.current = null;
-    }
+    resolverRef.current?.(valor);
+    resolverRef.current = null;
     setDialogo(null);
   }, []);
 
   return (
     <ConfirmContext.Provider value={{ confirmar, alertar }}>
       {children}
-      {dialogo && (
-        <ConfirmDialog
-          mensaje={dialogo.mensaje}
-          tipo={dialogo.tipo}
-          soloInformativo={dialogo.soloInformativo}
-          onConfirmar={() => responder(true)}
-          onCancelar={() => responder(false)}
-        />
-      )}
+      {dialogo && <ConfirmDialog {...dialogo} onResolver={responder} />}
     </ConfirmContext.Provider>
   );
 }
 
 /**
- * Hook para invocar flujos de confirmación asíncronos.
- * @example const seguro = await confirmar("¿Eliminar este registro?", { tipo: "peligro" });
- * @example await alertar("No se puede eliminar: ya tiene pagos registrados.");
+ * @example const ok = await confirmar({
+ *   titulo: "¿Eliminar a Juan Pérez?",
+ *   mensaje: "Se eliminará de forma permanente. Esta acción no se puede deshacer.",
+ *   tipo: "peligro",
+ *   textoConfirmar: "Eliminar usuario",
+ *   accion: () => usuariosService.eliminarUsuario(id),
+ * });
+ * @example await alertar({ titulo: "No se puede eliminar", mensaje: "Ya tiene pagos registrados." });
  */
 export function useConfirm() {
   const context = useContext(ConfirmContext);

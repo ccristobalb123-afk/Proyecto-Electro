@@ -1,5 +1,5 @@
 import * as usuariosService from "../services/usuarios.service.js";
-import { asyncHandler } from "../lib/errors.js";
+import { asyncHandler, validacionFallida } from "../lib/errors.js";
 
 export const getUsuarios = asyncHandler(async (req, res) => {
   const usuarios = await usuariosService.listarUsuarios(req.query);
@@ -17,7 +17,7 @@ export const patchUsuario = asyncHandler(async (req, res) => {
   // (editar) — ambos casos pasan por el mismo PATCH, igual que en el
   // mock del frontend.
   if (Object.keys(req.body).length === 1 && "activo" in req.body) {
-    const actualizado = await usuariosService.cambiarEstadoUsuario(usuarioId, req.body.activo);
+    const actualizado = await usuariosService.cambiarEstadoUsuario(usuarioId, req.body.activo, req.usuario);
     return res.json(actualizado);
   }
   const actualizado = await usuariosService.actualizarUsuario(usuarioId, req.body, req.usuario.esSuperAdmin);
@@ -28,4 +28,10 @@ export const postResetPassword = asyncHandler(async (req, res) => {
   const usuarioId = Number(req.params.id);
   const resultado = await usuariosService.resetearPassword(usuarioId);
   res.json(resultado);
+});
+
+export const deleteUsuario = asyncHandler(async (req, res) => {
+  const usuarioId = Number(req.params.id);
+  if (!Number.isInteger(usuarioId)) throw validacionFallida("Identificador de usuario inválido.");
+  res.json(await usuariosService.eliminarUsuario(usuarioId, req.usuario));
 });

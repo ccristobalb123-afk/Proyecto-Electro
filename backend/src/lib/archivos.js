@@ -1,3 +1,5 @@
+import path from "node:path";
+import fs from "node:fs/promises";
 import { db } from "./db.js";
 
 // Un mismo archivoUrl puede estar referenciado por exactamente 1 de
@@ -29,4 +31,23 @@ export async function empresasDelArchivo(archivoUrl) {
   // y el formulario que lo va a guardar (crear contrato, etc.) todavía
   // no terminó, o quedó huérfano porque ese paso falló.
   return null;
+}
+
+const CARPETA_UPLOADS = path.resolve("uploads");
+
+// Después de eliminar un registro, borra su archivo del disco en el
+// momento — antes quedaba ahí hasta la limpieza de huérfanos del
+// siguiente reinicio del servidor. Solo lo borra si ya no lo usa
+// ningún otro registro, y nunca hace fallar la eliminación: si el
+// archivo no está o no se puede borrar, la limpieza lo reintenta.
+export async function borrarArchivoSiHuerfano(archivoUrl) {
+  if (!archivoUrl || !archivoUrl.startsWith("/api/uploads/")) return;
+  const nombre = path.basename(archivoUrl);
+  if (nombre.includes("..")) return;
+  try {
+    if ((await empresasDelArchivo(archivoUrl)) !== null) return;
+    await fs.unlink(path.join(CARPETA_UPLOADS, nombre));
+  } catch (err) {
+    if (err.code !== "ENOENT") console.error("No se pudo borrar el archivo", nombre, err.message);
+  }
 }

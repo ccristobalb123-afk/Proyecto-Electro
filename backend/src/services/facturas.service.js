@@ -1,6 +1,6 @@
 import { db, transaccionSerializable } from "../lib/db.js";
 import { totalPagado, calcularEstadoPago, montoNetoAPagar } from "../lib/estadoPago.js";
-import { ApiError, validacionFallida, sinPermiso } from "../lib/errors.js";
+import { ApiError, validacionFallida, sinPermiso, conflicto } from "../lib/errors.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 
 function fecha(v) {
@@ -167,7 +167,7 @@ export async function anularFactura(facturaId, empresasPermitidas) {
   // "flotando" sin factura asociada — en ese caso hace falta una nota de
   // crédito, no un simple anular.
   if (totalPagado(factura.pagos) > 0) {
-    throw validacionFallida("Esta factura ya tiene pagos registrados — no se puede anular directamente, se necesita una nota de crédito.");
+    throw conflicto("No se puede anular esta factura porque ya tiene pagos registrados. Para revertirla se necesita emitir una nota de crédito.", "FACTURA_CON_PAGOS");
   }
   const actualizada = await db.factura.update({
     where: { id: facturaId },
@@ -306,7 +306,7 @@ export async function anularFacturaPorPagar(facturaId, empresasPermitidas) {
   // Mismo criterio que con Factura: si ya se le pagó algo al proveedor,
   // anular así nomás dejaría ese pago "flotando" sin nada asociado.
   if (totalPagado(factura.pagos) > 0) {
-    throw validacionFallida("Esta factura ya tiene pagos registrados — no se puede anular directamente.");
+    throw conflicto("No se puede anular esta factura por pagar porque ya tiene pagos registrados al proveedor. Para revertirla se necesita una nota de crédito del proveedor.", "FACTURA_CON_PAGOS");
   }
   const actualizada = await db.facturaPorPagar.update({
     where: { id: facturaId },

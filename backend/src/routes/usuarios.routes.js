@@ -19,5 +19,6 @@ router.get("/", validarQuery(listarUsuariosQuerySchema), usuariosController.getU
 router.post("/", validar(crearUsuarioSchema), usuariosController.postUsuario);
 router.patch("/:id", validar(patchUsuarioSchema), usuariosController.patchUsuario);
 router.post("/:id/reset-password", usuariosController.postResetPassword);
+router.delete("/:id", usuariosController.deleteUsuario);
 
 export default router;

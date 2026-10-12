@@ -6,6 +6,8 @@ import { IconPlus, IconTrash } from "../components/icons/Icons";
 import * as usuariosService from "../services/usuariosService";
 import { MODULOS_DISPONIBLES } from "../services/rolesService";
 import { useToast } from "../context/ToastContext";
+import { useConfirm } from "../context/ConfirmContext";
+import { useAuth } from "../context/AuthContext";
 import { useDebounce } from "../hooks/useDebounce";
 import { useAsyncList } from "../hooks/useAsyncList";
 import { useModal } from "../hooks/useModal";
@@ -28,13 +30,14 @@ function formUsuarioVacio() {
 
 export default function Administracion() {
   const { mostrarToast } = useToast();
+  const { confirmar } = useConfirm();
+  const { usuario: usuarioActual } = useAuth();
   const [busqueda, setBusqueda] = useState("");
   const busquedaDebounced = useDebounce(busqueda, 400);
 
   const modalNuevo = useModal();
   const modalEditar = useModal(); // dato = usuario seleccionado
   const modalReset = useModal(); // dato = usuario seleccionado
-  const modalDesactivar = useModal(); // dato = usuario seleccionado
 
   const [fUsuario, setFUsuario] = useState(formUsuarioVacio());
   const [fUsuarioEditar, setFUsuarioEditar] = useState(formUsuarioVacio());
@@ -147,15 +150,61 @@ export default function Administracion() {
     }
   }
 
-  async function handleConfirmarDesactivar() {
-    try {
-      const actualizado = await usuariosService.cambiarEstadoUsuario(modalDesactivar.dato.id, !modalDesactivar.dato.activo);
-      setUsuarios((prev) => prev.map((u) => (u.id === actualizado.id ? actualizado : u)));
-      modalDesactivar.cerrar();
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo completar la acción.", { tipo: "error" });
-    }
+  function reemplazarEnLista(actualizado) {
+    setUsuarios((prev) => prev.map((u) => (u.id === actualizado.id ? actualizado : u)));
   }
+
+  // Las mismas reglas que valida el backend, para no ofrecer botones
+  // que solo devolverían un error: nadie se desactiva ni se elimina a
+  // sí mismo, y solo un SuperAdmin gestiona a otro SuperAdmin.
+  function puedeGestionar(u) {
+    if (!usuarioActual || u.id === usuarioActual.id) return false;
+    return !u.esSuperAdmin || usuarioActual.esSuperAdmin;
+  }
+
+  async function handleCambiarEstado(u) {
+    const desactivar = u.activo;
+    const ok = await confirmar({
+      titulo: desactivar ? `¿Desactivar el acceso de ${u.nombre}?` : `¿Reactivar el acceso de ${u.nombre}?`,
+      mensaje: desactivar
+        ? "No podrá iniciar sesión y se cerrarán sus sesiones abiertas. Su historial se mantiene y puedes reactivarlo cuando quieras."
+        : "Podrá volver a iniciar sesión normalmente, con los mismos permisos que tenía.",
+      tipo: desactivar ? "peligro" : "normal",
+      textoConfirmar: desactivar ? "Desactivar acceso" : "Reactivar acceso",
+      textoCargando: desactivar ? "Desactivando..." : "Reactivando...",
+      accion: async () => reemplazarEnLista(await usuariosService.cambiarEstadoUsuario(u.id, !u.activo)),
+    });
+    if (ok) mostrarToast(desactivar ? "Acceso desactivado" : "Acceso reactivado", { tipo: "success" });
+  }
+
+  async function handleEliminar(u) {
+    const resultado = await confirmar({
+      titulo: `¿Eliminar a ${u.nombre}?`,
+      mensaje: `Se eliminará el usuario @${u.usuario} de forma permanente, junto con sus permisos y sesiones. Esta acción no se puede deshacer.`,
+      tipo: "peligro",
+      textoConfirmar: "Eliminar usuario",
+      textoCargando: "Eliminando...",
+      palabraConfirmacion: u.usuario,
+      accion: async () => {
+        await usuariosService.eliminarUsuario(u.id);
+        setUsuarios((prev) => prev.filter((x) => x.id !== u.id));
+      },
+      // 409 = tiene historial a su nombre: en vez de dejarlo en un error,
+      // se ofrece lo que sí se puede hacer (si todavía está activo).
+      alternativa: (err) =>
+        err.code === "USUARIO_CON_REGISTROS" && u.activo
+          ? {
+              titulo: `No se puede eliminar a ${u.nombre}`,
+              texto: "Desactivar acceso",
+              textoCargando: "Desactivando...",
+              accion: async () => reemplazarEnLista(await usuariosService.cambiarEstadoUsuario(u.id, false)),
+            }
+          : null,
+    });
+    if (resultado === true) mostrarToast("Usuario eliminado", { tipo: "success" });
+    if (resultado === "alternativa") mostrarToast("Acceso desactivado", { tipo: "success" });
+  }
+
 
   const usuariosFiltrados = usuarios;
 
@@ -220,14 +269,23 @@ export default function Administracion() {
                   Restablecer contraseña
                 </button>
                 <button className="btn-outline-sm" type="button" onClick={() => abrirEditar(u)}>Editar</button>
-                <button
-                  className="icon-btn"
-                  type="button"
-                  title={u.activo ? "Desactivar acceso" : "Reactivar acceso"}
-                  onClick={() => modalDesactivar.abrir(u)}
-                >
-                  <IconTrash />
-                </button>
+                {puedeGestionar(u) && (
+                  <>
+                    <button className="btn-outline-sm" type="button" onClick={() => handleCambiarEstado(u)}>
+                      {u.activo ? "Desactivar" : "Reactivar"}
+                    </button>
+                    <button
+                      className="icon-btn icon-btn--peligro"
+                      type="button"
+                      title="Eliminar usuario"
+                      aria-label={`Eliminar a ${u.nombre}`}
+                      onClick={() => handleEliminar(u)}
+                    >
+                      <IconTrash />
+                    </button>
+                  </>
+                )}
+                {usuarioActual?.id === u.id && <span className="usuario-tu-tag">Tu cuenta</span>}
               </div>
             </div>
           ))}
@@ -377,24 +435,6 @@ export default function Administracion() {
         </ModalActions>
       </Modal>
 
-      {/* ===== Modal: Desactivar / reactivar acceso ===== */}
-      <Modal
-        open={modalDesactivar.abierto}
-        title={modalDesactivar.dato?.activo ? "Desactivar acceso" : "Reactivar acceso"}
-        subtitle={modalDesactivar.dato ? modalDesactivar.dato.nombre : ""}
-        onClose={modalDesactivar.cerrar}
-      >
-        <p className="usuario-modal-texto">
-          {modalDesactivar.dato?.activo
-            ? "Esta persona ya no podrá iniciar sesión en el sistema, pero su historial se mantiene intacto."
-            : "Esta persona podrá volver a iniciar sesión normalmente."}
-        </p>
-        <ModalActions onCancel={modalDesactivar.cerrar}>
-          <button className={modalDesactivar.dato?.activo ? "btn-danger" : "btn-primary"} type="button" onClick={handleConfirmarDesactivar}>
-            {modalDesactivar.dato?.activo ? "Desactivar acceso" : "Reactivar acceso"}
-          </button>
-        </ModalActions>
-      </Modal>
 
       <ModalPasswordGenerada
         open={modalPassword.abierto}

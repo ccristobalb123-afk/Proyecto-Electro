@@ -1,7 +1,7 @@
 import { db } from "../lib/db.js";
 import { calcularEstadoDocumento } from "../lib/estadoDocumento.js";
 import { formatearFecha } from "../lib/estadoVencimiento.js";
-import { ApiError, validacionFallida, sinPermiso } from "../lib/errors.js";
+import { ApiError, validacionFallida, sinPermiso, conflicto } from "../lib/errors.js";
 import { verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 
 const DOCS_BASE = ["SOAT", "Revisión técnica", "Tarjeta de circulación", "Seguro", "Permiso de operación"];
@@ -168,11 +168,11 @@ export async function eliminarVehiculo(vehiculoId, empresasPermitidas) {
 
   const equiposAsignados = await db.equipo.count({ where: { vehiculoId } });
   if (equiposAsignados > 0) {
-    throw validacionFallida(`Hay ${equiposAsignados} equipo(s) asignado(s) a este vehículo — reasígnalos antes de eliminarlo.`);
+    throw conflicto(`No se puede eliminar el vehículo ${vehiculo.placa}: tiene ${equiposAsignados} ${equiposAsignados === 1 ? "equipo asignado" : "equipos asignados"}. Reasígnalos o devuélvelos al almacén primero.`, "VEHICULO_CON_EQUIPOS");
   }
   const documentosConArchivo = vehiculo.documentos.filter((d) => d.archivoNombre).length;
   if (documentosConArchivo > 0) {
-    throw validacionFallida("Este vehículo ya tiene documentos adjuntos — no se puede eliminar.");
+    throw conflicto(`No se puede eliminar el vehículo ${vehiculo.placa}: ya tiene ${documentosConArchivo} ${documentosConArchivo === 1 ? "documento adjunto" : "documentos adjuntos"} (SOAT, revisión técnica...) que se perderían.`, "VEHICULO_CON_DOCUMENTOS");
   }
 
   await db.vehiculo.delete({ where: { id: vehiculoId } });

@@ -84,7 +84,7 @@ export default function FacturasGrid({ cargando, error, onReintentar, facturas, 
                 <button className="btn-outline-sm" type="button" onClick={() => onEditar(f)}>Editar</button>
               )}
               <button
-                className="icon-btn"
+                className="icon-btn icon-btn--peligro"
                 type="button"
                 title={f.anulada ? "Ya está anulada" : "Anular factura"}
                 disabled={f.anulada}
