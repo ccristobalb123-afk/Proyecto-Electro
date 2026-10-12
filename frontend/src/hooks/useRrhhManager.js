@@ -6,6 +6,7 @@ import * as rrhhService from "../services/rrhhService";
 import { subirArchivo } from "../services/uploadsService";
 import { useDebounce } from "./useDebounce";
 import { useAsyncList } from "./useAsyncList";
+import { useAccion } from "./useAccion";
 import { useConfirm } from "../context/ConfirmContext";
 import { useToast } from "../context/ToastContext";
 
@@ -48,6 +49,7 @@ function formCursoVacio() {
 export function useRrhhManager() {
   const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
+  const acciones = useAccion();
   const [tab, setTab] = useState("contratos"); // "contratos" | "cursos"
   const [modalOpen, setModalOpen] = useState(false);
   // null = creando uno nuevo, id = editando ese registro existente —
@@ -156,27 +158,32 @@ export function useRrhhManager() {
       setErrorContrato("Completa DNI, trabajador, fecha de inicio y fecha de fin.");
       return;
     }
-    try {
-      let datos = fContrato;
-      if (archivoContratoSeleccionado) {
-        const { url, nombre } = await subirArchivo(archivoContratoSeleccionado);
-        datos = { ...fContrato, archivoNombre: nombre, archivoUrl: url };
-      }
+    setErrorContrato("");
+    await acciones.ejecutar("modal", async ({ subida, etapa }) => {
+      try {
+        let datos = fContrato;
+        if (archivoContratoSeleccionado) {
+          const { url, nombre } = await subirArchivo(archivoContratoSeleccionado, subida);
+          datos = { ...fContrato, archivoNombre: nombre, archivoUrl: url };
+          etapa(idEditando ? "Guardando…" : "Registrando…");
+        }
 
-      if (idEditando) {
-        const actualizado = await contratosService.actualizarContrato(idEditando, datos);
-        setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
-      } else {
-        const nuevo = await contratosService.crearContrato(datos);
-        setLista((prev) => [nuevo, ...prev]);
+        if (idEditando) {
+          const actualizado = await contratosService.actualizarContrato(idEditando, datos);
+          setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
+        } else {
+          const nuevo = await contratosService.crearContrato(datos);
+          setLista((prev) => [nuevo, ...prev]);
+        }
+        cargarTrabajadoresRegistrados(); // el trabajador recién registrado ya debe aparecer en Cursos
+        setModalOpen(false);
+        mostrarToast(idEditando ? "Contrato actualizado" : "Contrato registrado", { tipo: "success" });
+      } catch (err) {
+        // Ej. "Ya tiene un contrato de ese tipo en esta empresa" — el
+        // backend ya valida esto, acá solo se muestra el mensaje.
+        setErrorContrato(err.message || "No se pudo guardar el contrato.");
       }
-      cargarTrabajadoresRegistrados(); // el trabajador recién registrado ya debe aparecer en Cursos
-      setModalOpen(false);
-    } catch (err) {
-      // Ej. "Ya tiene un contrato de ese tipo en esta empresa" — el
-      // backend ya valida esto, acá solo se muestra el mensaje.
-      setErrorContrato(err.message);
-    }
+    });
   }
 
   async function handleGuardarCurso(e) {
@@ -185,27 +192,32 @@ export function useRrhhManager() {
       setErrorCurso("Selecciona un trabajador, fecha de inicio y fecha de vencimiento.");
       return;
     }
-    try {
-      // archivoNombre del formulario es solo para mostrar en el
-      // dropzone — lo que se guarda es lo que devuelve la subida.
-      const { archivoNombre: _soloVista, ...datosForm } = fCurso;
-      let datos = datosForm;
-      if (archivoCursoSeleccionado) {
-        const { url, nombre } = await subirArchivo(archivoCursoSeleccionado);
-        datos = { ...datosForm, archivoNombre: nombre, archivoUrl: url };
-      }
+    setErrorCurso("");
+    await acciones.ejecutar("modal", async ({ subida, etapa }) => {
+      try {
+        // archivoNombre del formulario es solo para mostrar en el
+        // dropzone — lo que se guarda es lo que devuelve la subida.
+        const { archivoNombre: _soloVista, ...datosForm } = fCurso;
+        let datos = datosForm;
+        if (archivoCursoSeleccionado) {
+          const { url, nombre } = await subirArchivo(archivoCursoSeleccionado, subida);
+          datos = { ...datosForm, archivoNombre: nombre, archivoUrl: url };
+          etapa(idEditando ? "Guardando…" : "Registrando…");
+        }
 
-      if (idEditando) {
-        const actualizado = await rrhhService.actualizarCurso(idEditando, datos);
-        setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
-      } else {
-        const nuevo = await rrhhService.crearCurso(datos);
-        setLista((prev) => [nuevo, ...prev]);
+        if (idEditando) {
+          const actualizado = await rrhhService.actualizarCurso(idEditando, datos);
+          setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
+        } else {
+          const nuevo = await rrhhService.crearCurso(datos);
+          setLista((prev) => [nuevo, ...prev]);
+        }
+        setModalOpen(false);
+        mostrarToast(`${fCurso.tipo} ${idEditando ? "actualizado" : "registrado"}`, { tipo: "success" });
+      } catch (err) {
+        setErrorCurso(err.message || "No se pudo guardar el registro.");
       }
-      setModalOpen(false);
-    } catch (err) {
-      setErrorCurso(err.message);
-    }
+    });
   }
 
   async function handleEliminar(item) {
@@ -216,7 +228,7 @@ export function useRrhhManager() {
       mensaje: `Se eliminará ${que} (vence ${item.vence})${item.archivo ? " junto con su documento adjunto" : ""} de forma permanente. Esta acción no se puede deshacer.`,
       tipo: "peligro",
       textoConfirmar: esContrato ? "Eliminar contrato" : `Eliminar ${item.tipo === "EMO" ? "EMO" : item.tipo.toLowerCase()}`,
-      textoCargando: "Eliminando...",
+      textoCargando: "Eliminando…",
       accion: async () => {
         if (esContrato) await contratosService.eliminarContrato(item.id);
         else await rrhhService.eliminarCurso(item.id);
@@ -244,17 +256,21 @@ export function useRrhhManager() {
   // "Adjuntar" desde la tabla, en cualquiera de las 2 pestañas. Antes
   // no tenía try/catch: si la subida fallaba (archivo muy pesado, tipo
   // no permitido) no se le mostraba nada al usuario.
+  // La clave lleva el id: cada fila muestra su propio "Subiendo… 40%"
+  // y se pueden adjuntar archivos a varias filas a la vez.
   async function handleAdjuntarArchivo(item, archivo) {
-    try {
-      const actualizado =
-        tab === "contratos"
-          ? await contratosService.adjuntarArchivoContrato(item.id, archivo)
-          : await rrhhService.adjuntarArchivoCurso(item.id, archivo);
-      setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
-      mostrarToast("Archivo adjuntado.", { tipo: "success" });
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo adjuntar el archivo.", { tipo: "error" });
-    }
+    await acciones.ejecutar(`adjuntar-${item.id}`, async ({ subida }) => {
+      try {
+        const actualizado =
+          tab === "contratos"
+            ? await contratosService.adjuntarArchivoContrato(item.id, archivo, subida)
+            : await rrhhService.adjuntarArchivoCurso(item.id, archivo, subida);
+        setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
+        mostrarToast("Archivo adjuntado", { tipo: "success" });
+      } catch (err) {
+        mostrarToast(err.message || "No se pudo adjuntar el archivo.", { tipo: "error" });
+      }
+    });
   }
 
   const hayFiltrosActivos = !!(filtroEmpresa || filtroEstado || busqueda);
@@ -263,6 +279,9 @@ export function useRrhhManager() {
     tab, cambiarTab,
     modalOpen, openModal, abrirEditar, idEditando,
     cerrarModal: () => { setModalOpen(false); setIdEditando(null); },
+    guardando: acciones.ocupado("modal"),
+    textoGuardando: acciones.texto("modal", idEditando ? "Guardando…" : "Registrando…"),
+    estadoAdjunto: (id) => (acciones.ocupado(`adjuntar-${id}`) ? acciones.texto(`adjuntar-${id}`, "Subiendo archivo…") : null),
     modalDetalle,
     filtroEmpresa, setFiltroEmpresa,
     filtroEstado, setFiltroEstado,

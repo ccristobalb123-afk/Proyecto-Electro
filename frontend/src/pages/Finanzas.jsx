@@ -94,6 +94,7 @@ export default function Finanzas() {
             facturas={f.facturas}
             onNuevo={f.abrirNuevo}
             onSubirComprobante={f.marcarComprobanteSubido}
+            estadoComprobante={f.estadoComprobante}
             onRegistrarPago={f.abrirRegistrarPago}
             onEditar={f.abrirEditarFactura}
             onAnular={f.handleAnularFactura}
@@ -108,6 +109,7 @@ export default function Finanzas() {
             facturas={f.facturasPagar}
             onNuevo={f.abrirNuevo}
             onSubirComprobante={f.marcarComprobanteSubido}
+            estadoComprobante={f.estadoComprobante}
             onRegistrarPago={f.abrirRegistrarPago}
             onEditar={f.abrirEditarFacturaPagar}
             onAnular={f.handleAnularFacturaPagar}
@@ -122,6 +124,7 @@ export default function Finanzas() {
             gastos={f.gastos}
             onNuevo={f.abrirNuevo}
             onSubirComprobante={f.marcarComprobanteSubido}
+            estadoComprobante={f.estadoComprobante}
             onEditar={f.abrirEditarGasto}
             onEliminar={f.handleEliminarGasto}
           />
@@ -137,6 +140,8 @@ export default function Finanzas() {
         editando={!!f.idEditando}
         error={f.errorFormulario}
         catalogoDetraccion={f.catalogoDetraccion}
+        guardando={f.guardando}
+        textoGuardando={f.textoGuardando}
       />
 
       <ModalNuevaFacturaPagar
@@ -148,6 +153,8 @@ export default function Finanzas() {
         editando={!!f.idEditando}
         error={f.errorFormulario}
         catalogoDetraccion={f.catalogoDetraccion}
+        guardando={f.guardando}
+        textoGuardando={f.textoGuardando}
       />
 
       <ModalNuevoGasto
@@ -166,6 +173,9 @@ export default function Finanzas() {
         onAgregarCategoriaGasto={f.handleAgregarCategoriaGasto}
         onAbrirGestionCategorias={() => f.setModalCategoriasGasto(true)}
         error={f.errorFormulario}
+        guardando={f.guardando}
+        textoGuardando={f.textoGuardando}
+        creandoCategoria={f.creandoCategoria}
       />
 
       <ModalCategoriasGasto
@@ -184,6 +194,7 @@ export default function Finanzas() {
         errorPago={f.errorPago}
         onClose={() => f.setModalPago(null)}
         onConfirmar={f.handleConfirmarPago}
+        registrando={f.registrandoPago}
       />
     </AppShell>
   );

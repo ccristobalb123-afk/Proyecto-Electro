@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BotonCarga } from "../components/shared/Carga";
 import { useLoginFlow, LOGIN_STEPS as STEPS } from "../hooks/useLoginFlow";
 import AuthShell from "../components/auth/AuthShell";
 import OtpInput from "../components/auth/OtpInput";
@@ -78,9 +79,9 @@ export default function Login() {
             describedBy={errorId}
           />
           {mensajeError}
-          <button className="btn-primary" type="submit" disabled={l.loading}>
-            {l.loading ? "Verificando..." : "Continuar"}
-          </button>
+          <BotonCarga type="submit" cargando={l.loading} textoCargando="Verificando…">
+            Continuar
+          </BotonCarga>
           <button type="button" className="auth-back auth-back--abajo" onClick={() => l.irAPaso(STEPS.RECOVERY)}>
             ¿Olvidaste tu contraseña?
           </button>
@@ -137,9 +138,9 @@ export default function Login() {
             describedBy={errorId}
           />
           {mensajeError}
-          <button className="btn-primary" type="submit" disabled={l.loading}>
-            {l.loading ? "Verificando..." : "Verificar y entrar"}
-          </button>
+          <BotonCarga type="submit" cargando={l.loading} textoCargando="Verificando…">
+            Verificar y entrar
+          </BotonCarga>
         </form>
       )}
 
@@ -173,9 +174,9 @@ export default function Login() {
             />
           </div>
           {mensajeError}
-          <button className="btn-primary" type="submit" disabled={l.loading}>
-            {l.loading ? "Enviando..." : "Enviar enlace"}
-          </button>
+          <BotonCarga type="submit" cargando={l.loading} textoCargando="Enviando…">
+            Enviar enlace
+          </BotonCarga>
         </form>
       )}
 

@@ -1,6 +1,8 @@
 import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
-import { IconClipboardCheck, IconPlus, IconTrash, IconCamera } from "../icons/Icons";
-import { comprimirImagen } from "../../utils/imageUtils";
+import { useState } from "react";
+import { IconClipboardCheck, IconPlus, IconTrash } from "../icons/Icons";
+import { BotonCarga } from "../shared/Carga";
+import FotosEquipo from "./FotosEquipo";
 
 const OPCION_NUEVA = "__nueva__";
 
@@ -22,7 +24,10 @@ export default function ModalNuevoEquipo({
   errorCategoria,
   onAbrirGestionCategorias,
   error,
+  guardando,
+  textoGuardando,
 }) {
+  const [procesandoFoto, setProcesandoFoto] = useState(false);
   function handleCategoriaChange(valor) {
     if (valor === OPCION_NUEVA) {
       setNuevaCategoria(true);
@@ -47,22 +52,8 @@ export default function ModalNuevoEquipo({
     setCamposNuevaCategoria(camposNuevaCategoria.filter((_, idx) => idx !== i));
   }
 
-  async function handleFotoChange(indice, archivo) {
-    if (!archivo) return;
-    const dataUrl = await comprimirImagen(archivo);
-    const fotos = [...(fEquipo.fotos || [null, null])];
-    fotos[indice] = dataUrl;
-    setFEquipo({ ...fEquipo, fotos });
-  }
-
-  function quitarFoto(indice) {
-    const fotos = [...(fEquipo.fotos || [null, null])];
-    fotos[indice] = null;
-    setFEquipo({ ...fEquipo, fotos });
-  }
-
   return (
-    <Modal open={open} title="Nuevo equipo" subtitle="Completa los datos del equipo o EPP." onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title="Nuevo equipo" subtitle="Completa los datos del equipo o EPP." onClose={onClose}>
       <form onSubmit={onSubmit}>
         <div className="form-row">
           <div className="form-field">
@@ -175,58 +166,11 @@ export default function ModalNuevoEquipo({
 
         <fieldset className="form-field">
           <legend>Fotos del equipo</legend>
-          <div className="fotos-equipo-row">
-            {[0, 1].map((indice) => {
-              const foto = (fEquipo.fotos || [null, null])[indice];
-              return (
-                <div className="foto-equipo-slot" key={indice}>
-                  {foto ? (
-                    <>
-                      {/* Tocar la foto reemplaza directo — subir una nueva
-                          descarta automáticamente la anterior, sin tener
-                          que borrarla primero. */}
-                      <label className="foto-equipo-reemplazar" title="Tocar para reemplazar">
-                        <img src={foto} alt={`Foto ${indice + 1}`} />
-                        <div className="foto-equipo-reemplazar-hint">
-                          <IconCamera width={16} height={16} />
-                          <span>Cambiar</span>
-                        </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          className="input-oculto"
-                          onChange={(e) => handleFotoChange(indice, e.target.files?.[0])}
-                        />
-                      </label>
-                      <button
-                        className="foto-equipo-quitar"
-                        type="button"
-                        title="Quitar foto"
-                        onClick={() => quitarFoto(indice)}
-                      >
-                        <IconTrash width={13} height={13} />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="foto-equipo-vacio">
-                      <IconCamera width={20} height={20} />
-                      <span>Agregar foto</span>
-                      {/* accept+capture: en celular abre la cámara directo; en
-                          computadora abre el explorador de archivos normal. */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        className="input-oculto"
-                        onChange={(e) => handleFotoChange(indice, e.target.files?.[0])}
-                      />
-                    </label>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <FotosEquipo
+            fotos={fEquipo.fotos || [null, null]}
+            onChange={(fotos) => setFEquipo((f) => ({ ...f, fotos }))}
+            onProcesando={setProcesandoFoto}
+          />
         </fieldset>
 
         <div className="checklist-note">
@@ -234,10 +178,12 @@ export default function ModalNuevoEquipo({
           El checklist pre-uso se toma automáticamente de la plantilla de la categoría elegida.
         </div>
 
-        {error && <p className="field-error">{error}</p>}
+        {error && <p className="field-error" role="alert">{error}</p>}
 
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">Guardar equipo</button>
+          <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando} disabled={procesandoFoto}>
+            Guardar equipo
+          </BotonCarga>
         </ModalActions>
       </form>
     </Modal>

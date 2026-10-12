@@ -11,6 +11,8 @@ import { useAuth } from "../context/AuthContext";
 import { useDebounce } from "../hooks/useDebounce";
 import { useAsyncList } from "../hooks/useAsyncList";
 import { useModal } from "../hooks/useModal";
+import { useAccion } from "../hooks/useAccion";
+import { BotonCarga } from "../components/shared/Carga";
 import Loading from "../components/shared/Loading";
 import EstadoVacio from "../components/shared/EstadoVacio";
 import EstadoError from "../components/shared/EstadoError";
@@ -31,6 +33,9 @@ function formUsuarioVacio() {
 export default function Administracion() {
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
+  const acciones = useAccion();
+  const guardando = acciones.ocupado("modal");
+  const [errorReset, setErrorReset] = useState("");
   const { usuario: usuarioActual } = useAuth();
   const [busqueda, setBusqueda] = useState("");
   const busquedaDebounced = useDebounce(busqueda, 400);
@@ -113,14 +118,17 @@ export default function Administracion() {
       setErrorUsuario("Marca al menos una ventana a la que este usuario pueda acceder.");
       return;
     }
-    try {
-      const { correoEnviado, passwordTemporal, ...nuevo } = await usuariosService.crearUsuario(fUsuario);
-      setUsuarios((prev) => [nuevo, ...prev]);
-      modalNuevo.cerrar();
-      setModalPassword({ abierto: true, nombreUsuario: nuevo.usuario, password: passwordTemporal, correoEnviado });
-    } catch (err) {
-      setErrorUsuario(err.message || "No se pudo crear el usuario.");
-    }
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const { correoEnviado, passwordTemporal, ...nuevo } = await usuariosService.crearUsuario(fUsuario);
+        setUsuarios((prev) => [nuevo, ...prev]);
+        modalNuevo.cerrar();
+        // El modal de la contraseña generada ya es la confirmación.
+        setModalPassword({ abierto: true, nombreUsuario: nuevo.usuario, password: passwordTemporal, correoEnviado });
+      } catch (err) {
+        setErrorUsuario(err.message || "No se pudo crear el usuario.");
+      }
+    });
   }
 
   async function handleGuardarEdicion(e) {
@@ -130,24 +138,30 @@ export default function Administracion() {
       setErrorUsuario("Marca al menos una ventana a la que este usuario pueda acceder.");
       return;
     }
-    try {
-      const actualizado = await usuariosService.actualizarUsuario(modalEditar.dato.id, fUsuarioEditar);
-      setUsuarios((prev) => prev.map((u) => (u.id === actualizado.id ? actualizado : u)));
-      modalEditar.cerrar();
-    } catch (err) {
-      setErrorUsuario(err.message || "No se pudo guardar los cambios.");
-    }
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const actualizado = await usuariosService.actualizarUsuario(modalEditar.dato.id, fUsuarioEditar);
+        setUsuarios((prev) => prev.map((u) => (u.id === actualizado.id ? actualizado : u)));
+        modalEditar.cerrar();
+        mostrarToast("Usuario actualizado", { tipo: "success" });
+      } catch (err) {
+        setErrorUsuario(err.message || "No se pudieron guardar los cambios.");
+      }
+    });
   }
 
   async function handleConfirmarReset() {
-    try {
-      const { correoEnviado, passwordTemporal } = await usuariosService.resetearPassword(modalReset.dato.id);
-      const nombreUsuario = modalReset.dato.usuario;
-      modalReset.cerrar();
-      setModalPassword({ abierto: true, nombreUsuario, password: passwordTemporal, correoEnviado });
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo resetear la contraseña.", { tipo: "error" });
-    }
+    setErrorReset("");
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const { correoEnviado, passwordTemporal } = await usuariosService.resetearPassword(modalReset.dato.id);
+        const nombreUsuario = modalReset.dato.usuario;
+        modalReset.cerrar();
+        setModalPassword({ abierto: true, nombreUsuario, password: passwordTemporal, correoEnviado });
+      } catch (err) {
+        setErrorReset(err.message || "No se pudo restablecer la contraseña.");
+      }
+    });
   }
 
   function reemplazarEnLista(actualizado) {
@@ -171,7 +185,7 @@ export default function Administracion() {
         : "Podrá volver a iniciar sesión normalmente, con los mismos permisos que tenía.",
       tipo: desactivar ? "peligro" : "normal",
       textoConfirmar: desactivar ? "Desactivar acceso" : "Reactivar acceso",
-      textoCargando: desactivar ? "Desactivando..." : "Reactivando...",
+      textoCargando: desactivar ? "Desactivando…" : "Reactivando…",
       accion: async () => reemplazarEnLista(await usuariosService.cambiarEstadoUsuario(u.id, !u.activo)),
     });
     if (ok) mostrarToast(desactivar ? "Acceso desactivado" : "Acceso reactivado", { tipo: "success" });
@@ -183,7 +197,7 @@ export default function Administracion() {
       mensaje: `Se eliminará el usuario @${u.usuario} de forma permanente, junto con sus permisos y sesiones. Esta acción no se puede deshacer.`,
       tipo: "peligro",
       textoConfirmar: "Eliminar usuario",
-      textoCargando: "Eliminando...",
+      textoCargando: "Eliminando…",
       palabraConfirmacion: u.usuario,
       accion: async () => {
         await usuariosService.eliminarUsuario(u.id);
@@ -196,7 +210,7 @@ export default function Administracion() {
           ? {
               titulo: `No se puede eliminar a ${u.nombre}`,
               texto: "Desactivar acceso",
-              textoCargando: "Desactivando...",
+              textoCargando: "Desactivando…",
               accion: async () => reemplazarEnLista(await usuariosService.cambiarEstadoUsuario(u.id, false)),
             }
           : null,
@@ -226,7 +240,7 @@ export default function Administracion() {
       </div>
 
       {cargando ? (
-        <Loading texto="Cargando usuarios..." />
+        <Loading texto="Cargando usuarios…" />
       ) : error ? (
         <EstadoError error={error} onReintentar={reload} />
       ) : usuariosFiltrados.length === 0 ? (
@@ -265,7 +279,7 @@ export default function Administracion() {
               </div>
 
               <div className="usuario-card-footer">
-                <button className="btn-outline-sm" type="button" onClick={() => modalReset.abrir(u)}>
+                <button className="btn-outline-sm" type="button" onClick={() => { setErrorReset(""); modalReset.abrir(u); }}>
                   Restablecer contraseña
                 </button>
                 <button className="btn-outline-sm" type="button" onClick={() => abrirEditar(u)}>Editar</button>
@@ -293,7 +307,7 @@ export default function Administracion() {
       )}
 
       {/* ===== Modal: Nuevo usuario ===== */}
-      <Modal open={modalNuevo.abierto} title="Nuevo usuario" subtitle="El usuario recibirá una contraseña temporal en su correo." onClose={modalNuevo.cerrar}>
+      <Modal open={modalNuevo.abierto} ocupado={guardando} title="Nuevo usuario" subtitle="El usuario recibirá una contraseña temporal en su correo." onClose={modalNuevo.cerrar}>
         <form onSubmit={handleGuardarUsuario}>
           <div className="form-field">
             <label>
@@ -349,15 +363,17 @@ export default function Administracion() {
               </label>
             </div>
           </fieldset>
-          {errorUsuario && <p className="field-error">{errorUsuario}</p>}
+          {errorUsuario && <p className="field-error" role="alert">{errorUsuario}</p>}
           <ModalActions onCancel={modalNuevo.cerrar}>
-            <button className="btn-primary" type="submit">Crear usuario</button>
+            <BotonCarga type="submit" cargando={guardando} textoCargando="Creando usuario…">
+              Crear usuario
+            </BotonCarga>
           </ModalActions>
         </form>
       </Modal>
 
       {/* ===== Modal: Editar usuario ===== */}
-      <Modal open={modalEditar.abierto} title="Editar usuario" subtitle={modalEditar.dato ? modalEditar.dato.nombre : ""} onClose={modalEditar.cerrar}>
+      <Modal open={modalEditar.abierto} ocupado={guardando} title="Editar usuario" subtitle={modalEditar.dato ? modalEditar.dato.nombre : ""} onClose={modalEditar.cerrar}>
         <form onSubmit={handleGuardarEdicion}>
           <div className="form-field">
             <label>
@@ -413,9 +429,11 @@ export default function Administracion() {
               </label>
             </div>
           </fieldset>
-          {errorUsuario && <p className="field-error">{errorUsuario}</p>}
+          {errorUsuario && <p className="field-error" role="alert">{errorUsuario}</p>}
           <ModalActions onCancel={modalEditar.cerrar}>
-            <button className="btn-primary" type="submit">Guardar cambios</button>
+            <BotonCarga type="submit" cargando={guardando} textoCargando="Guardando…">
+              Guardar cambios
+            </BotonCarga>
           </ModalActions>
         </form>
       </Modal>
@@ -423,6 +441,7 @@ export default function Administracion() {
       {/* ===== Modal: Restablecer contraseña ===== */}
       <Modal
         open={modalReset.abierto}
+        ocupado={guardando}
         title="Restablecer contraseña"
         subtitle={modalReset.dato ? `Se generará una contraseña temporal para ${modalReset.dato.nombre}.` : ""}
         onClose={modalReset.cerrar}
@@ -430,8 +449,11 @@ export default function Administracion() {
         <p className="usuario-modal-texto">
           {modalReset.dato?.nombre} tendrá que cambiarla la próxima vez que inicie sesión.
         </p>
+        {errorReset && <p className="field-error" role="alert">{errorReset}</p>}
         <ModalActions onCancel={modalReset.cerrar}>
-          <button className="btn-primary" type="button" onClick={handleConfirmarReset}>Generar contraseña temporal</button>
+          <BotonCarga cargando={guardando} textoCargando="Generando…" onClick={handleConfirmarReset}>
+            Generar contraseña temporal
+          </BotonCarga>
         </ModalActions>
       </Modal>
 

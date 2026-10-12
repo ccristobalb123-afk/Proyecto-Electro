@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { Spinner } from "../shared/Carga";
 
 /**
  * Envuelve una página que requiere sesión. Uso:
@@ -15,14 +16,16 @@ import { useAuth } from "../../context/AuthContext";
  * sesión y el permiso en cada endpoint — un `ProtectedRoute` nunca
  * sustituye esa validación del lado servidor.
  */
+
 export function ProtectedRoute({ modulo, children }) {
   const { estaAutenticado, cargandoSesion, tieneAcceso } = useAuth();
   const location = useLocation();
 
   if (cargandoSesion) {
     return (
-      <div className="pantalla-cargando-sesion">
-        Cargando sesión...
+      <div className="pantalla-cargando-sesion" role="status">
+        <Spinner tamano={20} />
+        Cargando sesión…
       </div>
     );
   }

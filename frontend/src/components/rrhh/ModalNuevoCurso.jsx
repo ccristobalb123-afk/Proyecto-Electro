@@ -1,9 +1,11 @@
 import { Modal, ModalActions, CompanyChoice, AvisoVencimiento } from "../shared/Modal";
 import { IconUpload } from "../icons/Icons";
+import { BotonCarga } from "../shared/Carga";
+import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 
-export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, error, onArchivoChange, onSubmit, trabajadoresRegistrados, editando }) {
+export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, error, onArchivoChange, onSubmit, trabajadoresRegistrados, editando, guardando, textoGuardando }) {
   return (
-    <Modal open={open} title={editando ? "Editar registro" : "Nuevo registro"} subtitle="Completa los datos del curso, fotocheck o EMO." onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title={editando ? "Editar registro" : "Nuevo registro"} subtitle="Completa los datos del curso, fotocheck o EMO." onClose={onClose}>
       <form onSubmit={onSubmit}>
         <div className="form-field">
           <label>
@@ -67,7 +69,7 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
                 <b>{fCurso.archivoNombre}</b>
               ) : (
                 <>
-                  <b>Haz clic para subir</b> una foto o PDF — JPG, PNG, WEBP o PDF, hasta 10 MB
+                  <b>Haz clic para subir</b> una foto o PDF — {AYUDA_ARCHIVO}
                 </>
               )}
             </p>
@@ -78,7 +80,9 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
         {error && <p className="field-error">{error}</p>}
 
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">{editando ? "Guardar cambios" : "Guardar registro"}</button>
+          <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
+            {editando ? "Guardar cambios" : "Guardar registro"}
+          </BotonCarga>
         </ModalActions>
       </form>
     </Modal>

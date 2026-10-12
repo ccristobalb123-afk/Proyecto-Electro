@@ -1,12 +1,12 @@
-import { BotonVerArchivo } from "../shared/VisorArchivo";
-import { IconUpload, IconTrash } from "../icons/Icons";
+import CampoComprobante from "./CampoComprobante";
+import { IconTrash } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
 import { soles, formatFecha } from "./finanzasUtils";
 
-export default function GastosGrid({ cargando, error, onReintentar, gastos, onNuevo, onSubirComprobante, onEditar, onEliminar }) {
-  if (cargando) return <Loading texto="Cargando..." />;
+export default function GastosGrid({ cargando, error, onReintentar, gastos, onNuevo, onSubirComprobante, estadoComprobante, onEditar, onEliminar }) {
+  if (cargando) return <Loading texto="Cargando gastos…" />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
   if (gastos.length === 0) {
     return (
@@ -38,14 +38,7 @@ export default function GastosGrid({ cargando, error, onReintentar, gastos, onNu
             {g.trabajador && <div><span className="fin-card-label">Trabajador</span><span>{g.trabajador}</span></div>}
             {g.descripcion && <div><span className="fin-card-label">Descripción</span><span>{g.descripcion}</span></div>}
 
-            {g.archivo ? (
-              <BotonVerArchivo className="fin-card-archivo fin-card-archivo--link" url={g.archivoUrl} nombre={g.archivoNombre}>Ver comprobante</BotonVerArchivo>
-            ) : (
-              <label className="fin-card-archivo">
-                <IconUpload width={13} height={13} /> Adjuntar comprobante
-                <input type="file" accept=".pdf,image/*" className="input-oculto" onChange={(e) => e.target.files[0] && onSubirComprobante(g.id, e.target.files[0])} />
-              </label>
-            )}
+            <CampoComprobante item={g} estado={estadoComprobante?.(g.id)} onSubir={onSubirComprobante} />
           </div>
 
           <div className="fin-card-footer">

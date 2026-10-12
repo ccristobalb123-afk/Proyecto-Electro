@@ -6,6 +6,7 @@ import { subirArchivo } from "../services/uploadsService";
 import { totalPagado, montoNetoAPagar } from "../services/facturasService";
 import { useDebounce } from "./useDebounce";
 import { useAsyncList } from "./useAsyncList";
+import { useAccion } from "./useAccion";
 import { useConfirm } from "../context/ConfirmContext";
 import { useToast } from "../context/ToastContext";
 import { soles } from "../components/finanzas/finanzasUtils";
@@ -43,6 +44,7 @@ function calcularMontoTotal(montoBase, igvIncluido) {
 export function useFinanzasManager() {
   const { confirmar, alertar } = useConfirm();
   const { mostrarToast } = useToast();
+  const acciones = useAccion();
   const [errorFormulario, setErrorFormulario] = useState("");
   const [tab, setTab] = useState("facturas"); // "facturas" | "facturasPagar" | "gastos"
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
@@ -78,16 +80,19 @@ export function useFinanzasManager() {
       setErrorCategoriaGasto("Ponle un nombre a la categoría.");
       return;
     }
-    try {
-      const nombreCreado = await finanzasService.agregarCategoriaGasto(nombreNuevaCategoriaGasto);
-      setCategoriasGasto((prev) => [...prev, nombreCreado]);
-      setFGasto((f) => ({ ...f, categoria: nombreCreado }));
-      setNuevaCategoriaGasto(false);
-      setNombreNuevaCategoriaGasto("");
-      setErrorCategoriaGasto("");
-    } catch (err) {
-      setErrorCategoriaGasto(err.message);
-    }
+    await acciones.ejecutar("categoria", async () => {
+      try {
+        const nombreCreado = await finanzasService.agregarCategoriaGasto(nombreNuevaCategoriaGasto);
+        setCategoriasGasto((prev) => [...prev, nombreCreado]);
+        setFGasto((f) => ({ ...f, categoria: nombreCreado }));
+        setNuevaCategoriaGasto(false);
+        setNombreNuevaCategoriaGasto("");
+        setErrorCategoriaGasto("");
+        mostrarToast(`Categoría "${nombreCreado}" creada`, { tipo: "success" });
+      } catch (err) {
+        setErrorCategoriaGasto(err.message || "No se pudo crear la categoría.");
+      }
+    });
   }
 
   // Para "Gestionar categorías" — editar el nombre de una categoría
@@ -220,7 +225,7 @@ export function useFinanzasManager() {
       mensaje: `La factura de ${f.cliente} por ${soles(f.montoTotal)} quedará anulada: seguirá visible en la lista, pero ya no se le podrán registrar pagos. Esta acción no se puede deshacer.`,
       tipo: "peligro",
       textoConfirmar: "Anular factura",
-      textoCargando: "Anulando...",
+      textoCargando: "Anulando…",
       accion: async () => {
         const actualizada = await facturasService.anularFactura(f.id);
         setListaActual((prev) => prev.map((x) => (x.id === actualizada.id ? actualizada : x)));
@@ -242,7 +247,7 @@ export function useFinanzasManager() {
       mensaje: `La factura por ${soles(f.montoTotal)} quedará anulada: seguirá visible en la lista, pero ya no se le podrán registrar pagos. Esta acción no se puede deshacer.`,
       tipo: "peligro",
       textoConfirmar: "Anular factura",
-      textoCargando: "Anulando...",
+      textoCargando: "Anulando…",
       accion: async () => {
         const actualizada = await facturasService.anularFacturaPorPagar(f.id);
         setListaActual((prev) => prev.map((x) => (x.id === actualizada.id ? actualizada : x)));
@@ -255,38 +260,46 @@ export function useFinanzasManager() {
   async function handleGuardarFactura(e) {
     e.preventDefault();
     setErrorFormulario("");
-    try {
-      const datos = { ...fFactura, montoTotal: calcularMontoTotal(fFactura.montoBase, fFactura.igvIncluido) };
-      if (idEditando) {
-        const actualizada = await facturasService.actualizarFactura(idEditando, datos);
-        setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
-      } else {
-        const nueva = await facturasService.crearFactura(datos);
-        setListaActual((prev) => [nueva, ...prev]);
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const datos = { ...fFactura, montoTotal: calcularMontoTotal(fFactura.montoBase, fFactura.igvIncluido) };
+        if (idEditando) {
+          const actualizada = await facturasService.actualizarFactura(idEditando, datos);
+          setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
+        } else {
+          const nueva = await facturasService.crearFactura(datos);
+          setListaActual((prev) => [nueva, ...prev]);
+        }
+        cerrarModalNuevo();
+        mostrarToast(idEditando ? "Factura actualizada" : "Factura registrada", { tipo: "success" });
+      } catch (err) {
+        setErrorFormulario(err.message || "No se pudo guardar la factura.");
       }
-      cerrarModalNuevo();
-    } catch (err) {
-      setErrorFormulario(err.message || "No se pudo guardar la factura.");
-    }
+    });
   }
+
 
   async function handleGuardarFacturaPagar(e) {
     e.preventDefault();
     setErrorFormulario("");
-    try {
-      const datos = { ...fFacturaPagar, montoTotal: calcularMontoTotal(fFacturaPagar.montoBase, fFacturaPagar.igvIncluido) };
-      if (idEditando) {
-        const actualizada = await facturasService.actualizarFacturaPorPagar(idEditando, datos);
-        setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
-      } else {
-        const nueva = await facturasService.crearFacturaPorPagar(datos);
-        setListaActual((prev) => [nueva, ...prev]);
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const datos = { ...fFacturaPagar, montoTotal: calcularMontoTotal(fFacturaPagar.montoBase, fFacturaPagar.igvIncluido) };
+        if (idEditando) {
+          const actualizada = await facturasService.actualizarFacturaPorPagar(idEditando, datos);
+          setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
+        } else {
+          const nueva = await facturasService.crearFacturaPorPagar(datos);
+          setListaActual((prev) => [nueva, ...prev]);
+        }
+        cerrarModalNuevo();
+        mostrarToast(idEditando ? "Factura por pagar actualizada" : "Factura por pagar registrada", { tipo: "success" });
+      } catch (err) {
+        setErrorFormulario(err.message || "No se pudo guardar la factura por pagar.");
       }
-      cerrarModalNuevo();
-    } catch (err) {
-      setErrorFormulario(err.message || "No se pudo guardar la factura por pagar.");
-    }
+    });
   }
+
 
   function abrirEditarGasto(g) {
     setFGasto({
@@ -306,19 +319,23 @@ export function useFinanzasManager() {
   async function handleGuardarGasto(e) {
     e.preventDefault();
     setErrorFormulario("");
-    try {
-      if (idEditando) {
-        const actualizado = await finanzasService.actualizarGasto(idEditando, fGasto);
-        setListaActual((prev) => prev.map((g) => (g.id === actualizado.id ? actualizado : g)));
-      } else {
-        const nuevo = await finanzasService.crearGasto(fGasto);
-        setListaActual((prev) => [nuevo, ...prev]);
+    await acciones.ejecutar("modal", async () => {
+      try {
+        if (idEditando) {
+          const actualizado = await finanzasService.actualizarGasto(idEditando, fGasto);
+          setListaActual((prev) => prev.map((g) => (g.id === actualizado.id ? actualizado : g)));
+        } else {
+          const nuevo = await finanzasService.crearGasto(fGasto);
+          setListaActual((prev) => [nuevo, ...prev]);
+        }
+        cerrarModalNuevo();
+        mostrarToast(idEditando ? "Gasto actualizado" : "Gasto registrado", { tipo: "success" });
+      } catch (err) {
+        setErrorFormulario(err.message || "No se pudo guardar el gasto.");
       }
-      cerrarModalNuevo();
-    } catch (err) {
-      setErrorFormulario(err.message || "No se pudo guardar el gasto.");
-    }
+    });
   }
+
 
   async function handleEliminarGasto(g) {
     // Regla del negocio: un gasto con su comprobante adjunto no se borra
@@ -334,7 +351,7 @@ export function useFinanzasManager() {
       mensaje: `Se eliminará el gasto de ${soles(g.monto)} de forma permanente. Esta acción no se puede deshacer.`,
       tipo: "peligro",
       textoConfirmar: "Eliminar gasto",
-      textoCargando: "Eliminando...",
+      textoCargando: "Eliminando…",
       accion: async () => {
         await finanzasService.eliminarGasto(g.id);
         setListaActual((prev) => prev.filter((x) => x.id !== g.id));
@@ -367,35 +384,43 @@ export function useFinanzasManager() {
       setErrorPago(`El pago no puede ser mayor al saldo pendiente (${soles(saldo)}).`);
       return;
     }
-    try {
-      if (modalPago.tipo === "factura") {
-        const actualizada = await facturasService.registrarPagoFactura(modalPago.doc.id, monto);
-        setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
-      } else {
-        const actualizada = await facturasService.registrarPagoFacturaPorPagar(modalPago.doc.id, monto);
-        setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
+    await acciones.ejecutar("pago", async () => {
+      try {
+        if (modalPago.tipo === "factura") {
+          const actualizada = await facturasService.registrarPagoFactura(modalPago.doc.id, monto);
+          setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
+        } else {
+          const actualizada = await facturasService.registrarPagoFacturaPorPagar(modalPago.doc.id, monto);
+          setListaActual((prev) => prev.map((f) => (f.id === actualizada.id ? actualizada : f)));
+        }
+        setModalPago(null);
+        mostrarToast(`Pago de ${soles(monto)} registrado`, { tipo: "success" });
+      } catch (err) {
+        setErrorPago(err.message || "No se pudo registrar el pago.");
       }
-      setModalPago(null);
-    } catch (err) {
-      setErrorPago(err.message || "No se pudo registrar el pago.");
-    }
+    });
   }
 
+  // Clave por tarjeta: cada una muestra su propio "Subiendo… 40%".
   async function marcarComprobanteSubido(id, archivo) {
-    try {
-      const { url, nombre } = await subirArchivo(archivo);
-      let actualizado;
-      if (tab === "facturas") {
-        actualizado = await facturasService.adjuntarComprobanteFactura(id, nombre, url);
-      } else if (tab === "facturasPagar") {
-        actualizado = await facturasService.adjuntarComprobanteFacturaPorPagar(id, nombre, url);
-      } else {
-        actualizado = await finanzasService.adjuntarComprobanteGasto(id, nombre, url);
+    await acciones.ejecutar(`comprobante-${id}`, async ({ subida, etapa }) => {
+      try {
+        const { url, nombre } = await subirArchivo(archivo, subida);
+        etapa("Guardando…");
+        let actualizado;
+        if (tab === "facturas") {
+          actualizado = await facturasService.adjuntarComprobanteFactura(id, nombre, url);
+        } else if (tab === "facturasPagar") {
+          actualizado = await facturasService.adjuntarComprobanteFacturaPorPagar(id, nombre, url);
+        } else {
+          actualizado = await finanzasService.adjuntarComprobanteGasto(id, nombre, url);
+        }
+        setListaActual((prev) => prev.map((x) => (x.id === actualizado.id ? actualizado : x)));
+        mostrarToast("Comprobante adjuntado", { tipo: "success" });
+      } catch (err) {
+        mostrarToast(err.message || "No se pudo subir el comprobante.", { tipo: "error" });
       }
-      setListaActual((prev) => prev.map((x) => (x.id === actualizado.id ? actualizado : x)));
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo subir el comprobante.", { tipo: "error" });
-    }
+    });
   }
 
   const tituloNuevo = { facturas: "Nueva factura", facturasPagar: "Nueva factura por pagar", gastos: "Nuevo gasto" }[tab];
@@ -408,6 +433,11 @@ export function useFinanzasManager() {
     cargando, error, reload,
     facturas, facturasPagar, gastos,
     modalNuevo, idEditando, abrirNuevo, cerrarModalNuevo,
+    guardando: acciones.ocupado("modal"),
+    textoGuardando: acciones.texto("modal", idEditando ? "Guardando…" : "Registrando…"),
+    registrandoPago: acciones.ocupado("pago"),
+    creandoCategoria: acciones.ocupado("categoria"),
+    estadoComprobante: (id) => (acciones.ocupado(`comprobante-${id}`) ? acciones.texto(`comprobante-${id}`, "Subiendo archivo…") : null),
     fFactura, setFFactura, abrirEditarFactura, handleGuardarFactura, handleAnularFactura, errorFormulario,
     fFacturaPagar, setFFacturaPagar, abrirEditarFacturaPagar, handleGuardarFacturaPagar, handleAnularFacturaPagar,
     fGasto, setFGasto, abrirEditarGasto, handleGuardarGasto, handleEliminarGasto, categoriasGasto,

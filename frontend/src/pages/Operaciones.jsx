@@ -122,6 +122,7 @@ export default function Operaciones() {
             onEditarFotos={o.abrirEditarFotos}
             onEditar={o.abrirEditarEquipo}
             onEliminar={o.handleEliminarEquipo}
+            equipoOcupado={o.equipoOcupado}
           />
         ) : (
           <VehiculosGrid
@@ -157,6 +158,8 @@ export default function Operaciones() {
         errorCategoria={o.errorCategoria}
         onAbrirGestionCategorias={() => o.setModalCategoriasEquipo(true)}
         error={o.errorEquipo}
+        guardando={o.guardando}
+        textoGuardando={o.textoGuardando("Registrando…")}
       />
 
       <ModalNuevoVehiculo
@@ -166,6 +169,8 @@ export default function Operaciones() {
         setFVehiculo={o.setFVehiculo}
         onSubmit={o.handleGuardarVehiculo}
         error={o.errorVehiculo}
+        guardando={o.guardando}
+        textoGuardando={o.textoGuardando("Registrando…")}
       />
 
       <ModalEditarEquipo
@@ -176,6 +181,8 @@ export default function Operaciones() {
         categorias={o.categorias}
         onSubmit={o.handleGuardarEdicionEquipo}
         error={o.errorEditarEquipo}
+        guardando={o.guardando}
+        textoGuardando={o.textoGuardando("Guardando…")}
       />
 
       <ModalEditarVehiculo
@@ -185,6 +192,8 @@ export default function Operaciones() {
         setFVehiculo={o.setFVehiculoEditar}
         onSubmit={o.handleGuardarEdicionVehiculo}
         error={o.errorEditarVehiculo}
+        guardando={o.guardando}
+        textoGuardando={o.textoGuardando("Guardando…")}
       />
 
       <ModalCategoriasEquipo
@@ -210,6 +219,8 @@ export default function Operaciones() {
         setFInspeccion={o.setFInspeccion}
         onClose={o.modalInspeccion.cerrar}
         onSubmit={o.handleGuardarInspeccion}
+        guardando={o.guardando}
+        errorServidor={o.errorAccion}
       />
 
       <ModalBaja
@@ -220,6 +231,8 @@ export default function Operaciones() {
         error={o.errorMotivo}
         onClose={o.modalBaja.cerrar}
         onConfirmar={o.handleConfirmarBaja}
+        guardando={o.guardando}
+        errorServidor={o.errorAccion}
       />
 
       <ModalAsignarEquipo
@@ -231,6 +244,8 @@ export default function Operaciones() {
         error={o.errorAsignar}
         onClose={o.modalAsignar.cerrar}
         onConfirmar={o.handleConfirmarAsignar}
+        guardando={o.guardando}
+        errorServidor={o.errorAccion}
       />
 
       <ModalMantenimiento
@@ -241,6 +256,8 @@ export default function Operaciones() {
         error={o.errorMantenimiento}
         onClose={o.modalMantenimiento.cerrar}
         onConfirmar={o.handleConfirmarMantenimiento}
+        guardando={o.guardando}
+        errorServidor={o.errorAccion}
       />
 
       <ModalEditarFotosEquipo
@@ -250,6 +267,8 @@ export default function Operaciones() {
         setFotos={o.setFotosEditando}
         onClose={o.modalFotos.cerrar}
         onGuardar={o.handleGuardarFotos}
+        guardando={o.guardando}
+        errorServidor={o.errorAccion}
       />
 
       <ModalDocumentos
@@ -257,6 +276,7 @@ export default function Operaciones() {
         vehiculo={o.modalDocs.dato}
         onClose={o.modalDocs.cerrar}
         onSubirArchivo={o.handleSubirDocumento}
+        estadoDocumento={o.estadoDocumento}
       />
     </AppShell>
   );

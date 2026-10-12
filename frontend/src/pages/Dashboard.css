@@ -248,8 +248,22 @@
    resultado dependía del navegador y de en qué momento se hubiera descargado
    Chart.js — en algunos casos dejaba un hueco vacío debajo del gráfico. */
 .panel-chart {
+  position: relative;
   padding: 18px 20px;
   height: 320px;
+}
+
+.panel-chart-cargando {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+}
+
+.panel-chart-cargando .loading-bloque {
+  padding: var(--space-6) var(--space-4);
 }
 
 .panel-chart canvas {

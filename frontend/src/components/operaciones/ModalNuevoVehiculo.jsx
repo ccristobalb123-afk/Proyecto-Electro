@@ -1,10 +1,11 @@
+import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
 import { IconAlertCircle } from "../icons/Icons";
 import { TIPOS_UNIDAD } from "../../services/vehiculosService";
 
-export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehiculo, onSubmit, error }) {
+export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehiculo, onSubmit, error, guardando, textoGuardando }) {
   return (
-    <Modal open={open} title="Nuevo vehículo" subtitle="Completa los datos del vehículo." onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title="Nuevo vehículo" subtitle="Completa los datos del vehículo." onClose={onClose}>
       <form onSubmit={onSubmit}>
         <div className="form-row">
           <div className="form-field">
@@ -49,10 +50,12 @@ export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehic
           </label>
         </div>
 
-        {error && <p className="field-error">{error}</p>}
+        {error && <p className="field-error" role="alert">{error}</p>}
 
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">Guardar vehículo</button>
+          <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
+            Guardar vehículo
+          </BotonCarga>
         </ModalActions>
       </form>
     </Modal>

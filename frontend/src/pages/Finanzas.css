@@ -240,3 +240,9 @@
 .categorias-gasto-item input {
   flex: 1;
 }
+
+.fin-card-archivo--subiendo {
+  color: var(--muted);
+  cursor: progress;
+  font-variant-numeric: tabular-nums;
+}

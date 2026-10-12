@@ -1,9 +1,10 @@
+import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 import { IconAlertCircle } from "../icons/Icons";
 
-export default function ModalBaja({ open, equipo, motivo, setMotivo, error, onClose, onConfirmar }) {
+export default function ModalBaja({ open, equipo, motivo, setMotivo, error, onClose, onConfirmar, guardando, errorServidor }) {
   return (
-    <Modal open={open} title="Dar de baja" subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""} onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title="Dar de baja" subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""} onClose={onClose}>
       <div className="danger-box">
         <div className="danger-title"><IconAlertCircle width={14} height={14} />Esta acción no se puede deshacer</div>
         <p className="danger-hint">El equipo pasará a De baja y no podrá volver a asignarse ni aparecer como disponible.</p>
@@ -20,8 +21,11 @@ export default function ModalBaja({ open, equipo, motivo, setMotivo, error, onCl
         </label>
         {error && <p className="field-error">Escribe un motivo antes de continuar.</p>}
       </div>
+      {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
       <ModalActions onCancel={onClose}>
-        <button className="btn-danger" type="button" onClick={onConfirmar}>Confirmar baja</button>
+        <BotonCarga className="btn-danger" cargando={guardando} textoCargando="Dando de baja…" onClick={onConfirmar}>
+          Confirmar baja
+        </BotonCarga>
       </ModalActions>
     </Modal>
   );

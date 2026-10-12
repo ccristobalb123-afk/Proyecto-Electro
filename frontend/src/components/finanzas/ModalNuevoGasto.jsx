@@ -1,4 +1,5 @@
 import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
+import { BotonCarga } from "../shared/Carga";
 
 const OPCION_NUEVA = "__nueva__";
 
@@ -18,9 +19,12 @@ export default function ModalNuevoGasto({
   onAgregarCategoriaGasto,
   onAbrirGestionCategorias,
   error,
+  guardando,
+  textoGuardando,
+  creandoCategoria,
 }) {
   return (
-    <Modal open={open} title={editando ? "Editar gasto" : "Nuevo gasto"} subtitle="Registra un gasto de la empresa." onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title={editando ? "Editar gasto" : "Nuevo gasto"} subtitle="Registra un gasto de la empresa." onClose={onClose}>
       <form onSubmit={onSubmit}>
         <fieldset className="form-field">
           <legend>Empresa</legend>
@@ -64,9 +68,9 @@ export default function ModalNuevoGasto({
               </label>
               {errorCategoriaGasto && <p className="field-error">{errorCategoriaGasto}</p>}
             </div>
-            <button className="btn-outline-sm" type="button" onClick={onAgregarCategoriaGasto}>
+            <BotonCarga className="btn-outline-sm" cargando={creandoCategoria} textoCargando="Creando…" onClick={onAgregarCategoriaGasto}>
               Agregar categoría
-            </button>
+            </BotonCarga>
           </div>
         )}
 
@@ -107,7 +111,9 @@ export default function ModalNuevoGasto({
         </div>
         {error && <p className="field-error">{error}</p>}
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">{editando ? "Guardar cambios" : "Guardar gasto"}</button>
+          <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
+            {editando ? "Guardar cambios" : "Guardar gasto"}
+          </BotonCarga>
         </ModalActions>
       </form>
     </Modal>

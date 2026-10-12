@@ -1,0 +1,46 @@
+/* ============================================================
+   Estados de carga — spinner y botón con estado de carga.
+   ============================================================ */
+
+.spinner {
+  flex-shrink: 0;
+  animation: spinner-girar 0.8s linear infinite;
+}
+
+@keyframes spinner-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Con movimiento reducido no gira: el texto en gerundio ya avisa que
+   la operación está en curso, y el ícono queda quieto. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+.boton-carga {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Ocupado no es lo mismo que deshabilitado por el usuario: mantiene su
+   color normal y el cursor de "trabajando". */
+.boton-carga[aria-busy="true"]:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+
+.boton-carga[aria-busy="true"] span {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Envoltorio para deshabilitar un grupo de controles (ej. el pie de una
+   tarjeta mientras se actualiza) sin alterar el layout. */
+.bloque-deshabilitable {
+  display: contents;
+}

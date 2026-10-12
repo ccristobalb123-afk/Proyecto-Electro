@@ -1,9 +1,11 @@
 import { Modal, ModalActions, CompanyChoice, AvisoVencimiento } from "../shared/Modal";
 import { IconUpload } from "../icons/Icons";
+import { BotonCarga } from "../shared/Carga";
+import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 
-export default function ModalNuevoContrato({ open, onClose, fContrato, setFContrato, error, onArchivoChange, onSubmit, editando }) {
+export default function ModalNuevoContrato({ open, onClose, fContrato, setFContrato, error, onArchivoChange, onSubmit, editando, guardando, textoGuardando }) {
   return (
-    <Modal open={open} title={editando ? "Editar contrato" : "Nuevo contrato"} subtitle="Completa los datos del contrato." onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title={editando ? "Editar contrato" : "Nuevo contrato"} subtitle="Completa los datos del contrato." onClose={onClose}>
       <form onSubmit={onSubmit}>
         <div className="form-row">
           <div className="form-field">
@@ -84,7 +86,7 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
                 <b>{fContrato.archivoNombre}</b>
               ) : (
                 <>
-                  <b>Haz clic para subir</b> o arrastra el archivo — PDF o foto
+                  <b>Haz clic para subir</b> el documento — {AYUDA_ARCHIVO}
                 </>
               )}
             </p>
@@ -95,7 +97,9 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
         {error && <p className="field-error">{error}</p>}
 
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">{editando ? "Guardar cambios" : "Guardar contrato"}</button>
+          <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
+            {editando ? "Guardar cambios" : "Guardar contrato"}
+          </BotonCarga>
         </ModalActions>
       </form>
     </Modal>

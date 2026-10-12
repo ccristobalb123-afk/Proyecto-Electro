@@ -63,7 +63,7 @@ export default function Dashboard() {
     () => notificacionesService.obtenerKpis(),
     []
   );
-  const { data: comparativo } = useAsync(() => notificacionesService.obtenerComparativo(), []);
+  const { data: comparativo, loading: cargandoComparativo } = useAsync(() => notificacionesService.obtenerComparativo(), []);
 
   // Mes en el que termina la ventana de 3 meses que se muestra —
   // arranca en el más reciente en cuanto llega el comparativo.
@@ -103,7 +103,7 @@ export default function Dashboard() {
       ) : (
         <div className="kpi-grid">
           {cargandoKpis ? (
-            <Loading texto="Cargando indicadores..." />
+            <Loading texto="Cargando indicadores…" />
           ) : (
             kpis.map(({ label, value }, i) => {
               const Icon = ICONO_KPI[i];
@@ -130,7 +130,7 @@ export default function Dashboard() {
             <span>Ver todos</span>
           </div>
           {cargandoAlertas ? (
-            <Loading texto="Cargando..." />
+            <Loading texto="Cargando vencimientos…" />
           ) : errorAlertas ? (
             <EstadoError error={errorAlertas} onReintentar={recargarAlertas} mensaje="No se pudieron cargar los vencimientos." />
           ) : proximosVencimientos.length === 0 ? (
@@ -195,6 +195,12 @@ export default function Dashboard() {
           )}
         </div>
         <div className="panel-chart">
+          {/* Sin esto, el lienzo quedaba en blanco hasta que llegaban los datos */}
+          {cargandoComparativo && (
+            <div className="panel-chart-cargando">
+              <Loading texto="Cargando gráfico…" />
+            </div>
+          )}
           <canvas
             ref={chartRef}
             role="img"

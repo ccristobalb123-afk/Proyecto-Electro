@@ -3,10 +3,14 @@ import { Modal, ModalActions } from "../shared/Modal";
 import { IconTrash } from "../icons/Icons";
 import { useConfirm } from "../../context/ConfirmContext";
 import { useToast } from "../../context/ToastContext";
+import { useAccion } from "../../hooks/useAccion";
+import { BotonCarga } from "../shared/Carga";
 
 export default function ModalCategoriasEquipo({ open, onClose, categorias, onRenombrar, onEliminar }) {
   const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
+  const acciones = useAccion();
+  const renombrando = acciones.ocupado("renombrar");
   const [editando, setEditando] = useState(null); // nombre de la categoría que se está editando
   const [nombreNuevo, setNombreNuevo] = useState("");
   const [error, setError] = useState("");
@@ -19,12 +23,16 @@ export default function ModalCategoriasEquipo({ open, onClose, categorias, onRen
 
   async function guardarRenombre(nombreActual) {
     if (!nombreNuevo.trim()) return;
-    try {
-      await onRenombrar(nombreActual, nombreNuevo);
-      setEditando(null);
-    } catch (err) {
-      setError(err.message || "No se pudo renombrar la categoría.");
-    }
+    setError("");
+    await acciones.ejecutar("renombrar", async () => {
+      try {
+        await onRenombrar(nombreActual, nombreNuevo);
+        setEditando(null);
+        mostrarToast("Categoría renombrada", { tipo: "success" });
+      } catch (err) {
+        setError(err.message || "No se pudo renombrar la categoría.");
+      }
+    });
   }
 
   // Si la categoría está en uso, el backend responde 409 y el mensaje
@@ -35,7 +43,7 @@ export default function ModalCategoriasEquipo({ open, onClose, categorias, onRen
       mensaje: `Dejará de aparecer al registrar equipos. Solo se puede eliminar si ningún registro la usa. Esta acción no se puede deshacer.`,
       tipo: "peligro",
       textoConfirmar: "Eliminar categoría",
-      textoCargando: "Eliminando...",
+      textoCargando: "Eliminando…",
       accion: () => onEliminar(nombre),
     });
     if (ok) mostrarToast("Categoría eliminada", { tipo: "success" });
@@ -44,7 +52,7 @@ export default function ModalCategoriasEquipo({ open, onClose, categorias, onRen
   const nombres = Object.keys(categorias);
 
   return (
-    <Modal open={open} title="Gestionar categorías de equipo" subtitle="Los campos personalizados de cada categoría se editan al crear un equipo nuevo." onClose={onClose}>
+    <Modal ocupado={renombrando} open={open} title="Gestionar categorías de equipo" subtitle="Los campos personalizados de cada categoría se editan al crear un equipo nuevo." onClose={onClose}>
       <div className="categorias-lista">
         {nombres.map((nombre) => (
           <div className="categorias-lista-item" key={nombre}>
@@ -57,8 +65,10 @@ export default function ModalCategoriasEquipo({ open, onClose, categorias, onRen
                   onChange={(e) => setNombreNuevo(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && guardarRenombre(nombre)}
                 />
-                <button className="btn-outline-sm" type="button" onClick={() => guardarRenombre(nombre)}>Guardar</button>
-                <button className="btn-outline-sm" type="button" onClick={() => setEditando(null)}>Cancelar</button>
+                <BotonCarga className="btn-outline-sm" cargando={renombrando} textoCargando="Guardando…" onClick={() => guardarRenombre(nombre)}>
+                  Guardar
+                </BotonCarga>
+                <button className="btn-outline-sm" type="button" disabled={renombrando} onClick={() => setEditando(null)}>Cancelar</button>
               </>
             ) : (
               <>

@@ -151,6 +151,13 @@ tbody tr:last-child td {
   }
 }
 
+.doc-chip--subiendo {
+  color: var(--muted);
+  background: var(--gray-tint);
+  cursor: progress;
+  font-variant-numeric: tabular-nums;
+}
+
 .doc-chip--pendiente {
   color: var(--danger-dark);
   background: var(--danger-tint);

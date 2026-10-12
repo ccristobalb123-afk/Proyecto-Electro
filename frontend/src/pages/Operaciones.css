@@ -303,6 +303,14 @@ tbody tr:last-child td {
   color: var(--danger-dark);
 }
 
+.docs-row-sub--subiendo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .tag {
   font-size: var(--fs-xs);
   font-weight: 600;

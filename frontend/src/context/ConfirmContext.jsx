@@ -33,7 +33,7 @@ export function ConfirmProvider({ children }) {
    * @param {string} opciones.mensaje - Qué se pierde y si se puede deshacer.
    * @param {'normal'|'peligro'} [opciones.tipo='normal']
    * @param {string} [opciones.textoConfirmar='Confirmar'] - Ej. "Eliminar usuario".
-   * @param {string} [opciones.textoCargando] - Ej. "Eliminando...".
+   * @param {string} [opciones.textoCargando] - Ej. "Eliminando…".
    * @param {string} [opciones.palabraConfirmacion] - Texto a escribir para habilitar el botón.
    * @param {() => Promise<any>} [opciones.accion] - Se ejecuta DENTRO del diálogo:
    *   botón con estado de carga, y el diálogo solo se cierra si sale bien.

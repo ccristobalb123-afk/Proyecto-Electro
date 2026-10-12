@@ -64,7 +64,7 @@ export function VisorArchivo({ archivo, onClose }) {
   return createPortal(
     <Modal open title={nombre} onClose={onClose} variant="visor">
       <div className="visor-cuerpo">
-        {estado.cargando && <Loading texto="Abriendo archivo..." />}
+        {estado.cargando && <Loading texto="Abriendo archivo…" />}
         {estado.error && (
           <EstadoError
             error={estado.error}

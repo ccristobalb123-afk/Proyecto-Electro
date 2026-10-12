@@ -17,7 +17,7 @@ export async function eliminarCurso(cursoId) {
   return apiClient.delete(`/cursos-certificaciones/${cursoId}`);
 }
 
-export async function adjuntarArchivoCurso(cursoId, archivo) {
-  const { url, nombre } = await subirArchivo(archivo);
+export async function adjuntarArchivoCurso(cursoId, archivo, opcionesSubida) {
+  const { url, nombre } = await subirArchivo(archivo, opcionesSubida);
   return apiClient.post(`/cursos-certificaciones/${cursoId}/documento`, { archivoNombre: nombre, archivoUrl: url });
 }

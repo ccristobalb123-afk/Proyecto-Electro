@@ -9,7 +9,36 @@
 // y ninguna página necesita cambiar una sola línea.
 // ============================================================
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+
+// Ninguna petición puede quedarse esperando para siempre: con señal
+// débil, el navegador puede tardar minutos en rendirse y la pantalla
+// parece congelada. Pasado este tiempo se corta con un mensaje claro.
+const TIEMPO_LIMITE_MS = 30_000;
+export const MENSAJE_TIEMPO_AGOTADO =
+  "El servidor está tardando demasiado en responder. Revisa tu conexión e inténtalo de nuevo.";
+
+// Combina la señal de quien llama (cancelar a propósito) con el tiempo
+// límite, y permite saber después cuál de las dos cortó la petición.
+function conTiempoLimite(signalExterna, ms = TIEMPO_LIMITE_MS) {
+  const controller = new AbortController();
+  let expiro = false;
+  const timer = setTimeout(() => {
+    expiro = true;
+    controller.abort();
+  }, ms);
+  const alCancelar = () => controller.abort();
+  if (signalExterna?.aborted) controller.abort();
+  signalExterna?.addEventListener("abort", alCancelar);
+  return {
+    signal: controller.signal,
+    expiro: () => expiro,
+    limpiar: () => {
+      clearTimeout(timer);
+      signalExterna?.removeEventListener("abort", alCancelar);
+    },
+  };
+}
 
 /** Simula la latencia de red en modo mock, para que la UI ya
  * contemple estados de "cargando" reales desde ahora. */
@@ -40,7 +69,7 @@ export function onSesionExpirada(callback) {
   listenersSesionExpirada.add(callback);
   return () => listenersSesionExpirada.delete(callback);
 }
-function avisarSesionExpirada() {
+export function avisarSesionExpirada() {
   listenersSesionExpirada.forEach((cb) => cb());
 }
 
@@ -54,7 +83,7 @@ function avisarSesionExpirada() {
 // el mismo intento de renovación en vez de disparar 4 refrescos a la
 // vez.
 let renovacionEnCurso = null;
-async function intentarRenovarSesion() {
+export async function intentarRenovarSesion() {
   if (!renovacionEnCurso) {
     renovacionEnCurso = fetch(new URL(BASE_URL + "/auth/refresh", window.location.origin), {
       method: "POST",
@@ -149,7 +178,9 @@ export async function apiRequest(path, { method = "GET", body, params, signal } 
     });
   }
 
+  const limite = conTiempoLimite(signal);
   let respuesta;
+  let json = null;
   try {
     respuesta = await fetch(url, {
       method,
@@ -161,22 +192,22 @@ export async function apiRequest(path, { method = "GET", body, params, signal } 
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: body ? JSON.stringify(body) : undefined,
-      signal,
+      signal: limite.signal,
     });
+    try {
+      json = await respuesta.json();
+    } catch (err) {
+      // Una cancelación durante la lectura del cuerpo NO es "sin cuerpo":
+      // se relanza (abajo) en vez de tratarla como una respuesta vacía.
+      if (err.name === "AbortError") throw err;
+      // Respuesta sin cuerpo (ej. 204 No Content) — no es un error.
+    }
   } catch (err) {
+    if (limite.expiro()) throw new ApiError("TIEMPO_AGOTADO", MENSAJE_TIEMPO_AGOTADO, 0);
     if (err.name === "AbortError") throw err; // no lo convertimos en ApiError: es un cancel intencional, no una falla real
     throw new ApiError("SIN_CONEXION", "No se pudo conectar con el servidor. Revisa tu conexión.", 0);
-  }
-
-  let json = null;
-  try {
-    json = await respuesta.json();
-  } catch (err) {
-    // Una cancelación durante la lectura del cuerpo NO es "sin cuerpo": se
-    // relanza para que quien llamó la ignore, en vez de tratarla como una
-    // respuesta vacía (json = null → lista vacía).
-    if (err.name === "AbortError") throw err;
-    // Respuesta sin cuerpo (ej. 204 No Content) — no es un error.
+  } finally {
+    limite.limpiar();
   }
 
   if (!respuesta.ok || (json && json.ok === false)) {

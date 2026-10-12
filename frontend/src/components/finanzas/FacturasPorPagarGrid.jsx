@@ -1,13 +1,13 @@
-import { BotonVerArchivo } from "../shared/VisorArchivo";
-import { IconUpload, IconInvoice } from "../icons/Icons";
+import CampoComprobante from "./CampoComprobante";
+import { IconInvoice } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
 import { totalPagado, estadoPago, montoNetoAPagar } from "../../services/facturasService";
 import { soles, formatFecha, ESTADO_PAGO_LABEL } from "./finanzasUtils";
 
-export default function FacturasPorPagarGrid({ cargando, error, onReintentar, facturas, onNuevo, onSubirComprobante, onRegistrarPago, onEditar, onAnular }) {
-  if (cargando) return <Loading texto="Cargando..." />;
+export default function FacturasPorPagarGrid({ cargando, error, onReintentar, facturas, onNuevo, onSubirComprobante, estadoComprobante, onRegistrarPago, onEditar, onAnular }) {
+  if (cargando) return <Loading texto="Cargando facturas…" />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
   if (facturas.length === 0) {
     return <EstadoVacio titulo="No hay facturas por pagar registradas" accionLabel="Nueva factura por pagar" onAccion={onNuevo} />;
@@ -57,14 +57,7 @@ export default function FacturasPorPagarGrid({ cargando, error, onReintentar, fa
                 </span>
               )}
 
-              {f.archivo ? (
-                <BotonVerArchivo className="fin-card-archivo fin-card-archivo--link" url={f.archivoUrl} nombre={f.archivoNombre}>Ver comprobante</BotonVerArchivo>
-              ) : (
-                <label className="fin-card-archivo">
-                  <IconUpload width={13} height={13} /> Adjuntar comprobante
-                  <input type="file" accept=".pdf,image/*" className="input-oculto" onChange={(e) => e.target.files[0] && onSubirComprobante(f.id, e.target.files[0])} />
-                </label>
-              )}
+              <CampoComprobante item={f} estado={estadoComprobante?.(f.id)} onSubir={onSubirComprobante} />
             </div>
 
             <div className="fin-card-footer">

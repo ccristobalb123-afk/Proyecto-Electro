@@ -1,12 +1,13 @@
+import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 
-export default function ModalEditarEquipo({ open, onClose, fEquipo, setFEquipo, categorias, onSubmit, error }) {
+export default function ModalEditarEquipo({ open, onClose, fEquipo, setFEquipo, categorias, onSubmit, error, guardando, textoGuardando }) {
   function handleCategoriaChange(nuevaCategoria) {
     setFEquipo({ ...fEquipo, categoria: nuevaCategoria, camposValores: {} });
   }
 
   return (
-    <Modal open={open} title="Editar equipo" subtitle={fEquipo.codigo} onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title="Editar equipo" subtitle={fEquipo.codigo} onClose={onClose}>
       <form onSubmit={onSubmit}>
         <div className="form-field">
           <label>
@@ -48,9 +49,11 @@ export default function ModalEditarEquipo({ open, onClose, fEquipo, setFEquipo, 
           </div>
         )}
 
-        {error && <p className="field-error">{error}</p>}
+        {error && <p className="field-error" role="alert">{error}</p>}
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">Guardar cambios</button>
+          <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
+            Guardar cambios
+          </BotonCarga>
         </ModalActions>
       </form>
     </Modal>

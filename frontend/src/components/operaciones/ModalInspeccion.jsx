@@ -1,10 +1,12 @@
+import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions, AvisoVencimiento } from "../shared/Modal";
 import { IconUpload, IconEye, IconAlertCircle } from "../icons/Icons";
 
-export default function ModalInspeccion({ open, equipo, fInspeccion, setFInspeccion, onClose, onSubmit }) {
+export default function ModalInspeccion({ open, equipo, fInspeccion, setFInspeccion, onClose, onSubmit, guardando, errorServidor }) {
   return (
     <Modal
       open={open}
+      ocupado={guardando}
       title="Registrar inspección"
       subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""}
       onClose={onClose}
@@ -74,8 +76,11 @@ export default function ModalInspeccion({ open, equipo, fInspeccion, setFInspecc
           </div>
         )}
 
+        {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">Guardar inspección</button>
+          <BotonCarga type="submit" cargando={guardando} textoCargando="Registrando inspección…">
+            Guardar inspección
+          </BotonCarga>
         </ModalActions>
       </form>
     </Modal>

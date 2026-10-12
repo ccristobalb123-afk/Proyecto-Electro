@@ -5,6 +5,7 @@ import * as vehiculosService from "../services/vehiculosService";
 import { subirArchivo } from "../services/uploadsService";
 import { useDebounce } from "./useDebounce";
 import { useAsyncList } from "./useAsyncList";
+import { useAccion } from "./useAccion";
 import { useModal } from "./useModal";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
@@ -34,6 +35,11 @@ function formInspeccionVacio() {
 export function useOperacionesManager() {
   const { mostrarToast } = useToast();
   const { confirmar } = useConfirm();
+  const acciones = useAccion();
+  // Error del servidor en los modales de una sola acción (inspección,
+  // baja, asignar, mantenimiento, fotos) — se muestra DENTRO del modal,
+  // que queda abierto; antes salía en un toast detrás del modal.
+  const [errorAccion, setErrorAccion] = useState("");
   const [tab, setTab] = useState("equipos"); // "equipos" | "vehiculos"
   const [errorEquipo, setErrorEquipo] = useState("");
   const [errorVehiculo, setErrorVehiculo] = useState("");
@@ -191,85 +197,102 @@ export function useOperacionesManager() {
     if (!fEquipo.codigo.trim() || errorCodigo) return;
     setErrorEquipo("");
 
-    try {
-      let categoriaFinal = fEquipo.categoria;
-      if (nuevaCategoria) {
-        if (!nombreNuevaCategoria.trim()) {
-          setErrorCategoria("Ponle un nombre a la categoría.");
-          return;
+    await acciones.ejecutar("modal", async () => {
+      try {
+        let categoriaFinal = fEquipo.categoria;
+        if (nuevaCategoria) {
+          if (!nombreNuevaCategoria.trim()) {
+            setErrorCategoria("Ponle un nombre a la categoría.");
+            return;
+          }
+          if (categorias[nombreNuevaCategoria.trim()]) {
+            setErrorCategoria("Ya existe una categoría con ese nombre.");
+            return;
+          }
+          if (!camposNuevaCategoria.some((c) => c.nombre.trim())) {
+            setErrorCategoria("Agrega al menos un campo para esta categoría.");
+            return;
+          }
+          categoriaFinal = await equiposService.agregarCategoria(nombreNuevaCategoria, camposNuevaCategoria);
+          await cargarCategorias(); // para que ya aparezca en el select la próxima vez
         }
-        if (categorias[nombreNuevaCategoria.trim()]) {
-          setErrorCategoria("Ya existe una categoría con ese nombre.");
-          return;
-        }
-        if (!camposNuevaCategoria.some((c) => c.nombre.trim())) {
-          setErrorCategoria("Agrega al menos un campo para esta categoría.");
-          return;
-        }
-        categoriaFinal = await equiposService.agregarCategoria(nombreNuevaCategoria, camposNuevaCategoria);
-        await cargarCategorias(); // para que ya aparezca en el select la próxima vez
-      }
 
-      // El backend valida de nuevo el código único (nunca confiar solo en
-      // la validación del frontend) y crea el equipo con estado DISPONIBLE.
-      const nuevo = await equiposService.crearEquipo({ ...fEquipo, categoria: categoriaFinal });
-      setEquipos((prev) => [nuevo, ...prev]);
-      modalNuevo.cerrar();
-    } catch (err) {
-      setErrorEquipo(err.message || "No se pudo guardar el equipo.");
-    }
+        // El backend valida de nuevo el código único (nunca confiar solo en
+        // la validación del frontend) y crea el equipo con estado DISPONIBLE.
+        const nuevo = await equiposService.crearEquipo({ ...fEquipo, categoria: categoriaFinal });
+        setEquipos((prev) => [nuevo, ...prev]);
+        modalNuevo.cerrar();
+        mostrarToast("Equipo registrado", { tipo: "success" });
+      } catch (err) {
+        setErrorEquipo(err.message || "No se pudo guardar el equipo.");
+      }
+    });
   }
 
   async function handleGuardarVehiculo(e) {
     e.preventDefault();
     if (!fVehiculo.placa.trim()) return;
     setErrorVehiculo("");
-    try {
-      const nuevo = await vehiculosService.crearVehiculo(fVehiculo);
-      setVehiculos((prev) => [nuevo, ...prev]);
-      modalNuevo.cerrar();
-    } catch (err) {
-      setErrorVehiculo(err.message || "No se pudo guardar el vehículo.");
-    }
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const nuevo = await vehiculosService.crearVehiculo(fVehiculo);
+        setVehiculos((prev) => [nuevo, ...prev]);
+        modalNuevo.cerrar();
+        mostrarToast("Vehículo registrado", { tipo: "success" });
+      } catch (err) {
+        setErrorVehiculo(err.message || "No se pudo guardar el vehículo.");
+      }
+    });
   }
 
   async function handleGuardarInspeccion(e) {
     e.preventDefault();
-    try {
-      // El backend hace esto como una sola operación atómica: registra la
-      // inspección Y cambia el estado según el resultado (antes eran 2
-      // llamadas separadas del lado del frontend, con el riesgo de quedar
-      // desincronizadas si la segunda fallaba).
-      const actualizado = await equiposService.registrarInspeccion(modalInspeccion.dato.id, fInspeccion);
-      setEquipos((prev) => prev.map((eq) => (eq.id === actualizado.id ? actualizado : eq)));
-      modalInspeccion.cerrar();
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo registrar la inspección.", { tipo: "error" });
-    }
+    setErrorAccion("");
+    await acciones.ejecutar("modal", async () => {
+      try {
+        // El backend hace esto como una sola operación atómica: registra la
+        // inspección Y cambia el estado según el resultado (antes eran 2
+        // llamadas separadas del lado del frontend, con el riesgo de quedar
+        // desincronizadas si la segunda fallaba).
+        const actualizado = await equiposService.registrarInspeccion(modalInspeccion.dato.id, fInspeccion);
+        setEquipos((prev) => prev.map((eq) => (eq.id === actualizado.id ? actualizado : eq)));
+        modalInspeccion.cerrar();
+        mostrarToast("Inspección registrada", { tipo: "success" });
+      } catch (err) {
+        setErrorAccion(err.message || "No se pudo registrar la inspección.");
+      }
+    });
   }
 
   async function handleConfirmarBaja() {
+    setErrorAccion("");
     if (!motivoBaja.trim()) {
       setErrorMotivo(true);
       return;
     }
-    try {
-      const actualizado = await equiposService.darDeBajaEquipo(modalBaja.dato.id, motivoBaja);
-      setEquipos((prev) => prev.map((eq) => (eq.id === actualizado.id ? actualizado : eq)));
-      modalBaja.cerrar();
-      setMotivoBaja("");
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo dar de baja el equipo.", { tipo: "error" });
-    }
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const actualizado = await equiposService.darDeBajaEquipo(modalBaja.dato.id, motivoBaja);
+        setEquipos((prev) => prev.map((eq) => (eq.id === actualizado.id ? actualizado : eq)));
+        modalBaja.cerrar();
+        setMotivoBaja("");
+        mostrarToast("Equipo dado de baja", { tipo: "success" });
+      } catch (err) {
+        setErrorAccion(err.message || "No se pudo dar de baja el equipo.");
+      }
+    });
   }
 
   async function handleDevolver(eq) {
-    try {
-      const actualizado = await equiposService.devolverEquipo(eq.id);
-      setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo devolver el equipo.", { tipo: "error" });
-    }
+    await acciones.ejecutar(`equipo-${eq.id}`, async () => {
+      try {
+        const actualizado = await equiposService.devolverEquipo(eq.id);
+        setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+        mostrarToast(`Equipo ${eq.codigo} devuelto al almacén`, { tipo: "success" });
+      } catch (err) {
+        mostrarToast(err.message || "No se pudo devolver el equipo.", { tipo: "error" });
+      }
+    });
   }
 
   async function handleCambiarEstado(eq, nuevoEstado) {
@@ -285,68 +308,86 @@ export function useOperacionesManager() {
       abrirMantenimiento(eq);
       return;
     }
-    try {
-      const actualizado = await equiposService.cambiarEstadoEquipo(eq.id, nuevoEstado);
-      setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo cambiar el estado del equipo.", { tipo: "error" });
-    }
+    await acciones.ejecutar(`equipo-${eq.id}`, async () => {
+      try {
+        const actualizado = await equiposService.cambiarEstadoEquipo(eq.id, nuevoEstado);
+        setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+        mostrarToast("Estado actualizado", { tipo: "success" });
+      } catch (err) {
+        mostrarToast(err.message || "No se pudo cambiar el estado del equipo.", { tipo: "error" });
+      }
+    });
   }
 
   function abrirAsignar(eq) {
+    setErrorAccion("");
     setVehiculoIdAsignar("");
     setErrorAsignar(false);
     modalAsignar.abrir(eq);
   }
 
   async function handleConfirmarAsignar() {
+    setErrorAccion("");
     if (!vehiculoIdAsignar) {
       setErrorAsignar(true);
       return;
     }
-    try {
-      const vehiculo = vehiculos.find((v) => String(v.id) === String(vehiculoIdAsignar));
-      const actualizado = await equiposService.asignarEquipo(modalAsignar.dato.id, vehiculo);
-      setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-      modalAsignar.cerrar();
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo asignar el equipo.", { tipo: "error" });
-    }
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const vehiculo = vehiculos.find((v) => String(v.id) === String(vehiculoIdAsignar));
+        const actualizado = await equiposService.asignarEquipo(modalAsignar.dato.id, vehiculo);
+        setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+        modalAsignar.cerrar();
+        mostrarToast("Equipo asignado", { tipo: "success" });
+      } catch (err) {
+        setErrorAccion(err.message || "No se pudo asignar el equipo.");
+      }
+    });
   }
 
   function abrirMantenimiento(eq) {
+    setErrorAccion("");
     setComentarioMantenimiento("");
     setErrorMantenimiento(false);
     modalMantenimiento.abrir(eq);
   }
 
   async function handleConfirmarMantenimiento() {
+    setErrorAccion("");
     if (!comentarioMantenimiento.trim()) {
       setErrorMantenimiento(true);
       return;
     }
-    try {
-      const actualizado = await equiposService.enviarAMantenimiento(modalMantenimiento.dato.id, comentarioMantenimiento);
-      setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-      modalMantenimiento.cerrar();
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo enviar el equipo a mantenimiento.", { tipo: "error" });
-    }
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const actualizado = await equiposService.enviarAMantenimiento(modalMantenimiento.dato.id, comentarioMantenimiento);
+        setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+        modalMantenimiento.cerrar();
+        mostrarToast("Equipo enviado a mantenimiento", { tipo: "success" });
+      } catch (err) {
+        setErrorAccion(err.message || "No se pudo enviar el equipo a mantenimiento.");
+      }
+    });
   }
 
   function abrirEditarFotos(eq) {
+    setErrorAccion("");
     setFotosEditando(eq.fotos && eq.fotos.length > 0 ? [eq.fotos[0] || null, eq.fotos[1] || null] : [null, null]);
     modalFotos.abrir(eq);
   }
 
   async function handleGuardarFotos() {
-    try {
-      const actualizado = await equiposService.actualizarFotosEquipo(modalFotos.dato.id, fotosEditando);
-      setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-      modalFotos.cerrar();
-    } catch (err) {
-      mostrarToast(err.message || "No se pudieron guardar las fotos.", { tipo: "error" });
-    }
+    setErrorAccion("");
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const actualizado = await equiposService.actualizarFotosEquipo(modalFotos.dato.id, fotosEditando);
+        setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
+        modalFotos.cerrar();
+        mostrarToast("Fotos guardadas", { tipo: "success" });
+      } catch (err) {
+        setErrorAccion(err.message || "No se pudieron guardar las fotos.");
+      }
+    });
   }
 
   function abrirEditarEquipo(eq) {
@@ -358,13 +399,16 @@ export function useOperacionesManager() {
   async function handleGuardarEdicionEquipo(e) {
     e.preventDefault();
     setErrorEditarEquipo("");
-    try {
-      const actualizado = await equiposService.actualizarEquipo(modalEditarEquipo.dato.id, fEquipoEditar);
-      setEquipos((prev) => prev.map((eq) => (eq.id === actualizado.id ? actualizado : eq)));
-      modalEditarEquipo.cerrar();
-    } catch (err) {
-      setErrorEditarEquipo(err.message || "No se pudo guardar los cambios.");
-    }
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const actualizado = await equiposService.actualizarEquipo(modalEditarEquipo.dato.id, fEquipoEditar);
+        setEquipos((prev) => prev.map((eq) => (eq.id === actualizado.id ? actualizado : eq)));
+        modalEditarEquipo.cerrar();
+        mostrarToast("Equipo actualizado", { tipo: "success" });
+      } catch (err) {
+        setErrorEditarEquipo(err.message || "No se pudo guardar los cambios.");
+      }
+    });
   }
 
   async function handleEliminarEquipo(eq) {
@@ -373,7 +417,7 @@ export function useOperacionesManager() {
       mensaje: `Se eliminará el equipo ${eq.codigo} (${eq.categoria}) con sus fotos y su hoja de vida, de forma permanente. Esta acción no se puede deshacer. Si solo quieres retirarlo de uso, usa "Dar de baja".`,
       tipo: "peligro",
       textoConfirmar: "Eliminar equipo",
-      textoCargando: "Eliminando...",
+      textoCargando: "Eliminando…",
       palabraConfirmacion: eq.codigo,
       accion: async () => {
         await equiposService.eliminarEquipo(eq.id);
@@ -393,13 +437,16 @@ export function useOperacionesManager() {
   async function handleGuardarEdicionVehiculo(e) {
     e.preventDefault();
     setErrorEditarVehiculo("");
-    try {
-      const actualizado = await vehiculosService.actualizarVehiculo(modalEditarVehiculo.dato.id, fVehiculoEditar);
-      setVehiculos((prev) => prev.map((v) => (v.id === actualizado.id ? actualizado : v)));
-      modalEditarVehiculo.cerrar();
-    } catch (err) {
-      setErrorEditarVehiculo(err.message || "No se pudo guardar los cambios.");
-    }
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const actualizado = await vehiculosService.actualizarVehiculo(modalEditarVehiculo.dato.id, fVehiculoEditar);
+        setVehiculos((prev) => prev.map((v) => (v.id === actualizado.id ? actualizado : v)));
+        modalEditarVehiculo.cerrar();
+        mostrarToast("Vehículo actualizado", { tipo: "success" });
+      } catch (err) {
+        setErrorEditarVehiculo(err.message || "No se pudo guardar los cambios.");
+      }
+    });
   }
 
   async function handleEliminarVehiculo(v) {
@@ -408,7 +455,7 @@ export function useOperacionesManager() {
       mensaje: `Se eliminará el vehículo ${v.placa} con sus fechas de documentos y su historial, de forma permanente. Esta acción no se puede deshacer.`,
       tipo: "peligro",
       textoConfirmar: "Eliminar vehículo",
-      textoCargando: "Eliminando...",
+      textoCargando: "Eliminando…",
       palabraConfirmacion: v.placa,
       accion: async () => {
         await vehiculosService.eliminarVehiculo(v.id);
@@ -420,11 +467,13 @@ export function useOperacionesManager() {
 
 
   function abrirInspeccion(eq) {
+    setErrorAccion("");
     setFInspeccion(formInspeccionVacio());
     modalInspeccion.abrir(eq);
   }
 
   function abrirBaja(eq) {
+    setErrorAccion("");
     setMotivoBaja("");
     setErrorMotivo(false);
     modalBaja.abrir(eq);
@@ -436,18 +485,22 @@ export function useOperacionesManager() {
   // array) y el backend es quien guarda el cambio de verdad; la
   // respuesta ya trae el vehículo completo y actualizado.
   async function handleSubirDocumento(documentoId, archivo) {
-    try {
-      const { url, nombre } = await subirArchivo(archivo);
-      const vehiculoActualizado = await vehiculosService.actualizarDocumento(
-        modalDocs.dato.id,
-        documentoId,
-        { archivoNombre: nombre, archivoUrl: url }
-      );
-      setVehiculos((prev) => prev.map((v) => (v.id === vehiculoActualizado.id ? vehiculoActualizado : v)));
-      modalDocs.setDato(vehiculoActualizado);
-    } catch (err) {
-      mostrarToast(err.message || "No se pudo subir el documento.", { tipo: "error" });
-    }
+    await acciones.ejecutar(`documento-${documentoId}`, async ({ subida, etapa }) => {
+      try {
+        const { url, nombre } = await subirArchivo(archivo, subida);
+        etapa("Guardando…");
+        const vehiculoActualizado = await vehiculosService.actualizarDocumento(
+          modalDocs.dato.id,
+          documentoId,
+          { archivoNombre: nombre, archivoUrl: url }
+        );
+        setVehiculos((prev) => prev.map((v) => (v.id === vehiculoActualizado.id ? vehiculoActualizado : v)));
+        modalDocs.setDato(vehiculoActualizado);
+        mostrarToast("Documento adjuntado", { tipo: "success" });
+      } catch (err) {
+        mostrarToast(err.message || "No se pudo subir el documento.", { tipo: "error" });
+      }
+    });
   }
 
   const hayFiltrosEquipos = !!(filtroEmpresa || filtroCategoria || filtroEstadoEquipo || busqueda);
@@ -494,6 +547,13 @@ export function useOperacionesManager() {
     // Vehículos
     cargandoVehiculos, errorVehiculos, recargarVehiculos,
     vehiculos, hayFiltrosVehiculos,
+
+    // Estado de carga y error de las acciones
+    guardando: acciones.ocupado("modal"),
+    textoGuardando: (porDefecto) => acciones.texto("modal", porDefecto),
+    errorAccion,
+    equipoOcupado: (id) => acciones.ocupado(`equipo-${id}`),
+    estadoDocumento: (id) => (acciones.ocupado(`documento-${id}`) ? acciones.texto(`documento-${id}`, "Subiendo archivo…") : null),
 
     // Modal: historial
     modalHistorial, cargandoHistorial, historialItems,

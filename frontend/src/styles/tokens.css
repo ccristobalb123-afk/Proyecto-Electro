@@ -197,6 +197,7 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-3);
   height: 100vh;
   height: 100dvh;
   color: var(--muted);

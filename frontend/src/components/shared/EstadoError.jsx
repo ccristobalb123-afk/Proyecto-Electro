@@ -9,6 +9,7 @@ import "./EstadoError.css";
 // genérico como el de abajo.
 const MENSAJE_POR_CODIGO = {
   SIN_CONEXION: "No se pudo conectar con el servidor. Revisa tu conexión.",
+  TIEMPO_AGOTADO: "El servidor está tardando demasiado en responder. Revisa tu conexión e inténtalo de nuevo.",
   SESION_EXPIRADA: "Tu sesión expiró. Vuelve a iniciar sesión.",
   SIN_PERMISO: "No tienes permiso para ver esta información.",
   NO_ENCONTRADO: "El registro solicitado no existe o fue eliminado.",

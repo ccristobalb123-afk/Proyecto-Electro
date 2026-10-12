@@ -1,12 +1,22 @@
 import { IconEye, IconUpload, IconTrash } from "../icons/Icons";
 import { BotonVerArchivo } from "../shared/VisorArchivo";
+import { Spinner } from "../shared/Carga";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
 
 // "Ver PDF / Ver imagen" si ya tiene archivo, o "Adjuntar" si no —
 // igual en Contratos y en Cursos / Fotocheck / EMO.
-function CeldaDocumento({ item, tab, onAdjuntarArchivo }) {
+function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
+  const subiendo = estadoAdjunto?.(item.id);
+  if (subiendo) {
+    return (
+      <span className="doc-chip doc-chip--subiendo" role="status">
+        <Spinner tamano={13} />
+        {subiendo}
+      </span>
+    );
+  }
   if (item.archivo) {
     return <BotonVerArchivo url={item.archivoUrl} nombre={item.archivoNombre} />;
   }
@@ -29,8 +39,8 @@ function CeldaDocumento({ item, tab, onAdjuntarArchivo }) {
   );
 }
 
-export default function TablaRrhh({ cargando, error, onReintentar, items, tab, estadoLabel, hayFiltrosActivos, onNuevo, onVerDetalle, onEditar, onEliminar, onAdjuntarArchivo }) {
-  if (cargando) return <Loading texto="Cargando..." />;
+export default function TablaRrhh({ cargando, error, onReintentar, items, tab, estadoLabel, hayFiltrosActivos, onNuevo, onVerDetalle, onEditar, onEliminar, onAdjuntarArchivo, estadoAdjunto }) {
+  if (cargando) return <Loading texto={tab === "contratos" ? "Cargando contratos…" : "Cargando cursos y certificaciones…"} />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
 
   if (items.length === 0) {
@@ -78,7 +88,7 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
                 <td>{item.tipo}</td>
                 <td className="code">{item.vence}</td>
                 <td>
-                  <CeldaDocumento item={item} tab={tab} onAdjuntarArchivo={onAdjuntarArchivo} />
+                  <CeldaDocumento item={item} tab={tab} onAdjuntarArchivo={onAdjuntarArchivo} estadoAdjunto={estadoAdjunto} />
                 </td>
                 <td>
                   <span className={`estado ${item.estado}`}>
@@ -141,7 +151,7 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
             {/* Documento y acciones al pie: arriba las 3 acciones le dejaban
                 al nombre del trabajador ~70px en un celular de 360px. */}
             <div className="rrhh-mobile-card-doc">
-              <CeldaDocumento item={item} tab={tab} onAdjuntarArchivo={onAdjuntarArchivo} />
+              <CeldaDocumento item={item} tab={tab} onAdjuntarArchivo={onAdjuntarArchivo} estadoAdjunto={estadoAdjunto} />
               <div className="rrhh-mobile-card-acciones">
                 <button className="btn-outline-sm" type="button" onClick={() => onEditar(item)}>Editar</button>
                 <button className="icon-btn" type="button" title="Ver detalle" aria-label="Ver detalle" onClick={() => onVerDetalle(item)}>

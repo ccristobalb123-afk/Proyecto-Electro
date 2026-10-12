@@ -3,6 +3,7 @@ import { IconEye, IconTrash, IconCamera } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
+import { Spinner } from "../shared/Carga";
 import Lightbox from "../shared/Lightbox";
 
 import { ESTADOS_EQUIPO as ESTADOS } from "../../services/equiposService";
@@ -22,10 +23,11 @@ export default function EquiposGrid({
   onEditarFotos,
   onEditar,
   onEliminar,
+  equipoOcupado,
 }) {
   const [fotoMaximizada, setFotoMaximizada] = useState(null);
 
-  if (cargando) return <Loading texto="Cargando equipos..." />;
+  if (cargando) return <Loading texto="Cargando equipos…" />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
 
   return (
@@ -128,6 +130,15 @@ export default function EquiposGrid({
                   </div>
 
                   <div className="equipo-card-footer">
+                    {equipoOcupado?.(eq.id) && (
+                      <span className="equipo-card-actualizando" role="status">
+                        <Spinner tamano={13} />
+                        Actualizando…
+                      </span>
+                    )}
+                    {/* display: contents — deshabilita todo el pie mientras se
+                        actualiza el equipo (evita un segundo cambio a la vez). */}
+                    <fieldset className="bloque-deshabilitable" disabled={equipoOcupado?.(eq.id)}>
                     <div className="equipo-card-actions">
                       <button className="btn-outline-sm" type="button" onClick={() => onInspeccionar(eq)}>
                         Checklist pre-uso
@@ -165,6 +176,7 @@ export default function EquiposGrid({
                         ))}
                       </select>
                     </label>
+                    </fieldset>
                   </div>
                 </div>
               );

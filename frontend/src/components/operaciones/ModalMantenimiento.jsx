@@ -1,10 +1,12 @@
+import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 import { IconAlertCircle } from "../icons/Icons";
 
-export default function ModalMantenimiento({ open, equipo, comentario, setComentario, error, onClose, onConfirmar }) {
+export default function ModalMantenimiento({ open, equipo, comentario, setComentario, error, onClose, onConfirmar, guardando, errorServidor }) {
   return (
     <Modal
       open={open}
+      ocupado={guardando}
       title="Enviar a mantenimiento"
       subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""}
       onClose={onClose}
@@ -32,8 +34,11 @@ export default function ModalMantenimiento({ open, equipo, comentario, setComent
         {error && <p className="field-error">Cuenta qué tiene el equipo antes de continuar.</p>}
       </div>
 
+      {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
       <ModalActions onCancel={onClose}>
-        <button className="btn-primary" type="button" onClick={onConfirmar}>Enviar a mantenimiento</button>
+        <BotonCarga cargando={guardando} textoCargando="Enviando…" onClick={onConfirmar}>
+          Enviar a mantenimiento
+        </BotonCarga>
       </ModalActions>
     </Modal>
   );

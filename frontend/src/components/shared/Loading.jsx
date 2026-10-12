@@ -1,14 +1,15 @@
-import { IconLoader } from "../icons/Icons";
+import { Spinner } from "./Carga";
 import "./Loading.css";
 
 /**
- * Pantalla/bloque de carga reutilizable.
- * Úsalo mientras se espera la respuesta del backend (ej. al listar equipos, facturas, etc.)
+ * Bloque de carga para listas y pantallas (al entrar a una sección, al
+ * cambiar de pestaña, empresa o filtro). role="status": el lector de
+ * pantalla anuncia "Cargando información…" sin interrumpir.
  */
-export default function Loading({ texto = "Cargando..." }) {
+export default function Loading({ texto = "Cargando información…" }) {
   return (
-    <div className="loading-bloque">
-      <IconLoader className="loading-spinner-icon" width={30} height={30} />
+    <div className="loading-bloque" role="status" aria-live="polite">
+      <Spinner tamano={30} className="loading-spinner-icon" />
       <p className="loading-texto">{texto}</p>
     </div>
   );

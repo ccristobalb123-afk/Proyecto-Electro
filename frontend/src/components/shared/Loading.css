@@ -11,8 +11,6 @@
 
 .loading-spinner-icon {
   color: var(--copper);
-  animation: loading-girar 0.7s linear infinite;
-  will-change: transform;
 }
 
 .loading-texto {
@@ -24,14 +22,6 @@
   animation: loading-pulso 1.5s ease-in-out infinite;
 }
 
-@keyframes loading-girar {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 @keyframes loading-pulso {
   0%,
@@ -39,6 +29,13 @@
     opacity: 0.6;
   }
   50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-texto {
+    animation: none;
     opacity: 1;
   }
 }

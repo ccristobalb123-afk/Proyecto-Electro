@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { IconAlertCircle, IconHelpCircle, IconLoader } from "../icons/Icons";
+import { IconAlertCircle, IconHelpCircle } from "../icons/Icons";
+import { Spinner } from "./Carga";
 import "./ConfirmDialog.css";
 
 // Compara lo escrito con la palabra pedida sin exigir mayúsculas ni
@@ -19,7 +20,7 @@ export default function ConfirmDialog({
   tipo = "normal",
   soloInformativo = false,
   textoConfirmar = "Confirmar",
-  textoCargando = "Procesando...",
+  textoCargando = "Procesando…",
   palabraConfirmacion,
   accion,
   alternativa,
@@ -117,7 +118,7 @@ export default function ConfirmDialog({
   const tituloVisible = alternativaActiva ? alternativaActiva.titulo || "No se puede completar la acción" : titulo;
   const mensajeVisible = alternativaActiva ? alternativaActiva.mensaje : mensaje;
   const textoBoton = alternativaActiva ? alternativaActiva.texto : soloInformativo ? "Entendido" : textoConfirmar;
-  const textoBotonCargando = alternativaActiva ? alternativaActiva.textoCargando || "Procesando..." : textoCargando;
+  const textoBotonCargando = alternativaActiva ? alternativaActiva.textoCargando || "Procesando…" : textoCargando;
   const claseBoton = esPeligro && !soloInformativo ? "btn-confirm-danger" : "btn-confirm-primary";
 
   return (
@@ -187,7 +188,7 @@ export default function ConfirmDialog({
             type="submit"
             disabled={cargando || bloqueadoPorPalabra}
           >
-            {cargando && <IconLoader className="confirm-spinner" width={15} height={15} aria-hidden="true" />}
+            {cargando && <Spinner />}
             {cargando ? textoBotonCargando : textoBoton}
           </button>
         </div>

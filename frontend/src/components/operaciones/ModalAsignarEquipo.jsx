@@ -1,10 +1,12 @@
+import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 import { IconAlertCircle } from "../icons/Icons";
 
-export default function ModalAsignarEquipo({ open, equipo, vehiculos, vehiculoId, setVehiculoId, error, onClose, onConfirmar }) {
+export default function ModalAsignarEquipo({ open, equipo, vehiculos, vehiculoId, setVehiculoId, error, onClose, onConfirmar, guardando, errorServidor }) {
   return (
     <Modal
       open={open}
+      ocupado={guardando}
       title="Asignar equipo"
       subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""}
       onClose={onClose}
@@ -37,9 +39,12 @@ export default function ModalAsignarEquipo({ open, equipo, vehiculos, vehiculoId
         </div>
       )}
 
+      {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
       <ModalActions onCancel={onClose}>
         {vehiculos.length > 0 && (
-          <button className="btn-primary" type="button" onClick={onConfirmar}>Asignar</button>
+          <BotonCarga cargando={guardando} textoCargando="Asignando…" onClick={onConfirmar}>
+            Asignar
+          </BotonCarga>
         )}
       </ModalActions>
     </Modal>

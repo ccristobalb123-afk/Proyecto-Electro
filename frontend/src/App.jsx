@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute, RutaPublicaSoloInvitado } from "./components/auth/ProtectedRoute";
+import { Spinner } from "./components/shared/Carga";
 
 // Cada página se descarga al entrar a su ruta (code-splitting): así Chart.js
 // (Dashboard) y qrcode (Login) no viajan con quien solo abre otra sección.
@@ -14,9 +15,16 @@ const Administracion = lazy(() => import("./pages/Administracion"));
 
 export default function App() {
   return (
-    // Mismo aspecto que la pantalla de "Cargando sesión..." de ProtectedRoute,
+    // Mismo aspecto que la pantalla de "Cargando sesión…" de ProtectedRoute,
     // para que la transición entre ambas no parpadee.
-    <Suspense fallback={<div className="pantalla-cargando-sesion">Cargando...</div>}>
+    <Suspense
+      fallback={
+        <div className="pantalla-cargando-sesion" role="status">
+          <Spinner tamano={20} />
+          Cargando…
+        </div>
+      }
+    >
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route

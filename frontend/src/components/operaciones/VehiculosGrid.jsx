@@ -16,7 +16,7 @@ export default function VehiculosGrid({
   onEditar,
   onEliminar,
 }) {
-  if (cargando) return <Loading texto="Cargando vehículos..." />;
+  if (cargando) return <Loading texto="Cargando vehículos…" />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
 
   if (vehiculos.length === 0) {

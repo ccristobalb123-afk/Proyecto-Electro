@@ -7,7 +7,10 @@ export default function ToastContainer({ toasts, onCerrar }) {
   // asertivo) y el resto se anuncia sin interrumpir (role="status", cortés).
   // Así un error no espera a que el lector termine de hablar.
   return (
-    <div className="toast-container">
+    // aria-live en el contenedor (que existe siempre): algunos lectores
+    // de pantalla no anuncian una región role="status" recién insertada,
+    // pero sí lo que aparece dentro de una región live que ya estaba.
+    <div className="toast-container" aria-live="polite" aria-relevant="additions">
       {toasts.map((t) => (
         <div
           key={t.id}

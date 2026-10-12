@@ -1,11 +1,13 @@
 import { Modal, ModalActions, Timeline } from "../shared/Modal";
 import { totalPagado, montoNetoAPagar } from "../../services/facturasService";
 import { soles, formatFecha } from "./finanzasUtils";
+import { BotonCarga } from "../shared/Carga";
 
-export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago, errorPago, onClose, onConfirmar }) {
+export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago, errorPago, onClose, onConfirmar, registrando }) {
   return (
     <Modal
       open={open}
+      ocupado={registrando}
       title="Registrar pago"
       subtitle={
         pago
@@ -27,7 +29,7 @@ export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago
               />
             </label>
           </div>
-          {errorPago && <p className="field-error">{errorPago}</p>}
+          {errorPago && <p className="field-error" role="alert">{errorPago}</p>}
           {pago.doc.pagos.length > 0 && (
             <div className="fin-pagos-previos">
               <span className="fin-card-label">Pagos registrados</span>
@@ -35,7 +37,9 @@ export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago
             </div>
           )}
           <ModalActions onCancel={onClose}>
-            <button className="btn-primary" type="button" onClick={onConfirmar}>Registrar pago</button>
+            <BotonCarga cargando={registrando} textoCargando="Registrando pago…" onClick={onConfirmar}>
+              Registrar pago
+            </BotonCarga>
           </ModalActions>
         </>
       )}

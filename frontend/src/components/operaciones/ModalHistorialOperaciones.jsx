@@ -9,7 +9,7 @@ export default function ModalHistorialOperaciones({ open, seleccionado, cargando
       subtitle={seleccionado ? seleccionado.categoria || seleccionado.tipoUnidad : ""}
       onClose={onClose}
     >
-      {cargando ? <Loading texto="Cargando..." /> : <Timeline items={items} />}
+      {cargando ? <Loading texto="Cargando historial…" /> : <Timeline items={items} />}
     </Modal>
   );
 }

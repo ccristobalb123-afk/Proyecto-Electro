@@ -2,7 +2,11 @@ import { useEffect, useId, useRef } from "react";
 import { IconClose } from "../icons/Icons";
 import "./Modal.css";
 
-export function Modal({ open, title, subtitle, onClose, children, wide, variant }) {
+// `ocupado`: hay una operación en curso (guardando, subiendo un
+// archivo...). Mientras dure, el modal no se puede cerrar por accidente
+// (Escape, clic afuera, ✕, Cancelar) y todos sus campos quedan
+// deshabilitados; quien lo usa lo cierra solo si la operación salió bien.
+export function Modal({ open, title, subtitle, onClose, children, wide, variant, ocupado = false }) {
   const tituloId = useId();
   const dialogRef = useRef(null);
 
@@ -18,6 +22,13 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant 
   // usando siempre la versión más reciente de onClose.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const ocupadoRef = useRef(ocupado);
+  useEffect(() => {
+    ocupadoRef.current = ocupado;
+  }, [ocupado]);
+  const cerrar = () => {
+    if (!ocupadoRef.current) onClose?.();
+  };
 
   // Al abrir: mueve el foco adentro del modal (para teclado/lector de
   // pantalla) y guarda qué elemento lo abrió para devolverle el foco al
@@ -54,7 +65,7 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant 
       if (dialogos[dialogos.length - 1] !== dialogRef.current) return;
 
       if (e.key === "Escape") {
-        onCloseRef.current?.();
+        if (!ocupadoRef.current) onCloseRef.current?.();
         return;
       }
       if (e.key !== "Tab") return;
@@ -82,12 +93,13 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant 
 
   if (!open) return null;
   return (
-    <div className={`modal-overlay open ${variant ? `modal-overlay--${variant}` : ""}`} onClick={onClose}>
+    <div className={`modal-overlay open ${variant ? `modal-overlay--${variant}` : ""}`} onClick={cerrar}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
+        aria-busy={ocupado || undefined}
         tabIndex={-1}
         className={`modal-electro ${wide ? "modal-wide" : ""} ${variant ? `modal--${variant}` : ""}`}
         onClick={(e) => e.stopPropagation()}
@@ -96,13 +108,17 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant 
           <h2 id={tituloId} className="font-display">{title}</h2>
           {/* Un modal sin onClose (ej. cambio de contraseña obligatorio) no se puede cerrar: sin botón */}
           {onClose && (
-            <button className="modal-close" onClick={onClose} type="button" aria-label="Cerrar">
+            <button className="modal-close" onClick={cerrar} type="button" aria-label="Cerrar" disabled={ocupado}>
               <IconClose width={16} height={16} />
             </button>
           )}
         </div>
         {subtitle && <p className="modal-sub">{subtitle}</p>}
-        {children}
+        {/* display: contents — no altera el layout; solo propaga
+            "disabled" a todos los campos y botones (Cancelar incluido). */}
+        <fieldset className="modal-cuerpo" disabled={ocupado}>
+          {children}
+        </fieldset>
       </div>
     </div>
   );

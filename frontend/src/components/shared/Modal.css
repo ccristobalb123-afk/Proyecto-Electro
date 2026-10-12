@@ -27,6 +27,25 @@
   outline: none;
 }
 
+.modal-cuerpo {
+  display: contents;
+}
+
+/* Campos bloqueados mientras se guarda: se atenúan apenas, para que se
+   note que no se pueden tocar sin que parezca un error. */
+.modal-cuerpo:disabled :is(input, select, textarea, label) {
+  cursor: progress;
+}
+
+.modal-cuerpo:disabled :is(input, select, textarea, .dropzone, .co-choice, .igv-choice, .foto-equipo-slot) {
+  opacity: 0.7;
+}
+
+.modal-close:disabled {
+  opacity: 0.4;
+  cursor: progress;
+}
+
 .modal-electro.modal-wide {
   width: 560px;
 }
@@ -273,6 +292,11 @@ fieldset.form-field {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--muted);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .field-error {

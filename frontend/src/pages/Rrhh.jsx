@@ -84,6 +84,7 @@ export default function Rrhh() {
           onEditar={r.abrirEditar}
           onEliminar={r.handleEliminar}
           onAdjuntarArchivo={r.handleAdjuntarArchivo}
+          estadoAdjunto={r.estadoAdjunto}
         />
       </div>
 
@@ -96,6 +97,8 @@ export default function Rrhh() {
         onArchivoChange={r.handleArchivoChange}
         onSubmit={r.handleGuardarContrato}
         editando={!!r.idEditando}
+        guardando={r.guardando}
+        textoGuardando={r.textoGuardando}
       />
 
       <ModalNuevoCurso
@@ -108,6 +111,8 @@ export default function Rrhh() {
         onSubmit={r.handleGuardarCurso}
         trabajadoresRegistrados={r.trabajadoresRegistrados}
         editando={!!r.idEditando}
+        guardando={r.guardando}
+        textoGuardando={r.textoGuardando}
       />
 
       {/* ===== Modal: Ver detalle (contrato o curso) ===== */}

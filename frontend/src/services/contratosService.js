@@ -27,7 +27,7 @@ export async function eliminarContrato(contratoId) {
   return apiClient.delete(`/contratos/${contratoId}`);
 }
 
-export async function adjuntarArchivoContrato(contratoId, archivo) {
-  const { url, nombre } = await subirArchivo(archivo);
+export async function adjuntarArchivoContrato(contratoId, archivo, opcionesSubida) {
+  const { url, nombre } = await subirArchivo(archivo, opcionesSubida);
   return apiClient.post(`/contratos/${contratoId}/documento`, { archivoNombre: nombre, archivoUrl: url });
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Modal, ModalActions } from "./Modal";
+import { BotonCarga } from "./Carga";
 import PasswordField from "./PasswordField";
 import PasswordStrength from "./PasswordStrength";
 import * as authService from "../../services/authService";
@@ -41,6 +42,7 @@ export default function CambiarPasswordModal({ open, obligatorio, onClose, onExi
     <Modal
       open={open}
       variant="seguridad"
+      ocupado={guardando}
       title="Cambiar contraseña"
       subtitle={
         obligatorio ? "Por seguridad, tienes que cambiar tu contraseña antes de seguir." : undefined
@@ -83,15 +85,15 @@ export default function CambiarPasswordModal({ open, obligatorio, onClose, onExi
         )}
         {obligatorio ? (
           <div className="modal-actions">
-            <button type="submit" className="btn-primary" disabled={guardando}>
-              {guardando ? "Guardando..." : "Guardar nueva contraseña"}
-            </button>
+            <BotonCarga type="submit" cargando={guardando} textoCargando="Guardando…">
+              Guardar nueva contraseña
+            </BotonCarga>
           </div>
         ) : (
           <ModalActions onCancel={onClose}>
-            <button type="submit" className="btn-primary" disabled={guardando}>
-              {guardando ? "Guardando..." : "Guardar nueva contraseña"}
-            </button>
+            <BotonCarga type="submit" cargando={guardando} textoCargando="Guardando…">
+              Guardar nueva contraseña
+            </BotonCarga>
           </ModalActions>
         )}
       </form>

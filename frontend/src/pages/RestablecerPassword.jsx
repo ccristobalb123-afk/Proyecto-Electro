@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BotonCarga } from "../components/shared/Carga";
 import { useSearchParams, Link } from "react-router-dom";
 import AuthShell from "../components/auth/AuthShell";
 import PasswordField from "../components/shared/PasswordField";
@@ -107,9 +108,9 @@ export default function RestablecerPassword() {
             </p>
           )}
 
-          <button className="btn-primary" type="submit" disabled={loading || !token}>
-            {loading ? "Guardando..." : "Guardar contraseña"}
-          </button>
+          <BotonCarga type="submit" cargando={loading} textoCargando="Guardando…" disabled={!token}>
+            Guardar contraseña
+          </BotonCarga>
 
           <Link className="auth-back auth-back--abajo" to="/login">
             <IconChevronLeft width={16} height={16} /> Volver a inicio de sesión

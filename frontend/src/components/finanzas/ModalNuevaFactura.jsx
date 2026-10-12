@@ -1,8 +1,9 @@
 import { Modal, ModalActions, CompanyChoice, AvisoVencimiento, CampoMontoConIgv, CampoDetraccion } from "../shared/Modal";
+import { BotonCarga } from "../shared/Carga";
 
 const IGV = 0.18;
 
-export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura, onSubmit, editando, error, catalogoDetraccion }) {
+export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura, onSubmit, editando, error, catalogoDetraccion, guardando, textoGuardando }) {
   // La detracción siempre se calcula sobre el monto CON IGV (el total
   // real de la factura), nunca sobre el monto base — antes se le
   // pasaba el monto sin IGV a la vista previa, mostrando un neto a
@@ -13,6 +14,7 @@ export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura
   return (
     <Modal
       open={open}
+      ocupado={guardando}
       title={editando ? "Editar factura" : "Nueva factura"}
       subtitle={editando ? `${fFactura.serie}-${fFactura.numero}` : "Completa los datos de la factura al cliente."}
       onClose={onClose}
@@ -72,7 +74,9 @@ export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura
         <AvisoVencimiento value={fFactura.diasAviso} onChange={(v) => setFFactura({ ...fFactura, diasAviso: v })} />
         {error && <p className="field-error">{error}</p>}
         <ModalActions onCancel={onClose}>
-          <button className="btn-primary" type="submit">{editando ? "Guardar cambios" : "Guardar factura"}</button>
+          <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
+            {editando ? "Guardar cambios" : "Guardar factura"}
+          </BotonCarga>
         </ModalActions>
       </form>
     </Modal>
