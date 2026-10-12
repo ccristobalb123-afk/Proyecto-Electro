@@ -20,8 +20,17 @@ import ModalDocumentos from "../components/operaciones/ModalDocumentos";
 import "./Operaciones.css";
 import "../components/operaciones/EquiposCards.css";
 import "../components/operaciones/VehiculosCards.css";
+import { useLocation } from "react-router-dom";
 
-export default function Operaciones() {
+// Si se llega con otros parámetros (?tab=…&q=…) estando ya en esta
+// página — por ejemplo, tocando un aviso en la campana —, se vuelve a
+// montar para abrir la pestaña y el filtro del aviso.
+export default function OperacionesConEnlace() {
+  const { search } = useLocation();
+  return <Operaciones key={search} />;
+}
+
+function Operaciones() {
   const o = useOperacionesManager();
 
   return (

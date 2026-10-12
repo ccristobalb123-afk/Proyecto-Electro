@@ -7,8 +7,17 @@ import TablaRrhh from "../components/rrhh/TablaRrhh";
 import ModalNuevoContrato from "../components/rrhh/ModalNuevoContrato";
 import ModalNuevoCurso from "../components/rrhh/ModalNuevoCurso";
 import "./Rrhh.css";
+import { useLocation } from "react-router-dom";
 
-export default function Rrhh() {
+// Si se llega con otros parámetros (?tab=…&q=…) estando ya en esta
+// página — por ejemplo, tocando un aviso en la campana —, se vuelve a
+// montar para abrir la pestaña y el filtro del aviso.
+export default function RrhhConEnlace() {
+  const { search } = useLocation();
+  return <Rrhh key={search} />;
+}
+
+function Rrhh() {
   const r = useRrhhManager();
 
   return (

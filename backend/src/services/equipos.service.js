@@ -18,6 +18,7 @@ function serializar(equipo) {
     ...(equipo.comentarioMantenimiento ? { comentarioMantenimiento: equipo.comentarioMantenimiento } : {}),
     ...(equipo.ultimaInspeccion ? { ultInspeccion: formatearFechaDia(equipo.ultimaInspeccion) } : {}),
     ...(equipo.proximaInspeccion ? { proxInspeccion: formatearFechaDia(equipo.proximaInspeccion) } : {}),
+    diasAnticipacionInspeccion: equipo.diasAnticipacionInspeccion,
   };
 }
 
@@ -246,7 +247,7 @@ export async function darDeBajaEquipo(equipoId, motivo, empresasPermitidas, usua
 // ventana donde podrían quedar desincronizadas si la segunda falla.
 // Ahora es una sola operación atómica del lado del backend, y además
 // dentro de una transacción real (update + historial juntos).
-export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fechaVencimiento, resultado }, empresasPermitidas, usuarioId) {
+export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fechaVencimiento, diasAnticipacion, resultado }, empresasPermitidas, usuarioId) {
   await buscarEquipo(equipoId, empresasPermitidas);
   const aprobado = resultado === "aprobado";
   const etiquetaResultado = { aprobado: "Aprobado", observado: "Observado", rechazado: "Rechazado" }[resultado];
@@ -258,6 +259,9 @@ export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fec
         estado: aprobado ? "DISPONIBLE" : "MANTENIMIENTO",
         ultimaInspeccion: new Date(fechaInspeccion),
         proximaInspeccion: new Date(fechaVencimiento),
+        // Antes este valor del modal se descartaba y se avisaba siempre
+        // con 15 días fijos.
+        ...(diasAnticipacion !== undefined ? { diasAnticipacionInspeccion: diasAnticipacion } : {}),
       },
       include: INCLUDE,
     });

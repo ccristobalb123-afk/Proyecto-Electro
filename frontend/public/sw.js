@@ -18,6 +18,9 @@ self.addEventListener("push", (event) => {
     icon: "/favicon.svg",
     badge: "/favicon.svg",
     data: { url: payload.url || "/dashboard" },
+    // Mismo aviso (o el resumen del día) reemplaza al anterior en vez de
+    // apilarse si el teléfono todavía lo tiene en la bandeja.
+    ...(payload.tag ? { tag: payload.tag } : {}),
     // vibrate: patrón corto — 2 pulsos, como la mayoría de apps de
     // avisos (no queremos que se sienta invasivo, solo notorio).
     vibrate: [100, 50, 100],
@@ -26,22 +29,23 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(payload.titulo || "Activo360", opciones));
 });
 
-// Al tocar la notificación, abre (o enfoca si ya está abierta) la
-// pantalla correspondiente en vez de solo cerrar el aviso.
+// Al tocar la notificación: si la app ya está abierta, la enfoca y la
+// lleva a la pantalla del aviso (ej. /operaciones?tab=vehiculos&q=ABC-123);
+// si no, la abre ahí. Antes, con la app abierta en otra pantalla, abría
+// una ventana nueva.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/dashboard";
+  const destino = new URL(event.notification.data?.url || "/dashboard", self.location.origin).href;
 
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((listaClientes) => {
-      for (const cliente of listaClientes) {
-        if (cliente.url.includes(url) && "focus" in cliente) {
-          return cliente.focus();
-        }
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (listaClientes) => {
+      const abierto = listaClientes.find((c) => new URL(c.url).origin === self.location.origin);
+      if (abierto) {
+        const enfocado = "focus" in abierto ? await abierto.focus() : abierto;
+        if (abierto.url !== destino && "navigate" in enfocado) return enfocado.navigate(destino);
+        return enfocado;
       }
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
+      if (clients.openWindow) return clients.openWindow(destino);
     })
   );
 });

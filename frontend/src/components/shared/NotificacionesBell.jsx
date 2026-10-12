@@ -10,23 +10,16 @@ import {
   IconInvoice,
 } from "../icons/Icons";
 import * as notificacionesService from "../../services/notificacionesService";
+import EtiquetaUrgencia from "./EtiquetaUrgencia";
 import { useAsyncList } from "../../hooks/useAsyncList";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import "./NotificacionesBell.css";
-
-const RUTA_POR_TIPO = {
-  curso: "/rrhh",
-  contrato: "/rrhh",
-  equipo: "/operaciones",
-  vehiculo: "/operaciones",
-  factura: "/finanzas",
-};
 
 function iconoDe(tipo) {
   if (tipo === "equipo") return IconWrench;
   if (tipo === "vehiculo") return IconTruck;
   if (tipo === "contrato") return IconContrato;
-  if (tipo === "factura") return IconInvoice;
+  if (tipo === "factura" || tipo === "facturaPagar") return IconInvoice;
   return IconClipboardCheck;
 }
 
@@ -47,7 +40,8 @@ export default function NotificacionesBell() {
 
   function irA(n) {
     setAbierto(false);
-    navigate(RUTA_POR_TIPO[n.tipo] || "/dashboard");
+    // Lleva al registro: ej. /operaciones?tab=vehiculos&q=ABC-123
+    navigate(n.url || "/dashboard");
   }
 
   return (
@@ -55,11 +49,12 @@ export default function NotificacionesBell() {
       <button
         className="notificaciones-bell__boton"
         onClick={() => setAbierto((v) => !v)}
-        aria-label="Notificaciones"
+        aria-label={notificaciones.length > 0 ? `Notificaciones: ${notificaciones.length} vencimientos por atender` : "Notificaciones"}
+        aria-expanded={abierto}
       >
         <IconBell width={19} height={19} />
         {notificaciones.length > 0 && (
-          <span className="notificaciones-bell__badge">{notificaciones.length}</span>
+          <span className="notificaciones-bell__badge" aria-hidden="true">{notificaciones.length > 99 ? "99+" : notificaciones.length}</span>
         )}
       </button>
 
@@ -93,27 +88,27 @@ export default function NotificacionesBell() {
           )}
 
           {notificaciones.length === 0 ? (
-            <p className="notificaciones-bell__vacio">No hay vencimientos próximos.</p>
+            <p className="notificaciones-bell__vacio">Sin documentos por vencer.</p>
           ) : (
             <div className="notificaciones-bell__lista">
               {notificaciones.map((n) => {
                 const Icono = iconoDe(n.tipo);
-                const vencido = n.dias < 0;
                 return (
                   <button
                     key={n.id}
-                    className={`notificacion-item ${vencido ? "notificacion-item--vencido" : "notificacion-item--por-vencer"}`}
+                    type="button"
+                    className={`notificacion-item notificacion-item--${n.severidad}`}
                     onClick={() => irA(n)}
                   >
                     <div className="notificacion-item__icono-wrapper">
                       <Icono width={15} height={15} />
                     </div>
                     <div className="notificacion-item__texto">
-                      <p className="notificacion-item__titulo">{n.titulo}</p>
-                      <p className="notificacion-item__detalle">
-                        <span className="co-pill">{n.empresa}</span>{" "}
-                        {vencido ? `Venció hace ${Math.abs(n.dias)} día(s)` : `Vence en ${n.dias} día(s)`}
+                      <p className="notificacion-item__titulo">
+                        <span>{n.titulo}</span>
+                        <EtiquetaUrgencia aviso={n} />
                       </p>
+                      <p className="notificacion-item__detalle">{n.cuerpo}</p>
                     </div>
                   </button>
                 );

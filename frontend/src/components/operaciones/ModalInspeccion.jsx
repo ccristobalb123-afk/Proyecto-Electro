@@ -49,6 +49,7 @@ export default function ModalInspeccion({ open, equipo, fInspeccion, setFInspecc
         </div>
 
         <AvisoVencimiento
+          hint="días antes de la próxima inspección (1 a 365)"
           value={fInspeccion.diasAnticipacion}
           onChange={(v) => setFInspeccion({ ...fInspeccion, diasAnticipacion: v })}
         />

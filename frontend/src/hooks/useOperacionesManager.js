@@ -25,7 +25,7 @@ function formVehiculoVacio() {
 }
 
 function formInspeccionVacio() {
-  return { tipo: "interna", fechaInspeccion: "", fechaVencimiento: "", diasAnticipacion: 30, resultado: "aprobado" };
+  return { tipo: "interna", fechaInspeccion: "", fechaVencimiento: "", diasAnticipacion: 15, resultado: "aprobado" };
 }
 
 // Toda la lógica de negocio de la página Operaciones — antes vivía
@@ -40,7 +40,9 @@ export function useOperacionesManager() {
   // baja, asignar, mantenimiento, fotos) — se muestra DENTRO del modal,
   // que queda abierto; antes salía en un toast detrás del modal.
   const [errorAccion, setErrorAccion] = useState("");
-  const [tab, setTab] = useState("equipos"); // "equipos" | "vehiculos"
+  // ?tab=vehiculos&q=<placa> — enlace directo desde un aviso de vencimiento.
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState(searchParams.get("tab") === "vehiculos" ? "vehiculos" : "equipos"); // "equipos" | "vehiculos"
   const [errorEquipo, setErrorEquipo] = useState("");
   const [errorVehiculo, setErrorVehiculo] = useState("");
   const [historialItems, setHistorialItems] = useState([]);
@@ -50,7 +52,6 @@ export function useOperacionesManager() {
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [filtroEstadoEquipo, setFiltroEstadoEquipo] = useState("");
   const [filtroTipoUnidad, setFiltroTipoUnidad] = useState("");
-  const [searchParams] = useSearchParams();
   const [busqueda, setBusqueda] = useState(searchParams.get("q") || "");
   const busquedaDebounced = useDebounce(busqueda, 400);
 
@@ -508,7 +509,9 @@ export function useOperacionesManager() {
 
   function abrirInspeccion(eq) {
     setErrorAccion("");
-    setFInspeccion(formInspeccionVacio());
+    // Arranca con los días de aviso que ya tiene el equipo (15 si nunca
+    // se cambiaron), no con un valor fijo.
+    setFInspeccion({ ...formInspeccionVacio(), diasAnticipacion: eq.diasAnticipacionInspeccion ?? 15 });
     modalInspeccion.abrir(eq);
   }
 

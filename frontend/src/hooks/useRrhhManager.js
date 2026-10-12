@@ -50,7 +50,10 @@ export function useRrhhManager() {
   const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
   const acciones = useAccion();
-  const [tab, setTab] = useState("contratos"); // "contratos" | "cursos"
+  // ?tab=cursos&q=<dni> — enlace directo desde un aviso de vencimiento
+  // (campana, Dashboard o push).
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState(searchParams.get("tab") === "cursos" ? "cursos" : "contratos"); // "contratos" | "cursos"
   const [modalOpen, setModalOpen] = useState(false);
   // null = creando uno nuevo, id = editando ese registro existente —
   // mismo patrón que ya usa Finanzas para Facturas.
@@ -59,7 +62,6 @@ export function useRrhhManager() {
 
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
-  const [searchParams] = useSearchParams();
   const [busqueda, setBusqueda] = useState(searchParams.get("q") || "");
   const busquedaDebounced = useDebounce(busqueda, 400);
 

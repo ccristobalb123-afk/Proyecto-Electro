@@ -1,11 +1,8 @@
 import { db } from "../lib/db.js";
-import { calcularEstadoPago, totalPagado } from "../lib/estadoPago.js";
-import { TIPO_CURSO_A_TEXTO, diasHasta } from "../lib/estadoVencimiento.js";
-import { nombreDocumento, documentoPorVencer } from "../lib/documentosVehiculo.js";
+import { totalPagado } from "../lib/estadoPago.js";
+import { diasHasta } from "../lib/estadoVencimiento.js";
+import { listarAvisos } from "./alertas.service.js";
 
-// Antes cada servicio tenía su copia, con el desfase de un día (ver
-// diasHasta en lib/estadoVencimiento.js).
-const diasRestantes = diasHasta;
 
 // Los vehículos pueden ser dueños de una empresa y estar en uso de la
 // otra (ver vehiculos.service.js) — por eso, para vehículos, "acceso"
@@ -23,53 +20,20 @@ function filtroEmpresaVehiculo(empresasPermitidas) {
 // Todo lo que ve el Dashboard se restringe a las empresas del usuario
 // que lo está mirando — antes esto mezclaba Corevex + Electro sin
 // importar a cuál pertenecía de verdad.
-export async function obtenerKpis(empresasPermitidas) {
+export async function obtenerKpis(empresasPermitidas, usuario) {
   const filtroEmpresa = { empresa: { slug: { in: empresasPermitidas } } };
 
-  const [contratos, cursos, totalEquipos, disponibles, facturas] = await Promise.all([
+  const [contratos, totalEquipos, disponibles, facturas, avisos] = await Promise.all([
     db.contrato.findMany({ where: { estadoManual: null, ...filtroEmpresa } }),
-    db.curso.findMany({ where: { estadoManual: null, ...filtroEmpresa } }),
     db.equipo.count({ where: { estado: { not: "DEBAJA" }, ...filtroEmpresa } }),
     db.equipo.count({ where: { estado: "DISPONIBLE", ...filtroEmpresa } }),
     db.factura.findMany({ where: { anulada: false, ...filtroEmpresa }, include: { pagos: true } }),
+    listarAvisos(usuario, empresasPermitidas),
   ]);
 
   const contratosPorVencer = contratos.filter((c) => {
-    const dias = diasRestantes(c.fechaFin);
+    const dias = diasHasta(c.fechaFin);
     return dias >= 0 && dias <= c.diasAnticipacion;
-  }).length;
-
-  const cursosPorVencer = cursos.filter((c) => {
-    const dias = diasRestantes(c.fechaVencimiento);
-    return dias >= 0 && dias <= c.diasAnticipacion;
-  }).length;
-
-  const documentosVehiculo = await db.documentoVehiculo.findMany({
-    where: { fechaVencimiento: { not: null }, vehiculo: filtroEmpresaVehiculo(empresasPermitidas) },
-  });
-  // Días de anticipación de cada documento (antes, 45 fijos para todos).
-  const documentosPorVencer = documentosVehiculo.filter(documentoPorVencer).length;
-
-  const equiposConInspeccion = await db.equipo.findMany({
-    where: { proximaInspeccion: { not: null }, estado: { not: "DEBAJA" }, ...filtroEmpresa },
-    select: { proximaInspeccion: true },
-  });
-  // Antes esto contaba TODOS los equipos con una fecha de próxima
-  // inspección, sin importar si faltaban 2 días o 3 años — no
-  // coincidía con el criterio real de "por vencer" (dias <= 15) que sí
-  // usa el panel de abajo y el push.
-  const inspeccionesPorVencer = equiposConInspeccion.filter((eq) => {
-    const dias = diasRestantes(eq.proximaInspeccion);
-    return dias >= 0 && dias <= 15;
-  }).length;
-
-  // Facturas por cobrar que ya entran en la ventana de aviso (30 días)
-  // y no están pagadas del todo — mismo criterio que usa listarAlertas
-  // más abajo. Antes faltaba acá, así que la campanita podía mostrar
-  // más alertas que las que decía este número.
-  const facturasPorVencer = facturas.filter((f) => {
-    if (calcularEstadoPago(f.montoTotal, f.pagos) === "pagado") return false;
-    return diasRestantes(f.fechaVencimiento) <= 30;
   }).length;
 
   const porCobrar = facturas.reduce((acc, f) => {
@@ -81,67 +45,17 @@ export async function obtenerKpis(empresasPermitidas) {
     contratosPorVencer,
     equiposDisponibles: `${disponibles}/${totalEquipos}`,
     porCobrar,
-    // Mismos 5 orígenes que muestra el panel de "Próximos vencimientos"
-    // (listarAlertas) — antes faltaban las facturas acá, y el número
-    // de este KPI podía no coincidir con lo que mostraba la campana.
-    alertasPendientes: contratosPorVencer + cursosPorVencer + documentosPorVencer + inspeccionesPorVencer + facturasPorVencer,
+    // La MISMA lista que muestran la campana y el panel de vencimientos
+    // (alertas.service.js) — antes se recontaba acá con otros criterios
+    // y el número podía no coincidir con la campana.
+    alertasPendientes: avisos.length,
   };
 }
 
-// ---- Panel de "Próximos vencimientos" ----
-export async function listarAlertas({ limit = 5 } = {}, empresasPermitidas) {
-  const alertas = [];
-  const filtroEmpresa = { empresa: { slug: { in: empresasPermitidas } } };
-
-  const contratos = await db.contrato.findMany({ where: { estadoManual: null, ...filtroEmpresa }, include: { personal: true, empresa: true } });
-  for (const c of contratos) {
-    const dias = diasRestantes(c.fechaFin);
-    if (dias >= 0 && dias <= c.diasAnticipacion) {
-      alertas.push({ id: `contrato-${c.id}`, tipo: "contrato", titulo: `Contrato — ${c.personal.nombre}`, empresa: c.empresa.nombre, dias });
-    }
-  }
-
-  const cursos = await db.curso.findMany({ where: { estadoManual: null, ...filtroEmpresa }, include: { personal: true, empresa: true } });
-  for (const c of cursos) {
-    const dias = diasRestantes(c.fechaVencimiento);
-    if (dias >= 0 && dias <= c.diasAnticipacion) {
-      alertas.push({ id: `curso-${c.id}`, tipo: "curso", titulo: `${TIPO_CURSO_A_TEXTO[c.tipo]} — ${c.personal.nombre}`, empresa: c.empresa.nombre, dias });
-    }
-  }
-
-  const documentos = await db.documentoVehiculo.findMany({
-    where: { fechaVencimiento: { not: null }, vehiculo: filtroEmpresaVehiculo(empresasPermitidas) },
-    include: { vehiculo: { include: { empresaDuena: true } } },
-  });
-  for (const d of documentos) {
-    if (documentoPorVencer(d)) {
-      alertas.push({ id: `vehiculo-${d.id}`, tipo: "vehiculo", titulo: `${nombreDocumento(d)} — Vehículo ${d.vehiculo.placa}`, empresa: d.vehiculo.empresaDuena.nombre, dias: diasHasta(d.fechaVencimiento) });
-    }
-  }
-
-  const equipos = await db.equipo.findMany({
-    where: { proximaInspeccion: { not: null }, estado: { not: "DEBAJA" }, ...filtroEmpresa },
-    include: { empresa: true },
-  });
-  for (const eq of equipos) {
-    const dias = diasRestantes(eq.proximaInspeccion);
-    if (dias >= 0 && dias <= 15) {
-      alertas.push({ id: `equipo-${eq.id}`, tipo: "equipo", titulo: `Inspección — Equipo ${eq.codigo}`, empresa: eq.empresa.nombre, dias });
-    }
-  }
-
-  const facturas = await db.factura.findMany({ where: { anulada: false, ...filtroEmpresa }, include: { pagos: true, empresa: true } });
-  for (const f of facturas) {
-    const estado = calcularEstadoPago(f.montoTotal, f.pagos);
-    if (estado === "pagado") continue;
-    const dias = diasRestantes(f.fechaVencimiento);
-    if (dias <= 30) {
-      alertas.push({ id: `factura-${f.id}`, tipo: "factura", titulo: `Factura #${f.serie}-${f.numero} por cobrar`, empresa: f.empresa.nombre, dias });
-    }
-  }
-
-  alertas.sort((a, b) => a.dias - b.dias);
-  return alertas.slice(0, limit);
+// ---- Panel de vencimientos y campana ----
+// Misma recolección y mismo texto que el push (alertas.service.js).
+export async function listarAlertas({ limit } = {}, empresasPermitidas, usuario) {
+  return listarAvisos(usuario, empresasPermitidas, { limit });
 }
 
 // ---- Panel de "Actividad reciente" ----

@@ -1,0 +1,35 @@
+.etiqueta-urgencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.etiqueta-urgencia i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.etiqueta-urgencia--vencido {
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+}
+
+/* Vence hoy: rojo con borde, entre "por vencer" y "vencido" */
+.etiqueta-urgencia--hoy {
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+  box-shadow: inset 0 0 0 1px var(--danger);
+}
+
+.etiqueta-urgencia--porvencer {
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+}

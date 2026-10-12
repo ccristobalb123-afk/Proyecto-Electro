@@ -1,7 +1,8 @@
 import { apiClient } from "./apiClient";
 
-// Motor central de "Vencimientos" — mezcla Contrato/Curso/Equipo/
-// Vehículo/Factura por igual, ordenados por días restantes.
+// Avisos de vencimiento (vencidos recientes, vencen hoy y por vencer),
+// ya ordenados por urgencia y con el mismo texto que el push. Sin
+// `limit`, la lista completa (la campana la necesita entera).
 export async function listarAlertas({ limit } = {}) {
   return apiClient.get("/dashboard/alertas", { limit });
 }

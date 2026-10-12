@@ -72,7 +72,14 @@ export const registrarInspeccionSchema = z.object({
   tipo: z.enum(["interna", "externa"]),
   fechaInspeccion: z.string().refine((v) => !isNaN(Date.parse(v)), "Fecha inválida."),
   fechaVencimiento: z.string().refine((v) => !isNaN(Date.parse(v)), "Fecha inválida."),
-  diasAnticipacion: z.number().int().positive().optional(),
+  // Días antes de la próxima inspección para avisar. Si no llega, el
+  // equipo conserva el que tenía (15 por defecto).
+  diasAnticipacion: z
+    .number({ invalid_type_error: "Los días de anticipación deben ser un número." })
+    .int("Los días de anticipación deben ser un número entero.")
+    .min(1, "Los días de anticipación deben estar entre 1 y 365.")
+    .max(365, "Los días de anticipación deben estar entre 1 y 365.")
+    .optional(),
   resultado: z.enum(["aprobado", "observado", "rechazado"]),
 });
 

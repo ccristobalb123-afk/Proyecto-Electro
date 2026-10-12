@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import * as facturasService from "../services/facturasService";
 import * as finanzasService from "../services/finanzasService";
 import * as catalogoDetraccionService from "../services/catalogoDetraccionService";
@@ -46,10 +47,13 @@ export function useFinanzasManager() {
   const { mostrarToast } = useToast();
   const acciones = useAccion();
   const [errorFormulario, setErrorFormulario] = useState("");
-  const [tab, setTab] = useState("facturas"); // "facturas" | "facturasPagar" | "gastos"
+  // ?tab=…&q=<cliente> — enlace directo desde un aviso de vencimiento.
+  const [searchParams] = useSearchParams();
+  const tabInicial = searchParams.get("tab");
+  const [tab, setTab] = useState(["facturasPagar", "gastos"].includes(tabInicial) ? tabInicial : "facturas"); // "facturas" | "facturasPagar" | "gastos"
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useState(searchParams.get("q") || "");
   const busquedaDebounced = useDebounce(busqueda, 400);
 
   // Categorías de gasto — antes era un array fijo importado

@@ -15,6 +15,8 @@ import { useComparativoChart } from "../hooks/useComparativoChart";
 import Loading from "../components/shared/Loading";
 import EstadoVacio from "../components/shared/EstadoVacio";
 import EstadoError from "../components/shared/EstadoError";
+import EtiquetaUrgencia from "../components/shared/EtiquetaUrgencia";
+import { Link } from "react-router-dom";
 import "./Dashboard.css";
 
 const ICONO_KPI = [IconContrato, IconWrench, IconInvoice, IconBell];
@@ -47,9 +49,11 @@ const ICONO_POR_TIPO = {
   equipo: IconWrench,
   vehiculo: IconTruck,
   factura: IconInvoice,
+  facturaPagar: IconInvoice,
 };
 
-const TAG_POR_DIAS = (dias) => (dias <= 5 ? "red" : dias <= 15 ? "amber" : "gray");
+// Cuántos avisos se ven en el panel antes de "Ver todos".
+const AVISOS_VISIBLES = 5;
 
 export default function Dashboard() {
   const chartRef = useRef(null);
@@ -80,7 +84,9 @@ export default function Dashboard() {
     loading: cargandoAlertas,
     error: errorAlertas,
     reload: recargarAlertas,
-  } = useAsyncList(() => notificacionesService.listarAlertas({ limit: 5 }), []);
+  } = useAsyncList(() => notificacionesService.listarAlertas(), []);
+  const [verTodos, setVerTodos] = useState(false);
+  const avisosVisibles = verTodos ? proximosVencimientos : proximosVencimientos.slice(0, AVISOS_VISIBLES);
 
   const { data: actividadReciente } = useAsyncList(() => notificacionesService.listarActividadReciente({ limit: 4 }), []);
 
@@ -126,31 +132,34 @@ export default function Dashboard() {
       <div className="cols">
         <div className="panel">
           <div className="panel-head">
-            <h2>Próximos vencimientos</h2>
-            <span>Ver todos</span>
+            <h2>Vencimientos</h2>
+            {proximosVencimientos.length > AVISOS_VISIBLES && (
+              <button className="link-button panel-head__accion" type="button" onClick={() => setVerTodos((v) => !v)} aria-expanded={verTodos}>
+                {verTodos ? "Ver menos" : `Ver todos (${proximosVencimientos.length})`}
+              </button>
+            )}
           </div>
           {cargandoAlertas ? (
             <Loading texto="Cargando vencimientos…" />
           ) : errorAlertas ? (
             <EstadoError error={errorAlertas} onReintentar={recargarAlertas} mensaje="No se pudieron cargar los vencimientos." />
           ) : proximosVencimientos.length === 0 ? (
-            <EstadoVacio titulo="No hay vencimientos próximos" descripcion="Todo al día." />
+            <EstadoVacio titulo="Sin documentos por vencer" descripcion="No hay vencimientos recientes ni próximos. Todo al día." />
           ) : (
-            proximosVencimientos.map(({ id, titulo, empresa, dias, tipo }) => {
-              const Icon = ICONO_POR_TIPO[tipo] || IconBell;
+            avisosVisibles.map((aviso) => {
+              const Icon = ICONO_POR_TIPO[aviso.tipo] || IconBell;
               return (
-                <div className="row-item" key={id}>
+                <Link className={`row-item row-item--${aviso.severidad}`} key={aviso.id} to={aviso.url}>
                   <div className="row-icon">
                     <Icon />
                   </div>
                   <div className="row-main">
-                    <div className="row-title">{titulo}</div>
-                    <div className="row-sub">
-                      <span className="co-pill">{empresa}</span> vence en {dias} días
-                    </div>
+                    <div className="row-title">{aviso.titulo}</div>
+                    {/* Mismo texto que el push y la campana */}
+                    <div className="row-sub">{aviso.cuerpo}</div>
                   </div>
-                  <span className={`tag ${TAG_POR_DIAS(dias)}`}>{dias}d</span>
-                </div>
+                  <EtiquetaUrgencia aviso={aviso} />
+                </Link>
               );
             })
           )}

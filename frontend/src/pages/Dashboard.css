@@ -147,6 +147,41 @@
   margin-top: 2px;
 }
 
+/* Avisos de vencimiento: toda la fila lleva al registro */
+a.row-item {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  a.row-item:hover {
+    background: var(--gray-tint);
+  }
+}
+
+a.row-item:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: -2px;
+}
+
+/* Título y cuerpo del aviso completos (nombre del documento incluido):
+   pueden ocupar más de una línea en vez de cortarse con "…". */
+a.row-item .row-title {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+a.row-item .row-sub {
+  display: block;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.panel-head__accion {
+  margin-top: 0;
+  font-size: var(--fs-sm);
+}
+
 .co-pill {
   font-size: var(--fs-xs);
   padding: 1px 6px;

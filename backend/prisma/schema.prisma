@@ -271,6 +271,9 @@ model Equipo {
   motivoBaja              String?         @map("motivo_baja")
   ultimaInspeccion        DateTime?       @map("ultima_inspeccion") @db.Date
   proximaInspeccion       DateTime?       @map("proxima_inspeccion") @db.Date
+  // Días antes de la próxima inspección en que se avisa (el valor del
+  // modal de inspección). 15 para los equipos que ya existían.
+  diasAnticipacionInspeccion Int  @default(15) @map("dias_anticipacion_inspeccion")
   creadoEn                DateTime        @default(now()) @map("creado_en")
 
   historial HistorialEquipo[]
