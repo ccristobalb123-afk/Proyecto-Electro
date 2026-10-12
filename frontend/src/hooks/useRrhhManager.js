@@ -34,7 +34,7 @@ function formContratoVacio() {
 function formCursoVacio() {
   return {
     dni: "",
-    empresa: "corevex",
+    empresa: "", // se completa con la del contrato del trabajador
     tipo: "Curso",
     fechaInicio: "",
     fechaVencimiento: "",
@@ -72,7 +72,8 @@ export function useRrhhManager() {
   const [archivoCursoSeleccionado, setArchivoCursoSeleccionado] = useState(null);
 
   // Lista de personal ya registrado (deriva de los contratos reales) —
-  // se usa para el selector de "Trabajador" en Cursos/Fotocheck/EMO.
+  // se usa para el selector de "Trabajador" en Cursos/EMO (con las
+  // empresas donde cada uno tiene contrato).
   // Independiente de `listaFiltrada` porque esta última respeta los
   // filtros de la tabla (empresa/estado/búsqueda) y acá siempre
   // necesitamos el personal completo, sin filtrar.
@@ -192,12 +193,23 @@ export function useRrhhManager() {
       setErrorCurso("Selecciona un trabajador, fecha de inicio y fecha de vencimiento.");
       return;
     }
+    const empresasTrabajador = trabajadoresRegistrados.find((t) => t.dni === fCurso.dni)?.empresas || [];
+    if (empresasTrabajador.length > 1 && !fCurso.empresa) {
+      setErrorCurso("Elige a qué empresa corresponde este registro.");
+      return;
+    }
+    if (fCurso.fechaVencimiento < fCurso.fechaInicio) {
+      setErrorCurso("La fecha de vencimiento no puede ser anterior a la fecha de inicio.");
+      return;
+    }
     setErrorCurso("");
     await acciones.ejecutar("modal", async ({ subida, etapa }) => {
       try {
         // archivoNombre del formulario es solo para mostrar en el
         // dropzone — lo que se guarda es lo que devuelve la subida.
-        const { archivoNombre: _soloVista, ...datosForm } = fCurso;
+        // Sin empresa elegida, el backend usa la del contrato.
+        const { archivoNombre: _soloVista, empresa, ...resto } = fCurso;
+        const datosForm = empresa ? { ...resto, empresa } : resto;
         let datos = datosForm;
         if (archivoCursoSeleccionado) {
           const { url, nombre } = await subirArchivo(archivoCursoSeleccionado, subida);

@@ -1,5 +1,7 @@
-import { IconPlus, IconEye, IconFile, IconTrash } from "../icons/Icons";
+import { IconEye, IconFile, IconTrash } from "../icons/Icons";
 import { BotonVerArchivo } from "../shared/VisorArchivo";
+import EstadoDocumento from "./EstadoDocumento";
+import { fechaCorta } from "../../services/vehiculosService";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
@@ -42,7 +44,7 @@ export default function VehiculosGrid({
             </div>
             <div className="vehiculo-card-top-actions">
               <button className="btn-outline-sm" type="button" onClick={() => onAbrirDocumentos(v)}>
-                <IconPlus width={13} height={13} /> Agregar documento
+                <IconFile width={13} height={13} /> Documentos
               </button>
               <button className="icon-btn" type="button" title="Ver historial" onClick={() => onVerHistorial(v)}>
                 <IconEye />
@@ -57,33 +59,49 @@ export default function VehiculosGrid({
           {v.cuadrilla && <div className="vehiculo-card-cuadrilla">{v.cuadrilla}</div>}
 
           <div className="vehiculo-docs-list">
-            {v.documentos.map((d) => {
-              const fechaTexto =
-                d.dias === null
-                  ? null
-                  : (() => {
-                      const fecha = new Date();
-                      fecha.setDate(fecha.getDate() + d.dias);
-                      return fecha.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
-                    })();
-              return (
-                <div className="vehiculo-doc-item" key={d.id}>
+            {v.documentos.length === 0 && (
+              <p className="vehiculo-docs-vacio">Sin documentos marcados. Usa “Editar” para indicar cuáles tiene este vehículo.</p>
+            )}
+            {v.documentos.map((d) => (
+              <div className="vehiculo-doc-item" key={d.id}>
+                <div className="vehiculo-doc-principal">
                   {d.archivo ? (
                     <BotonVerArchivo className="vehiculo-doc-nombre vehiculo-doc-nombre--link" url={d.archivoUrl} nombre={d.archivoNombre} icono={false}>
-                      {d.tipo}
+                      {d.nombre}
                     </BotonVerArchivo>
                   ) : (
-                    <span className="vehiculo-doc-nombre">{d.tipo}</span>
+                    <span className="vehiculo-doc-nombre">{d.nombre}</span>
                   )}
-                  <span className={`vehiculo-doc-vence vence-${d.estado}`}>
-                    {fechaTexto ? `Vence: ${fechaTexto}` : "Sin fecha aún"}
-                  </span>
-                  <button className="icon-btn" type="button" title="Adjuntar o ver documento" onClick={() => onAbrirDocumentos(v)}>
-                    <IconFile width={14} height={14} />
-                  </button>
+                  <EstadoDocumento documento={d} />
                 </div>
-              );
-            })}
+                <span className="vehiculo-doc-vence">
+                  {d.fechaVencimiento
+                    ? `Vence ${fechaCorta(d.fechaVencimiento)} · aviso ${d.diasAnticipacion} días antes`
+                    : d.estado === "novence"
+                      ? "Sin vencimiento"
+                      : "Falta registrar el vencimiento"}
+                  {!d.archivo && " · sin archivo"}
+                </span>
+              </div>
+            ))}
+
+            {v.documentosAnteriores.length > 0 && (
+              <div className="vehiculo-docs-anteriores">
+                <span className="vehiculo-docs-anteriores__titulo">Documentos del sistema anterior</span>
+                {v.documentosAnteriores.map((d) => (
+                  <div className="vehiculo-doc-item vehiculo-doc-item--anterior" key={d.id}>
+                    {d.archivo ? (
+                      <BotonVerArchivo className="vehiculo-doc-nombre vehiculo-doc-nombre--link" url={d.archivoUrl} nombre={d.archivoNombre} icono={false}>
+                        {d.nombre}
+                      </BotonVerArchivo>
+                    ) : (
+                      <span className="vehiculo-doc-nombre">{d.nombre}</span>
+                    )}
+                    <span className="vehiculo-doc-vence">{d.fechaVencimiento ? `Vence ${fechaCorta(d.fechaVencimiento)}` : "Sin datos"}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ))}

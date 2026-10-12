@@ -333,16 +333,40 @@ model Vehiculo {
 // el color (gray/amber/red) del semáforo de vencimiento NO se guardan,
 // se calculan al leer a partir de fechaVencimiento (mismo criterio que
 // calcularEstado en RRHH).
-model DocumentoVehiculo {
-  id               Int       @id @default(autoincrement())
-  vehiculoId       Int       @map("vehiculo_id")
-  vehiculo         Vehiculo  @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
-  tipo             String
-  fechaVencimiento DateTime? @map("fecha_vencimiento") @db.Date
-  archivoNombre    String?   @map("archivo_nombre")
-  archivoUrl       String?       @map("archivo_url")
-  creadoEn         DateTime  @default(now()) @map("creado_en")
+// Catálogo fijo de documentos de un vehículo. BRAZO_HIDRAULICO solo
+// se puede marcar en grúas (lo valida vehiculos.service.js).
+enum TipoDocumentoVehiculo {
+  SOAT
+  REVISION_TECNICA
+  SEGURO_TODO_RIESGO
+  TARJETA_PROPIEDAD
+  HABILITACION_VEHICULAR
+  LUNAS_POLARIZADAS
+  BRAZO_HIDRAULICO
+}
 
+// Cada fila es un documento que APLICA al vehículo (se marcó al
+// registrarlo o editarlo); los que no aplican simplemente no existen.
+// `tipoDocumento` null = documento del sistema anterior que no tiene
+// equivalente en el catálogo (ej. "Permiso de operación"): se conserva
+// tal cual, visible con su texto original en `tipo`, hasta decidir qué
+// hacer con él.
+model DocumentoVehiculo {
+  id               Int                    @id @default(autoincrement())
+  vehiculoId       Int                    @map("vehiculo_id")
+  vehiculo         Vehiculo               @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+  tipoDocumento    TipoDocumentoVehiculo? @map("tipo_documento")
+  tipo             String // nombre visible; en documentos anteriores, el texto original
+  fechaEmision     DateTime?              @map("fecha_emision") @db.Date // inspección o emisión
+  fechaVencimiento DateTime?              @map("fecha_vencimiento") @db.Date
+  diasAnticipacion Int                    @default(30) @map("dias_anticipacion")
+  archivoNombre    String?                @map("archivo_nombre")
+  archivoUrl       String?                @map("archivo_url")
+  creadoEn         DateTime               @default(now()) @map("creado_en")
+
+  // Un mismo tipo del catálogo no se repite en un vehículo (los
+  // anteriores, con tipoDocumento null, no cuentan: NULL no choca).
+  @@unique([vehiculoId, tipoDocumento])
   @@map("documentos_vehiculo")
 }
 

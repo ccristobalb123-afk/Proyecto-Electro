@@ -73,8 +73,8 @@
 
 .vehiculo-doc-item {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: var(--space-1);
   padding: 11px 0;
   border-bottom: 1px dashed var(--border);
 }
@@ -83,10 +83,19 @@
   border-bottom: none;
 }
 
+.vehiculo-doc-principal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 .vehiculo-doc-nombre {
+  min-width: 0;
   font-size: 13.5px;
   font-weight: 600;
-  flex-shrink: 0;
+  overflow-wrap: anywhere;
 }
 
 .vehiculo-doc-nombre--link {
@@ -104,14 +113,88 @@
 }
 
 .vehiculo-doc-vence {
-  font-size: 12px;
-  font-family: var(--font-mono);
-  flex: 1;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
-.vence-gray { color: var(--muted); }
-.vence-amber { color: var(--volt-dark); }
-.vence-red { color: var(--danger-dark); font-weight: 600; }
+.vehiculo-docs-vacio {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.vehiculo-docs-anteriores {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+
+.vehiculo-docs-anteriores__titulo {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+}
+
+.vehiculo-doc-item--anterior {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* ===== Estado de un documento: texto + color (nunca solo color) ===== */
+.doc-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.doc-estado i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.doc-estado__detalle {
+  font-weight: var(--fw-medium);
+}
+
+.doc-estado--vigente {
+  background: var(--success-tint);
+  color: var(--success-dark);
+}
+
+.doc-estado--porvencer {
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+}
+
+.doc-estado--vencido {
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+}
+
+/* Falta un dato: borde punteado, para leerse como "pendiente" */
+.doc-estado--sinfecha {
+  background: var(--card);
+  color: var(--gray-dark);
+  border: 1px dashed var(--border-control);
+}
+
+.doc-estado--novence {
+  background: var(--electro-tint);
+  color: var(--electro-dark);
+}
 
 /* Celular: las 4 acciones (≈330px) no entraban junto a la placa en una
    tarjeta de ~280px y desbordaban la tarjeta. Pasan a su propia fila a
@@ -126,7 +209,7 @@
     width: 100%;
   }
 
-  /* Fila 1: "Agregar documento" a todo el ancho.
+  /* Fila 1: "Documentos" a todo el ancho.
      Fila 2: historial · Editar (estirado) · eliminar. */
   .vehiculo-card-top-actions .btn-outline-sm {
     flex: 1 1 auto;
@@ -137,9 +220,4 @@
     flex-basis: 100%;
   }
 
-  .vehiculo-doc-nombre {
-    flex-shrink: 1;
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
 }

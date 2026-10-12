@@ -1,14 +1,11 @@
 import { db } from "../lib/db.js";
-import { buscarPersonalConContratoEnEmpresa } from "./personal.service.js";
-import { calcularEstado, formatearFecha, iniciales } from "../lib/estadoVencimiento.js";
-import { ApiError, sinPermiso } from "../lib/errors.js";
+import { buscarPersonalRegistrado } from "./personal.service.js";
+import { calcularEstado, formatearFechaDia, iniciales, TIPO_CURSO_A_TEXTO } from "../lib/estadoVencimiento.js";
+import { ApiError, sinPermiso, conflicto, validacionFallida } from "../lib/errors.js";
 import { borrarArchivoSiHuerfano } from "../lib/archivos.js";
-import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
+import { empresasParaFiltro } from "../lib/autorizacionEmpresa.js";
 
-// "EMO" tiene que quedar en mayúsculas (es una sigla, no una palabra),
-// a diferencia de "Curso"/"Fotocheck" — por eso es un mapeo explícito
-// en vez de un capitalize genérico para los 3 casos.
-const TIPO_A_TEXTO = { CURSO: "Curso", FOTOCHECK: "Fotocheck", EMO: "EMO" };
+const TIPO_A_TEXTO = TIPO_CURSO_A_TEXTO;
 
 function serializar(curso) {
   return {
@@ -18,7 +15,7 @@ function serializar(curso) {
     iniciales: iniciales(curso.personal.nombre),
     empresa: curso.empresa.slug,
     tipo: TIPO_A_TEXTO[curso.tipo],
-    vence: formatearFecha(curso.fechaVencimiento),
+    vence: formatearFechaDia(curso.fechaVencimiento),
     estado: calcularEstado(curso.fechaVencimiento, curso.diasAnticipacion, curso.estadoManual),
     // "yyyy-mm-dd" para precargar los <input type="date"> al editar.
     fechaInicio: curso.fechaInicio.toISOString().slice(0, 10),
@@ -31,11 +28,38 @@ function serializar(curso) {
   };
 }
 
-async function buscarEmpresa(slug, empresasPermitidas) {
-  verificarAccesoEmpresa(slug, empresasPermitidas);
-  const empresa = await db.empresa.findUnique({ where: { slug } });
-  if (!empresa) throw new ApiError(400, "VALIDACION", "Empresa inválida.");
-  return empresa;
+// La empresa de un Curso/EMO sale del contrato del trabajador — antes
+// se elegía a mano en el modal, aparte de la del contrato. Se valida
+// siempre acá, no solo en la interfaz:
+//   - sin contrato en ninguna empresa → 409 "Primero registra el contrato"
+//   - empresa enviada donde no tiene contrato → 409
+//   - empresa a la que el usuario no tiene acceso → 403
+//   - sin empresa enviada: si tiene contrato en UNA (accesible), esa;
+//     si tiene en varias, hay que elegir.
+async function resolverPersonalYEmpresa(dni, empresaSlug, empresasPermitidas) {
+  const personal = await buscarPersonalRegistrado(dni);
+  const contratos = await db.contrato.findMany({ where: { personalId: personal.id }, include: { empresa: true } });
+  const empresasContrato = [...new Map(contratos.map((c) => [c.empresa.slug, c.empresa])).values()];
+
+  if (empresasContrato.length === 0) {
+    throw conflicto("Primero registra el contrato de este trabajador.", "SIN_CONTRATO");
+  }
+
+  if (empresaSlug) {
+    const empresa = empresasContrato.find((e) => e.slug === empresaSlug);
+    if (!empresa) {
+      throw conflicto(`${personal.nombre} no tiene contrato en esa empresa. Elige una empresa donde tenga contrato.`, "EMPRESA_SIN_CONTRATO");
+    }
+    if (!empresasPermitidas.includes(empresa.slug)) throw sinPermiso();
+    return { personal, empresa };
+  }
+
+  const accesibles = empresasContrato.filter((e) => empresasPermitidas.includes(e.slug));
+  if (accesibles.length === 0) throw sinPermiso();
+  if (empresasContrato.length > 1) {
+    throw validacionFallida(`${personal.nombre} tiene contrato en más de una empresa: elige a cuál corresponde este registro.`);
+  }
+  return { personal, empresa: accesibles[0] };
 }
 
 async function buscarCurso(cursoId, empresasPermitidas) {
@@ -62,10 +86,9 @@ export async function listarCursos({ empresa, estado, q }, empresasPermitidas) {
 }
 
 export async function crearCurso(datos, empresasPermitidas) {
-  const empresa = await buscarEmpresa(datos.empresa, empresasPermitidas);
   // A diferencia de Contratos, acá el trabajador YA debe existir —
   // este endpoint nunca da de alta a alguien nuevo.
-  const personal = await buscarPersonalConContratoEnEmpresa(datos.dni, empresa.id);
+  const { personal, empresa } = await resolverPersonalYEmpresa(datos.dni, datos.empresa, empresasPermitidas);
 
   try {
     const creado = await db.curso.create({
@@ -87,7 +110,7 @@ export async function crearCurso(datos, empresasPermitidas) {
       throw new ApiError(
         409,
         "CURSO_DUPLICADO",
-        `${personal.nombre} ya tiene un registro de "${datos.tipo}" en esta empresa — edítalo en vez de crear uno nuevo.`
+        `${personal.nombre} ya tiene un registro de "${datos.tipo}" en ${empresa.nombre} — edítalo en vez de crear uno nuevo.`
       );
     }
     throw err;
@@ -96,8 +119,7 @@ export async function crearCurso(datos, empresasPermitidas) {
 
 export async function actualizarCurso(cursoId, datos, empresasPermitidas) {
   await buscarCurso(cursoId, empresasPermitidas);
-  const empresa = await buscarEmpresa(datos.empresa, empresasPermitidas);
-  const personal = await buscarPersonalConContratoEnEmpresa(datos.dni, empresa.id);
+  const { personal, empresa } = await resolverPersonalYEmpresa(datos.dni, datos.empresa, empresasPermitidas);
 
   try {
     const actualizado = await db.curso.update({

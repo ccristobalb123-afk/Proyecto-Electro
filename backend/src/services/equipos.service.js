@@ -1,5 +1,5 @@
 import { db } from "../lib/db.js";
-import { formatearFecha } from "../lib/estadoVencimiento.js";
+import { formatearFecha, formatearFechaDia } from "../lib/estadoVencimiento.js";
 import { ApiError, validacionFallida, conflicto } from "../lib/errors.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 
@@ -16,8 +16,8 @@ function serializar(equipo) {
     camposValores: equipo.camposValores,
     fotos: equipo.fotos,
     ...(equipo.comentarioMantenimiento ? { comentarioMantenimiento: equipo.comentarioMantenimiento } : {}),
-    ...(equipo.ultimaInspeccion ? { ultInspeccion: formatearFecha(equipo.ultimaInspeccion) } : {}),
-    ...(equipo.proximaInspeccion ? { proxInspeccion: formatearFecha(equipo.proximaInspeccion) } : {}),
+    ...(equipo.ultimaInspeccion ? { ultInspeccion: formatearFechaDia(equipo.ultimaInspeccion) } : {}),
+    ...(equipo.proximaInspeccion ? { proxInspeccion: formatearFechaDia(equipo.proximaInspeccion) } : {}),
   };
 }
 

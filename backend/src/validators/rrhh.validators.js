@@ -38,8 +38,11 @@ export const adjuntarArchivoSchema = z.object({
 export const crearCursoSchema = z
   .object({
     dni: dniSchema,
-    empresa: z.enum(["corevex", "electro"]),
-    tipo: z.enum(["Curso", "Fotocheck", "EMO"]),
+    // Opcional: si el trabajador tiene contrato en una sola empresa, el
+    // backend la asigna. Solo hace falta cuando tiene contrato en varias.
+    empresa: z.enum(["corevex", "electro"]).optional(),
+    // "Fotocheck" ya no se registra (los anteriores se conservan).
+    tipo: z.enum(["Curso", "EMO"], { errorMap: () => ({ message: "Elige Curso o EMO." }) }),
     fechaInicio: fechaSchema,
     fechaVencimiento: fechaSchema,
     diasAnticipacion: z.number().int().positive().optional(),

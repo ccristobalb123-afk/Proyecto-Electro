@@ -6,7 +6,7 @@ import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
 
 // "Ver PDF / Ver imagen" si ya tiene archivo, o "Adjuntar" si no —
-// igual en Contratos y en Cursos / Fotocheck / EMO.
+// igual en Contratos y en Cursos / EMO.
 function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
   const subiendo = estadoAdjunto?.(item.id);
   if (subiendo) {
@@ -40,13 +40,13 @@ function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
 }
 
 export default function TablaRrhh({ cargando, error, onReintentar, items, tab, estadoLabel, hayFiltrosActivos, onNuevo, onVerDetalle, onEditar, onEliminar, onAdjuntarArchivo, estadoAdjunto }) {
-  if (cargando) return <Loading texto={tab === "contratos" ? "Cargando contratos…" : "Cargando cursos y certificaciones…"} />;
+  if (cargando) return <Loading texto={tab === "contratos" ? "Cargando contratos…" : "Cargando cursos y EMO…"} />;
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
 
   if (items.length === 0) {
     return (
       <EstadoVacio
-        titulo={hayFiltrosActivos ? "No hay resultados con estos filtros" : tab === "contratos" ? "No hay contratos registrados" : "No hay cursos ni certificaciones registrados"}
+        titulo={hayFiltrosActivos ? "No hay resultados con estos filtros" : tab === "contratos" ? "No hay contratos registrados" : "No hay cursos ni EMO registrados"}
         descripcion={hayFiltrosActivos ? "Prueba ajustando los filtros de búsqueda." : undefined}
         accionLabel={hayFiltrosActivos ? undefined : tab === "contratos" ? "Nuevo contrato" : "Nuevo registro"}
         onAccion={onNuevo}
@@ -98,7 +98,15 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
                 </td>
                 <td>
                   <div className="rrhh-tabla-acciones">
-                    <button className="btn-outline-sm" type="button" onClick={() => onEditar(item)}>Editar</button>
+                    <button
+                  className="btn-outline-sm"
+                  type="button"
+                  onClick={() => onEditar(item)}
+                  disabled={item.tipo === "Fotocheck"}
+                  title={item.tipo === "Fotocheck" ? "Fotocheck ya no se registra: este registro se conserva como histórico" : undefined}
+                >
+                  Editar
+                </button>
                     <button className="icon-btn" type="button" title="Ver detalle" onClick={() => onVerDetalle(item)}>
                       <IconEye />
                     </button>
@@ -153,7 +161,15 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
             <div className="rrhh-mobile-card-doc">
               <CeldaDocumento item={item} tab={tab} onAdjuntarArchivo={onAdjuntarArchivo} estadoAdjunto={estadoAdjunto} />
               <div className="rrhh-mobile-card-acciones">
-                <button className="btn-outline-sm" type="button" onClick={() => onEditar(item)}>Editar</button>
+                <button
+                  className="btn-outline-sm"
+                  type="button"
+                  onClick={() => onEditar(item)}
+                  disabled={item.tipo === "Fotocheck"}
+                  title={item.tipo === "Fotocheck" ? "Fotocheck ya no se registra: este registro se conserva como histórico" : undefined}
+                >
+                  Editar
+                </button>
                 <button className="icon-btn" type="button" title="Ver detalle" aria-label="Ver detalle" onClick={() => onVerDetalle(item)}>
                   <IconEye />
                 </button>

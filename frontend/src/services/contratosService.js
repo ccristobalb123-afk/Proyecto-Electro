@@ -6,8 +6,8 @@ export async function listarContratos({ empresa, estado, q, signal } = {}) {
 }
 
 // El personal "registrado" es quien ya tiene al menos un contrato — es
-// la única forma de dar de alta a alguien nuevo en el sistema. Cursos,
-// Fotocheck y EMO solo pueden asignarse a alguien de esta lista, nunca
+// la única forma de dar de alta a alguien nuevo en el sistema. Cursos y
+// EMO solo pueden asignarse a alguien de esta lista, nunca
 // crear una persona nueva desde ahí.
 export async function listarTrabajadoresRegistrados({ q, signal } = {}) {
   return apiClient.get("/personal", { q }, { signal });

@@ -124,6 +124,23 @@ fieldset.form-field {
   margin-bottom: 6px;
 }
 
+/* Dato que el sistema completa solo (ej. la empresa del contrato) */
+.campo-derivado {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--fs-base);
+  color: var(--muted);
+}
+
+.campo-ayuda {
+  margin: calc(-1 * var(--space-1)) 0 var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
 .form-field-heading {
   display: block;
   font-size: 13px;
@@ -696,3 +713,98 @@ label.foto-equipo-vacio {
   }
 }
 
+/* ============================================================
+   Documentos del vehículo (Nuevo / Editar vehículo)
+   Cada documento es una fila con casilla; al marcarlo se despliegan
+   sus campos. En celular todo queda apilado (ver .form-row ≤560px).
+   ============================================================ */
+.docs-vehiculo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.doc-vehiculo {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.doc-vehiculo--marcado {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 1px var(--copper-tint);
+}
+
+.form-field .doc-vehiculo__check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height-lg);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+.doc-vehiculo__check input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--copper);
+}
+
+.doc-vehiculo__campos {
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  border-top: 1px solid var(--border);
+}
+
+.doc-vehiculo__opcional {
+  font-weight: var(--fw-regular);
+  color: var(--muted);
+}
+
+.doc-vehiculo__aviso {
+  padding: var(--space-3);
+}
+
+.doc-vehiculo__archivo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.doc-vehiculo__archivo .doc-chip {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.doc-chip--elegir {
+  cursor: pointer;
+}
+
+/* Adjuntar es opcional: neutro y punteado, no en rojo como un faltante */
+.doc-chip.doc-chip--opcional {
+  color: var(--gray-dark);
+  background: var(--card);
+  border: 1px dashed var(--border-control);
+}
+
+.docs-row-fechas {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: var(--space-1) 0;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.docs-seccion-titulo {
+  margin: var(--space-5) 0 var(--space-1);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+}

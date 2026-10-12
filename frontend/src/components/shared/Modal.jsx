@@ -137,9 +137,12 @@ export function ModalActions({ onCancel, cancelLabel = "Cancelar", children }) {
 
 // Selector visual "CorevexSAC / ElectroSAC" reutilizado en todos los
 // formularios que registran algo con empresa.
-export function CompanyChoice({ value, onChange, name }) {
+// `opciones`: limita a ciertas empresas (ej. solo donde el trabajador
+// tiene contrato). Por defecto, las dos.
+export function CompanyChoice({ value, onChange, name, opciones = ["corevex", "electro"] }) {
   return (
     <div className="co-choice">
+      {opciones.includes("corevex") && (
       <label className={value === "corevex" ? "sel-corevex" : ""}>
         <input
           type="radio"
@@ -149,6 +152,8 @@ export function CompanyChoice({ value, onChange, name }) {
         />
         CorevexSAC
       </label>
+      )}
+      {opciones.includes("electro") && (
       <label className={value === "electro" ? "sel-electro" : ""}>
         <input
           type="radio"
@@ -158,6 +163,7 @@ export function CompanyChoice({ value, onChange, name }) {
         />
         ElectroSAC
       </label>
+      )}
     </div>
   );
 }

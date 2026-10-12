@@ -25,8 +25,8 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
             <label>
               Trabajador
               {/* Contratos es el único lugar del sistema donde se registra
-                  personal nuevo — por eso acá es texto libre. Cursos,
-                  Fotocheck y EMO solo pueden elegir entre quienes ya
+                  personal nuevo — por eso acá es texto libre. Cursos y
+                  EMO solo pueden elegir entre quienes ya
                   tienen un contrato (ver ModalNuevoCurso). El DNI es la
                   identidad real — si ya existe alguien con ese DNI, este
                   nombre solo lo actualiza (ej. una corrección de

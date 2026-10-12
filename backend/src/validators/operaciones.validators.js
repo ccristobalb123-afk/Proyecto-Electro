@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CLAVES_DOCUMENTO } from "../lib/documentosVehiculo.js";
 
 const empresaSchema = z.enum(["corevex", "electro"]);
 
@@ -82,23 +83,80 @@ export const listarVehiculosQuerySchema = z.object({
   q: z.string().trim().optional(),
 });
 
+// ---- Documentos de vehículo ----
+const fechaOpcional = z
+  .string()
+  .trim()
+  .refine((v) => v === "" || !isNaN(Date.parse(v)), "Fecha inválida.")
+  .transform((v) => v || null)
+  .nullable()
+  .optional();
+
+const camposFechasDocumento = {
+  fechaEmision: fechaOpcional,
+  fechaVencimiento: fechaOpcional,
+  diasAnticipacion: z
+    .number({ invalid_type_error: "Los días de anticipación deben ser un número." })
+    .int("Los días de anticipación deben ser un número entero.")
+    .min(1, "Los días de anticipación deben estar entre 1 y 365.")
+    .max(365, "Los días de anticipación deben estar entre 1 y 365.")
+    .optional(),
+};
+
+function vencimientoNoAnterior(d, ctx, prefijo = []) {
+  if (d.fechaEmision && d.fechaVencimiento && new Date(d.fechaVencimiento) < new Date(d.fechaEmision)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [...prefijo, "fechaVencimiento"],
+      message: "La fecha de vencimiento no puede ser anterior a la de inspección o emisión.",
+    });
+  }
+}
+
+const documentoVehiculoSchema = z
+  .object({
+    tipo: z.enum(CLAVES_DOCUMENTO, { errorMap: () => ({ message: "Tipo de documento inválido." }) }),
+    ...camposFechasDocumento,
+    archivoNombre: z.string().min(1).optional(),
+    archivoUrl: z.string().regex(/^\/api\/uploads\/[\w.-]+$/, "Archivo inválido.").optional(),
+  })
+  .superRefine((d, ctx) => vencimientoNoAnterior(d, ctx));
+
+const listaDocumentosSchema = z.array(documentoVehiculoSchema).superRefine((docs, ctx) => {
+  const vistos = new Set();
+  docs.forEach((d, i) => {
+    if (vistos.has(d.tipo)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [i, "tipo"], message: "No se puede repetir el mismo documento en un vehículo." });
+    }
+    vistos.add(d.tipo);
+  });
+});
+
 export const crearVehiculoSchema = z.object({
   placa: z.string().trim().min(1, "Ingresa la placa."),
   tipoUnidad: z.enum(["Camioneta", "Camión", "Minivan", "Grúa", "Auto"]),
   empresa: empresaSchema,
   cuadrilla: z.string().trim().optional(),
+  documentos: listaDocumentosSchema.default([]),
 });
 
 // Sin tipoUnidad ni empresa a propósito — ver el comentario en
 // actualizarVehiculo (vehiculos.service.js) sobre por qué esos 2 no se
-// editan una vez creado el vehículo.
+// editan una vez creado el vehículo. `documentos` es la lista COMPLETA
+// de los que aplican: los del catálogo que no vengan se quitan. Si no
+// se manda, los documentos no se tocan.
 export const actualizarVehiculoSchema = z.object({
   placa: z.string().trim().min(1, "Ingresa la placa."),
   cuadrilla: z.string().trim().optional(),
+  documentos: listaDocumentosSchema.optional(),
 });
 
-export const actualizarDocumentoSchema = z.object({
-  archivoNombre: z.string().min(1).optional(),
-  archivoUrl: z.string().min(1).optional(),
-  fechaVencimiento: z.string().refine((v) => !isNaN(Date.parse(v)), "Fecha inválida.").optional(),
-});
+// Adjuntar el archivo o corregir fechas de UN documento (desde el
+// modal "Documentos"). Funciona también con los del sistema anterior.
+export const actualizarDocumentoSchema = z
+  .object({
+    archivoNombre: z.string().min(1).optional(),
+    archivoUrl: z.string().regex(/^\/api\/uploads\/[\w.-]+$/, "Archivo inválido.").optional(),
+    ...camposFechasDocumento,
+  })
+  .superRefine((d, ctx) => vencimientoNoAnterior(d, ctx));

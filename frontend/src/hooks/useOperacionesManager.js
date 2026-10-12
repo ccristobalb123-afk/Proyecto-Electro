@@ -21,7 +21,7 @@ function formEquipoVacio() {
 }
 
 function formVehiculoVacio() {
-  return { placa: "", tipoUnidad: "Camioneta", empresa: "corevex", cuadrilla: "" };
+  return { placa: "", tipoUnidad: "Camioneta", empresa: "corevex", cuadrilla: "", documentos: vehiculosService.documentosFormVacios() };
 }
 
 function formInspeccionVacio() {
@@ -111,7 +111,8 @@ export function useOperacionesManager() {
   const [errorCategoria, setErrorCategoria] = useState("");
 
   const [fVehiculo, setFVehiculo] = useState(formVehiculoVacio());
-  const [fVehiculoEditar, setFVehiculoEditar] = useState({ placa: "", cuadrilla: "" });
+  const [fVehiculoEditar, setFVehiculoEditar] = useState({ placa: "", cuadrilla: "", documentos: null });
+  const [erroresDocumentos, setErroresDocumentos] = useState({});
   const [errorEditarVehiculo, setErrorEditarVehiculo] = useState("");
   const [fInspeccion, setFInspeccion] = useState(formInspeccionVacio());
 
@@ -188,6 +189,7 @@ export function useOperacionesManager() {
     } else {
       setFVehiculo(formVehiculoVacio());
       setErrorVehiculo("");
+      setErroresDocumentos({});
     }
     modalNuevo.abrir();
   }
@@ -229,13 +231,44 @@ export function useOperacionesManager() {
     });
   }
 
+  // Sube, uno por uno, los archivos elegidos en la sección Documentos y
+  // devuelve { clave: { url, nombre } } para mandarlos con el vehículo.
+  async function subirArchivosDocumentos(documentos, { subida, etapa }) {
+    const pendientes = Object.entries(documentos).filter(([, d]) => d.marcado && d.archivo);
+    const subidos = {};
+    for (const [i, [clave, d]] of pendientes.entries()) {
+      if (pendientes.length > 1) etapa(`Subiendo archivo ${i + 1} de ${pendientes.length}…`);
+      subidos[clave] = await subirArchivo(d.archivo, subida);
+    }
+    return subidos;
+  }
+
+  function validarFormDocumentos(documentos, tipoUnidad, setError) {
+    const errores = vehiculosService.validarDocumentos(documentos, tipoUnidad);
+    setErroresDocumentos(errores);
+    if (Object.keys(errores).length > 0) {
+      setError("Revisa los datos de los documentos marcados.");
+      return false;
+    }
+    return true;
+  }
+
   async function handleGuardarVehiculo(e) {
     e.preventDefault();
-    if (!fVehiculo.placa.trim()) return;
     setErrorVehiculo("");
-    await acciones.ejecutar("modal", async () => {
+    if (!fVehiculo.placa.trim()) {
+      setErrorVehiculo("Ingresa la placa.");
+      return;
+    }
+    if (!validarFormDocumentos(fVehiculo.documentos, fVehiculo.tipoUnidad, setErrorVehiculo)) return;
+    await acciones.ejecutar("modal", async (ctx) => {
       try {
-        const nuevo = await vehiculosService.crearVehiculo(fVehiculo);
+        const subidos = await subirArchivosDocumentos(fVehiculo.documentos, ctx);
+        ctx.etapa("Registrando…");
+        const nuevo = await vehiculosService.crearVehiculo({
+          ...fVehiculo,
+          documentos: vehiculosService.documentosParaEnviar(fVehiculo.documentos, subidos),
+        });
         setVehiculos((prev) => [nuevo, ...prev]);
         modalNuevo.cerrar();
         mostrarToast("Vehículo registrado", { tipo: "success" });
@@ -429,17 +462,24 @@ export function useOperacionesManager() {
 
 
   function abrirEditarVehiculo(v) {
-    setFVehiculoEditar({ placa: v.placa, cuadrilla: v.cuadrilla || "" });
+    setFVehiculoEditar({ placa: v.placa, cuadrilla: v.cuadrilla || "", documentos: vehiculosService.documentosFormDesde(v) });
     setErrorEditarVehiculo("");
+    setErroresDocumentos({});
     modalEditarVehiculo.abrir(v);
   }
 
   async function handleGuardarEdicionVehiculo(e) {
     e.preventDefault();
     setErrorEditarVehiculo("");
-    await acciones.ejecutar("modal", async () => {
+    if (!validarFormDocumentos(fVehiculoEditar.documentos, modalEditarVehiculo.dato.tipoUnidad, setErrorEditarVehiculo)) return;
+    await acciones.ejecutar("modal", async (ctx) => {
       try {
-        const actualizado = await vehiculosService.actualizarVehiculo(modalEditarVehiculo.dato.id, fVehiculoEditar);
+        const subidos = await subirArchivosDocumentos(fVehiculoEditar.documentos, ctx);
+        ctx.etapa("Guardando…");
+        const actualizado = await vehiculosService.actualizarVehiculo(modalEditarVehiculo.dato.id, {
+          ...fVehiculoEditar,
+          documentos: vehiculosService.documentosParaEnviar(fVehiculoEditar.documentos, subidos),
+        });
         setVehiculos((prev) => prev.map((v) => (v.id === actualizado.id ? actualizado : v)));
         modalEditarVehiculo.cerrar();
         mostrarToast("Vehículo actualizado", { tipo: "success" });
@@ -567,7 +607,7 @@ export function useOperacionesManager() {
     errorCategoria,
 
     // Modal: nuevo vehículo
-    fVehiculo, setFVehiculo, handleGuardarVehiculo, errorVehiculo,
+    fVehiculo, setFVehiculo, handleGuardarVehiculo, errorVehiculo, erroresDocumentos,
 
     // Modal: inspección
     modalInspeccion, fInspeccion, setFInspeccion, handleGuardarInspeccion,

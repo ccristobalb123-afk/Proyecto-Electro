@@ -1,8 +1,11 @@
 import { db } from "../lib/db.js";
 import { validacionFallida, ApiError } from "../lib/errors.js";
 
-function serializar(p) {
-  return { dni: p.dni, nombre: p.nombre };
+// `empresas`: dónde tiene contrato (solo las que el usuario puede ver).
+// El modal de Cursos/EMO la usa para no volver a pedir la empresa.
+function serializar(p, empresasPermitidas) {
+  const empresas = [...new Set(p.contratos.map((c) => c.empresa.slug))].filter((e) => empresasPermitidas.includes(e));
+  return { dni: p.dni, nombre: p.nombre, empresas };
 }
 
 // Usado SOLO por Contratos — es el único lugar del sistema donde se
@@ -25,7 +28,7 @@ export async function buscarOCrearPersonal(dni, nombre) {
   return db.personal.create({ data: { dni: dniLimpio, nombre: nombreLimpio } });
 }
 
-// Usado SOLO por Cursos/Fotocheck/EMO — a diferencia de Contratos, acá
+// Usado SOLO por Cursos/EMO — a diferencia de Contratos, acá
 // NUNCA se crea a alguien nuevo. Si el DNI no existe todavía como
 // personal registrado, es un error (el frontend ya debería haber
 // mostrado el selector solo con gente válida, pero el backend no puede
@@ -38,25 +41,17 @@ export async function buscarPersonalRegistrado(dni) {
   return personal;
 }
 
-// Una persona puede tener contrato con Corevex pero no con Electro —
-// sin este chequeo, cualquiera con acceso a Electro podía usar el DNI
-// de alguien que solo trabaja para Corevex y crearle un curso "de
-// Electro", aunque esa persona nunca tuvo relación con esa empresa.
-export async function buscarPersonalConContratoEnEmpresa(dni, empresaId) {
-  const personal = await buscarPersonalRegistrado(dni);
-  const tieneContrato = await db.contrato.findFirst({ where: { personalId: personal.id, empresaId } });
-  if (!tieneContrato) {
-    throw validacionFallida("Ese trabajador no tiene un contrato registrado en esta empresa.");
-  }
-  return personal;
-}
-
-export async function listarTrabajadoresRegistrados({ q }) {
+// Solo personal con contrato en alguna empresa a la que el usuario
+// tiene acceso — antes listaba a todo el personal, también el de la
+// otra empresa y el que no tiene ningún contrato.
+export async function listarTrabajadoresRegistrados({ q }, empresasPermitidas) {
   const personal = await db.personal.findMany({
-    where: q
-      ? { OR: [{ nombre: { contains: q, mode: "insensitive" } }, { dni: { contains: q } }] }
-      : undefined,
+    where: {
+      contratos: { some: { empresa: { slug: { in: empresasPermitidas } } } },
+      ...(q ? { OR: [{ nombre: { contains: q, mode: "insensitive" } }, { dni: { contains: q } }] } : {}),
+    },
+    include: { contratos: { include: { empresa: true } } },
     orderBy: { nombre: "asc" },
   });
-  return personal.map(serializar);
+  return personal.map((p) => serializar(p, empresasPermitidas));
 }

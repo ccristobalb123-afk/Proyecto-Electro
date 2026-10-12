@@ -1,13 +1,11 @@
 import { db } from "../lib/db.js";
 import { calcularEstadoPago, totalPagado } from "../lib/estadoPago.js";
+import { TIPO_CURSO_A_TEXTO, diasHasta } from "../lib/estadoVencimiento.js";
+import { nombreDocumento, documentoPorVencer } from "../lib/documentosVehiculo.js";
 
-function diasRestantes(fecha) {
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  const objetivo = new Date(fecha);
-  objetivo.setHours(0, 0, 0, 0);
-  return Math.round((objetivo - hoy) / (24 * 60 * 60 * 1000));
-}
+// Antes cada servicio tenía su copia, con el desfase de un día (ver
+// diasHasta en lib/estadoVencimiento.js).
+const diasRestantes = diasHasta;
 
 // Los vehículos pueden ser dueños de una empresa y estar en uso de la
 // otra (ver vehiculos.service.js) — por eso, para vehículos, "acceso"
@@ -49,10 +47,8 @@ export async function obtenerKpis(empresasPermitidas) {
   const documentosVehiculo = await db.documentoVehiculo.findMany({
     where: { fechaVencimiento: { not: null }, vehiculo: filtroEmpresaVehiculo(empresasPermitidas) },
   });
-  const documentosPorVencer = documentosVehiculo.filter((d) => {
-    const dias = diasRestantes(d.fechaVencimiento);
-    return dias >= 0 && dias <= 45;
-  }).length;
+  // Días de anticipación de cada documento (antes, 45 fijos para todos).
+  const documentosPorVencer = documentosVehiculo.filter(documentoPorVencer).length;
 
   const equiposConInspeccion = await db.equipo.findMany({
     where: { proximaInspeccion: { not: null }, estado: { not: "DEBAJA" }, ...filtroEmpresa },
@@ -109,7 +105,7 @@ export async function listarAlertas({ limit = 5 } = {}, empresasPermitidas) {
   for (const c of cursos) {
     const dias = diasRestantes(c.fechaVencimiento);
     if (dias >= 0 && dias <= c.diasAnticipacion) {
-      alertas.push({ id: `curso-${c.id}`, tipo: "curso", titulo: `${c.tipo} — ${c.personal.nombre}`, empresa: c.empresa.nombre, dias });
+      alertas.push({ id: `curso-${c.id}`, tipo: "curso", titulo: `${TIPO_CURSO_A_TEXTO[c.tipo]} — ${c.personal.nombre}`, empresa: c.empresa.nombre, dias });
     }
   }
 
@@ -118,9 +114,8 @@ export async function listarAlertas({ limit = 5 } = {}, empresasPermitidas) {
     include: { vehiculo: { include: { empresaDuena: true } } },
   });
   for (const d of documentos) {
-    const dias = diasRestantes(d.fechaVencimiento);
-    if (dias >= 0 && dias <= 45) {
-      alertas.push({ id: `vehiculo-${d.id}`, tipo: "vehiculo", titulo: `${d.tipo} — Vehículo ${d.vehiculo.placa}`, empresa: d.vehiculo.empresaDuena.nombre, dias });
+    if (documentoPorVencer(d)) {
+      alertas.push({ id: `vehiculo-${d.id}`, tipo: "vehiculo", titulo: `${nombreDocumento(d)} — Vehículo ${d.vehiculo.placa}`, empresa: d.vehiculo.empresaDuena.nombre, dias: diasHasta(d.fechaVencimiento) });
     }
   }
 
@@ -222,7 +217,9 @@ export async function obtenerComparativo(empresasPermitidas) {
     meses.push({ anio: d.getFullYear(), mes: d.getMonth() });
   }
 
-  const inicio = new Date(meses[0].anio, meses[0].mes, 1);
+  // En UTC: la columna es DATE; con medianoche local (05:00 UTC) se
+  // dejaba fuera lo emitido el día 1 del primer mes.
+  const inicio = new Date(Date.UTC(meses[0].anio, meses[0].mes, 1));
   const filtroEmpresa = { empresa: { slug: { in: empresasPermitidas } } };
   const [facturas, gastos, empresas] = await Promise.all([
     db.factura.findMany({ where: { fechaEmision: { gte: inicio }, anulada: false, ...filtroEmpresa }, include: { empresa: true } }),
@@ -244,8 +241,9 @@ export async function obtenerComparativo(empresasPermitidas) {
   }
 
   function indiceDeMes(fecha) {
+    // Partes UTC (columna DATE): si no, lo del día 1 caía en el mes anterior.
     const d = new Date(fecha);
-    return meses.findIndex((m) => m.anio === d.getFullYear() && m.mes === d.getMonth());
+    return meses.findIndex((m) => m.anio === d.getUTCFullYear() && m.mes === d.getUTCMonth());
   }
 
   for (const f of facturas) {

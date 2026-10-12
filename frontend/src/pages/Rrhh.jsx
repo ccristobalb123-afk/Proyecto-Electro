@@ -40,7 +40,7 @@ export default function Rrhh() {
           className={r.tab === "cursos" ? "active" : ""}
           onClick={() => r.cambiarTab("cursos")}
         >
-          Cursos / Fotocheck / EMO
+          Cursos / EMO
         </button>
       </div>
 

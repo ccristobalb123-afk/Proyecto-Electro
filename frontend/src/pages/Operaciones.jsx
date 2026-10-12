@@ -169,6 +169,7 @@ export default function Operaciones() {
         setFVehiculo={o.setFVehiculo}
         onSubmit={o.handleGuardarVehiculo}
         error={o.errorVehiculo}
+        erroresDocumentos={o.erroresDocumentos}
         guardando={o.guardando}
         textoGuardando={o.textoGuardando("Registrando…")}
       />
@@ -192,6 +193,8 @@ export default function Operaciones() {
         setFVehiculo={o.setFVehiculoEditar}
         onSubmit={o.handleGuardarEdicionVehiculo}
         error={o.errorEditarVehiculo}
+        erroresDocumentos={o.erroresDocumentos}
+        tipoUnidad={o.modalEditarVehiculo.dato?.tipoUnidad}
         guardando={o.guardando}
         textoGuardando={o.textoGuardando("Guardando…")}
       />
@@ -277,6 +280,10 @@ export default function Operaciones() {
         onClose={o.modalDocs.cerrar}
         onSubirArchivo={o.handleSubirDocumento}
         estadoDocumento={o.estadoDocumento}
+        onEditarDocumentos={(v) => {
+          o.modalDocs.cerrar();
+          o.abrirEditarVehiculo(v);
+        }}
       />
     </AppShell>
   );

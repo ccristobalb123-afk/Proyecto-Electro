@@ -117,7 +117,7 @@ async function main() {
     await db.curso.createMany({
       data: [
         { personalId: personal["J. Ramírez Soto"].id, empresaId: corevex.id, tipo: "EMO", fechaInicio: dias(-340), fechaVencimiento: dias(-14) },
-        { personalId: personal["Milagros Ríos"].id, empresaId: corevex.id, tipo: "FOTOCHECK", fechaInicio: dias(-350), fechaVencimiento: dias(6) },
+        { personalId: personal["Milagros Ríos"].id, empresaId: corevex.id, tipo: "CURSO", fechaInicio: dias(-350), fechaVencimiento: dias(6) },
         { personalId: personal["Alonso Torres"].id, empresaId: electro.id, tipo: "CURSO", fechaInicio: dias(-30), fechaVencimiento: dias(150) },
       ],
     });
@@ -176,11 +176,11 @@ async function main() {
         cuadrilla: "Cuadrilla Yerson H.",
         documentos: {
           create: [
-            { tipo: "SOAT", fechaVencimiento: dias(22), archivoNombre: "soat-abc123.pdf" },
-            { tipo: "Revisión técnica", fechaVencimiento: dias(95), archivoNombre: "revision-abc123.pdf" },
-            { tipo: "Tarjeta de circulación", fechaVencimiento: dias(210), archivoNombre: "tarjeta-abc123.pdf" },
-            { tipo: "Seguro", fechaVencimiento: dias(5) },
-            { tipo: "Permiso de operación", fechaVencimiento: dias(150), archivoNombre: "permiso-abc123.pdf" },
+            { tipoDocumento: "SOAT", tipo: "SOAT", fechaEmision: dias(-343), fechaVencimiento: dias(22), diasAnticipacion: 30, archivoNombre: "soat-abc123.pdf" },
+            { tipoDocumento: "REVISION_TECNICA", tipo: "Revisión Técnica", fechaEmision: dias(-270), fechaVencimiento: dias(95), diasAnticipacion: 30, archivoNombre: "revision-abc123.pdf" },
+            { tipoDocumento: "HABILITACION_VEHICULAR", tipo: "Habilitación Vehicular / Tarjeta de Circulación", fechaVencimiento: dias(210), diasAnticipacion: 60, archivoNombre: "tarjeta-abc123.pdf" },
+            { tipoDocumento: "SEGURO_TODO_RIESGO", tipo: "Seguro Contra Todo Riesgo", fechaVencimiento: dias(5), diasAnticipacion: 15 },
+            { tipoDocumento: "TARJETA_PROPIEDAD", tipo: "Tarjeta de Propiedad", fechaEmision: dias(-900) },
           ],
         },
       },
@@ -196,12 +196,11 @@ async function main() {
         cuadrilla: "Proyecto Tecsur — LDS",
         documentos: {
           create: [
-            { tipo: "SOAT", fechaVencimiento: dias(60), archivoNombre: "soat-def456.pdf" },
-            { tipo: "Revisión técnica", fechaVencimiento: dias(60), archivoNombre: "revision-def456.pdf" },
-            { tipo: "Tarjeta de circulación", fechaVencimiento: dias(60), archivoNombre: "tarjeta-def456.pdf" },
-            { tipo: "Seguro", fechaVencimiento: dias(60), archivoNombre: "seguro-def456.pdf" },
-            { tipo: "Permiso de operación", fechaVencimiento: dias(60), archivoNombre: "permiso-def456.pdf" },
-            { tipo: "Brazo hidráulico", fechaVencimiento: dias(40), archivoNombre: "brazo-def456.pdf" },
+            { tipoDocumento: "SOAT", tipo: "SOAT", fechaVencimiento: dias(60), diasAnticipacion: 30, archivoNombre: "soat-def456.pdf" },
+            { tipoDocumento: "REVISION_TECNICA", tipo: "Revisión Técnica", fechaVencimiento: dias(60), diasAnticipacion: 30, archivoNombre: "revision-def456.pdf" },
+            { tipoDocumento: "HABILITACION_VEHICULAR", tipo: "Habilitación Vehicular / Tarjeta de Circulación", fechaVencimiento: dias(60), diasAnticipacion: 30, archivoNombre: "tarjeta-def456.pdf" },
+            { tipoDocumento: "SEGURO_TODO_RIESGO", tipo: "Seguro Contra Todo Riesgo", fechaVencimiento: dias(60), diasAnticipacion: 30, archivoNombre: "seguro-def456.pdf" },
+            { tipoDocumento: "BRAZO_HIDRAULICO", tipo: "Brazo Hidráulico", fechaEmision: dias(-325), fechaVencimiento: dias(40), diasAnticipacion: 45, archivoNombre: "brazo-def456.pdf" },
           ],
         },
       },

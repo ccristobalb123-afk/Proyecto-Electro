@@ -1,13 +1,11 @@
 import { db } from "../lib/db.js";
 import { enviarAUsuariosConAcceso } from "./push.service.js";
+import { TIPO_CURSO_A_TEXTO, diasHasta } from "../lib/estadoVencimiento.js";
+import { nombreDocumento, documentoPorVencer } from "../lib/documentosVehiculo.js";
 
-function diasRestantes(fecha) {
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  const objetivo = new Date(fecha);
-  objetivo.setHours(0, 0, 0, 0);
-  return Math.round((objetivo - hoy) / (24 * 60 * 60 * 1000));
-}
+// Antes cada servicio tenía su copia, con el desfase de un día (ver
+// diasHasta en lib/estadoVencimiento.js).
+const diasRestantes = diasHasta;
 
 // Evita mandar la misma alerta muchas veces el mismo día (el chequeo
 // puede correr más de una vez, o el servidor reiniciarse) — pero SÍ
@@ -61,9 +59,10 @@ async function revisarCursos() {
     if (dias < 0 || dias > c.diasAnticipacion) continue;
     if (await yaNotificadoHoy("curso", c.id)) continue;
 
+    const tipo = TIPO_CURSO_A_TEXTO[c.tipo];
     await enviarAUsuariosConAcceso({ modulo: "rrhh", empresas: [c.empresa.slug] }, {
-      titulo: `${c.tipo} por vencer`,
-      cuerpo: `El ${c.tipo.toLowerCase()} de ${c.personal.nombre} vence ${dias === 0 ? "hoy" : `en ${dias} día(s)`}.`,
+      titulo: `${tipo} por vencer`,
+      cuerpo: `El ${tipo === "EMO" ? "EMO" : tipo.toLowerCase()} de ${c.personal.nombre} vence ${dias === 0 ? "hoy" : `en ${dias} día(s)`}.`,
       url: "/rrhh",
     });
     await marcarNotificadoHoy("curso", c.id);
@@ -75,11 +74,13 @@ async function revisarDocumentosVehiculo() {
     where: { fechaVencimiento: { not: null } },
     include: { vehiculo: { include: { empresaDuena: true, empresaUso: true } } },
   });
-  // Mismo umbral que el semáforo visual (ver lib/estadoDocumento.js) —
-  // si ya se pone ámbar/rojo en la pantalla, también amerita un push.
+  // Cada documento usa SUS días de anticipación (antes era un umbral
+  // fijo de 45 días para todos) — el mismo criterio que pinta "Por
+  // vencer" en la pantalla (lib/documentosVehiculo.js). Una alerta por
+  // documento por día como máximo (yaNotificadoHoy).
   for (const d of documentos) {
-    const dias = diasRestantes(d.fechaVencimiento);
-    if (dias < 0 || dias > 45) continue;
+    if (!documentoPorVencer(d)) continue;
+    const dias = diasHasta(d.fechaVencimiento);
     if (await yaNotificadoHoy("documento_vehiculo", d.id)) continue;
 
     // El camión puede ser dueño de una empresa y estar en uso de la
@@ -87,8 +88,8 @@ async function revisarDocumentosVehiculo() {
     // quien tenga acceso a cualquiera de las dos.
     const empresas = [...new Set([d.vehiculo.empresaDuena.slug, d.vehiculo.empresaUso.slug])];
     await enviarAUsuariosConAcceso({ modulo: "operaciones", empresas }, {
-      titulo: `${d.tipo} por vencer`,
-      cuerpo: `El ${d.tipo} del camión ${d.vehiculo.placa} vence ${dias === 0 ? "hoy" : `en ${dias} día(s)`}.`,
+      titulo: `${nombreDocumento(d)} por vencer`,
+      cuerpo: `${nombreDocumento(d)} del vehículo ${d.vehiculo.placa}: vence ${dias === 0 ? "hoy" : `en ${dias} día(s)`}.`,
       url: "/operaciones",
     });
     await marcarNotificadoHoy("documento_vehiculo", d.id);

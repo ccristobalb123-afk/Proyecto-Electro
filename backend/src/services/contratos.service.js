@@ -1,6 +1,6 @@
 import { db } from "../lib/db.js";
 import { buscarOCrearPersonal } from "./personal.service.js";
-import { calcularEstado, formatearFecha, iniciales } from "../lib/estadoVencimiento.js";
+import { calcularEstado, formatearFechaDia, iniciales } from "../lib/estadoVencimiento.js";
 import { ApiError, sinPermiso, conflicto } from "../lib/errors.js";
 import { borrarArchivoSiHuerfano } from "../lib/archivos.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
@@ -16,7 +16,7 @@ function serializar(contrato) {
     iniciales: iniciales(contrato.personal.nombre),
     empresa: contrato.empresa.slug,
     tipo: TIPO_A_TEXTO[contrato.tipo],
-    vence: formatearFecha(contrato.fechaFin),
+    vence: formatearFechaDia(contrato.fechaFin),
     estado: calcularEstado(contrato.fechaFin, contrato.diasAnticipacion, contrato.estadoManual),
     // "yyyy-mm-dd" para precargar los <input type="date"> al editar —
     // sin esto el formulario de "Editar" abría con las fechas vacías.
@@ -139,7 +139,7 @@ export async function adjuntarArchivoContrato(contratoId, archivoNombre, archivo
 export async function eliminarContrato(contratoId, empresasPermitidas) {
   const contrato = await buscarContrato(contratoId, empresasPermitidas);
 
-  // Cursos/Fotocheck/EMO solo se registran para personal con contrato
+  // Cursos/EMO solo se registran para personal con contrato
   // en esa empresa — si este es su único contrato ahí, borrarlo dejaría
   // esos registros colgando de alguien que "ya no trabaja" en la empresa.
   const [otrosContratos, cursos] = await Promise.all([
@@ -148,7 +148,7 @@ export async function eliminarContrato(contratoId, empresasPermitidas) {
   ]);
   if (otrosContratos === 0 && cursos > 0) {
     throw conflicto(
-      `No se puede eliminar: el trabajador tiene ${cursos} ${cursos === 1 ? "curso, fotocheck o EMO registrado" : "cursos, fotochecks o EMO registrados"} en esta empresa. Elimínalos primero en la pestaña Cursos / Fotocheck / EMO.`,
+      `No se puede eliminar: el trabajador tiene ${cursos} ${cursos === 1 ? "curso o EMO registrado" : "cursos o EMO registrados"} en esta empresa. Elimínalos primero en la pestaña Cursos / EMO.`,
       "CONTRATO_CON_CURSOS"
     );
   }

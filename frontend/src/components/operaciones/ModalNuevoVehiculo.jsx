@@ -1,11 +1,18 @@
 import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
-import { IconAlertCircle } from "../icons/Icons";
 import { TIPOS_UNIDAD } from "../../services/vehiculosService";
+import CamposDocumentosVehiculo from "./CamposDocumentosVehiculo";
 
-export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehiculo, onSubmit, error, guardando, textoGuardando }) {
+export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehiculo, onSubmit, error, erroresDocumentos, guardando, textoGuardando }) {
+  function cambiarTipoUnidad(tipoUnidad) {
+    // El Brazo Hidráulico es solo de grúas: si deja de ser grúa, se desmarca.
+    const documentos =
+      tipoUnidad === "Grúa" ? fVehiculo.documentos : { ...fVehiculo.documentos, BRAZO_HIDRAULICO: { ...fVehiculo.documentos.BRAZO_HIDRAULICO, marcado: false } };
+    setFVehiculo({ ...fVehiculo, tipoUnidad, documentos });
+  }
+
   return (
-    <Modal open={open} ocupado={guardando} title="Nuevo vehículo" subtitle="Completa los datos del vehículo." onClose={onClose}>
+    <Modal open={open} ocupado={guardando} wide title="Nuevo vehículo" subtitle="Completa los datos del vehículo." onClose={onClose}>
       <form onSubmit={onSubmit}>
         <div className="form-row">
           <div className="form-field">
@@ -17,7 +24,7 @@ export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehic
           <div className="form-field">
             <label>
               Tipo de unidad
-              <select value={fVehiculo.tipoUnidad} onChange={(e) => setFVehiculo({ ...fVehiculo, tipoUnidad: e.target.value })}>
+              <select value={fVehiculo.tipoUnidad} onChange={(e) => cambiarTipoUnidad(e.target.value)}>
                 {TIPOS_UNIDAD.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
@@ -25,18 +32,6 @@ export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehic
             </label>
           </div>
         </div>
-
-        {fVehiculo.tipoUnidad === "Grúa" && (
-          <div className="consecuencia advertencia">
-            <div className="consecuencia-title">
-              <IconAlertCircle width={14} height={14} />
-              Documento adicional requerido
-            </div>
-            <p className="consecuencia-hint">
-              Las grúas también necesitan el certificado de Brazo hidráulico, además de los 5 documentos base.
-            </p>
-          </div>
-        )}
 
         <fieldset className="form-field">
           <legend>Empresa dueña</legend>
@@ -49,6 +44,13 @@ export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehic
             <input value={fVehiculo.cuadrilla} onChange={(e) => setFVehiculo({ ...fVehiculo, cuadrilla: e.target.value })} placeholder="Ej. Cuadrilla Yerson H." />
           </label>
         </div>
+
+        <CamposDocumentosVehiculo
+          documentos={fVehiculo.documentos}
+          onChange={(documentos) => setFVehiculo({ ...fVehiculo, documentos })}
+          tipoUnidad={fVehiculo.tipoUnidad}
+          errores={erroresDocumentos}
+        />
 
         {error && <p className="field-error" role="alert">{error}</p>}
 
