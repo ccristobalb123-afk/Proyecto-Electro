@@ -1,5 +1,5 @@
-import { ARCHIVOS_BASE_URL } from "../../services/apiClient";
-import { IconFile, IconUpload, IconTrash } from "../icons/Icons";
+import { BotonVerArchivo } from "../shared/VisorArchivo";
+import { IconUpload, IconTrash } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
@@ -39,9 +39,7 @@ export default function GastosGrid({ cargando, error, onReintentar, gastos, onNu
             {g.descripcion && <div><span className="fin-card-label">Descripción</span><span>{g.descripcion}</span></div>}
 
             {g.archivo ? (
-              <a className="fin-card-archivo fin-card-archivo--link" href={`${ARCHIVOS_BASE_URL}${g.archivoUrl}`} target="_blank" rel="noreferrer">
-                <IconFile width={13} height={13} /> Ver comprobante
-              </a>
+              <BotonVerArchivo className="fin-card-archivo fin-card-archivo--link" url={g.archivoUrl} nombre={g.archivoNombre}>Ver comprobante</BotonVerArchivo>
             ) : (
               <label className="fin-card-archivo">
                 <IconUpload width={13} height={13} /> Adjuntar comprobante

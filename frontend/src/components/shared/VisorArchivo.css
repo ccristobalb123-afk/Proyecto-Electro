@@ -1,0 +1,165 @@
+/* ============================================================
+   Visor de archivos (fotos y PDFs subidos) — variante del Modal
+   compartido: <Modal variant="visor">. Ocupa casi toda la pantalla en
+   escritorio y la pantalla completa en celular, con el título (nombre
+   del archivo) arriba y las acciones siempre visibles abajo.
+   ============================================================ */
+
+/* Reset para los botones que antes eran <a>: conservan el estilo de
+   chip/enlace de cada pantalla, sin fondo ni borde de botón nativo.
+   :where() deja la especificidad en 0, así .doc-chip, .fin-card-archivo
+   --link, etc. siguen mandando en color, fondo y padding. */
+:where(button.boton-ver-archivo) {
+  font: inherit;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+button.boton-ver-archivo.docs-row-sub {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-overlay--visor {
+  background: rgba(15, 19, 24, 0.8);
+  animation: visor-fondo 150ms ease-out both;
+}
+
+.modal-electro.modal--visor {
+  width: min(960px, 96vw);
+  max-width: 96vw;
+  height: 90vh;
+  height: 90dvh;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: var(--space-4) var(--space-5);
+  animation: visor-entrada 200ms var(--ease-out) both;
+}
+
+.modal--visor .modal-head {
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+/* Nombres de archivo largos ("Certificado_SCTR_Juan_Perez_2026.pdf")
+   se cortan con puntos suspensivos en vez de empujar el botón de cerrar. */
+.modal--visor .modal-head h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-lg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal--visor .modal-close {
+  flex-shrink: 0;
+}
+
+.visor-cuerpo {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  border-radius: var(--radius);
+  overflow: auto;
+}
+
+.visor-imagen {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.visor-pdf {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.visor-sin-vista {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 34ch;
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--muted);
+}
+
+.visor-sin-vista p {
+  margin: 0;
+  font-size: var(--fs-base);
+}
+
+.visor-acciones {
+  margin-top: var(--space-3);
+  flex-shrink: 0;
+}
+
+.visor-acciones a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+@keyframes visor-fondo {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes visor-entrada {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay--visor,
+  .modal-electro.modal--visor {
+    animation: none;
+  }
+}
+
+/* Celular: pantalla completa — cada píxel cuenta para ver una foto
+   de un fotocheck o leer un certificado. */
+@media (max-width: 640px) {
+  .modal-electro.modal--visor {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    padding: max(var(--space-3), env(safe-area-inset-top)) var(--space-3) max(var(--space-3), env(safe-area-inset-bottom));
+  }
+
+  /* El visor no hace scroll (la imagen se ajusta sola): sus acciones
+     no necesitan la barra fija de los demás modales en celular. */
+  .visor-acciones {
+    position: static;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    border-top: none;
+    background: none;
+  }
+
+  .visor-acciones a {
+    flex: 1 1 0;
+  }
+}

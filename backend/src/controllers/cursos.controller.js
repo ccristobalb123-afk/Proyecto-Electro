@@ -17,6 +17,12 @@ export const patchCurso = asyncHandler(async (req, res) => {
   res.json(actualizado);
 });
 
+export const postDocumento = asyncHandler(async (req, res) => {
+  const cursoId = Number(req.params.id);
+  const { archivoNombre, archivoUrl } = req.body;
+  res.json(await cursosService.adjuntarArchivoCurso(cursoId, archivoNombre, archivoUrl, req.empresasPermitidas));
+});
+
 export const deleteCurso = asyncHandler(async (req, res) => {
   const cursoId = Number(req.params.id);
   res.json(await cursosService.eliminarCurso(cursoId, req.empresasPermitidas));

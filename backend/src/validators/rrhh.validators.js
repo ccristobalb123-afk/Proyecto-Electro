@@ -43,6 +43,8 @@ export const crearCursoSchema = z
     fechaInicio: fechaSchema,
     fechaVencimiento: fechaSchema,
     diasAnticipacion: z.number().int().positive().optional(),
+    archivoNombre: z.string().optional(),
+    archivoUrl: z.string().optional(),
   })
   .refine((datos) => new Date(datos.fechaVencimiento) >= new Date(datos.fechaInicio), {
     message: "La fecha de vencimiento no puede ser anterior a la fecha de inicio.",

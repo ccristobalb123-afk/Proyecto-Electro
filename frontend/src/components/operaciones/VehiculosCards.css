@@ -56,6 +56,7 @@
 .vehiculo-card-top-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -111,3 +112,34 @@
 .vence-gray { color: var(--muted); }
 .vence-amber { color: var(--volt-dark); }
 .vence-red { color: var(--danger-dark); font-weight: 600; }
+
+/* Celular: las 4 acciones (≈330px) no entraban junto a la placa en una
+   tarjeta de ~280px y desbordaban la tarjeta. Pasan a su propia fila a
+   todo el ancho; "Agregar documento" se estira y, si no entra, baja
+   sola a su propia línea. */
+@media (max-width: 640px) {
+  .vehiculo-card {
+    padding: var(--space-4);
+  }
+
+  .vehiculo-card-top-actions {
+    width: 100%;
+  }
+
+  /* Fila 1: "Agregar documento" a todo el ancho.
+     Fila 2: historial · Editar (estirado) · eliminar. */
+  .vehiculo-card-top-actions .btn-outline-sm {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .vehiculo-card-top-actions .btn-outline-sm:first-child {
+    flex-basis: 100%;
+  }
+
+  .vehiculo-doc-nombre {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

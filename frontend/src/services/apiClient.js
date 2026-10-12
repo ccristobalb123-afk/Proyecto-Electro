@@ -11,13 +11,6 @@
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
-// Los archivos subidos (fotos, PDFs, comprobantes) se sirven bajo
-// /api/uploads/:filename, protegidos por sesión (ya no son públicos) —
-// el backend ya devuelve el archivoUrl completo con el "/api" incluido
-// (ej. "/api/uploads/xxx.pdf"), así que esta constante solo antepone
-// el origen (protocolo + dominio + puerto) para armar el link completo.
-export const ARCHIVOS_BASE_URL = BASE_URL.replace(/\/api\/?$/, "");
-
 /** Simula la latencia de red en modo mock, para que la UI ya
  * contemple estados de "cargando" reales desde ahora. */
 export function delay(ms = 350) {
@@ -74,6 +67,69 @@ async function intentarRenovarSesion() {
       });
   }
   return renovacionEnCurso;
+}
+
+// La cookie de acceso vence a los 15 min junto con el token, así que
+// pasado ese tiempo el navegador directamente deja de enviarla y el
+// backend responde NO_AUTENTICADO (no SESION_EXPIRADA). Antes solo se
+// renovaba ante SESION_EXPIRADA, por lo que todo pedido hecho después
+// de los 15 min fallaba sin intentar el refresh token. Se excluyen las
+// rutas públicas de auth (login, MFA, refresh...): ahí un 401 es una
+// respuesta normal, no una sesión vencida. /auth/me sí renueva — así
+// un F5 después de 15 min recupera la sesión en vez de pedir login.
+function puedeRenovar(path, code) {
+  if (code === "SESION_EXPIRADA") return true;
+  if (code !== "NO_AUTENTICADO") return false;
+  return !path.startsWith("/auth/") || path === "/auth/me" || path === "/auth/cambiar-password";
+}
+
+// Se avisa "sesión expirada" (limpia la sesión y manda al login) solo
+// si de verdad había una — un /auth/me sin sesión al abrir la app es
+// la situación normal de cualquiera que no inició sesión todavía.
+function debeAvisarExpiracion(path, code) {
+  return code === "SESION_EXPIRADA" || (code === "NO_AUTENTICADO" && path !== "/auth/me" && puedeRenovar(path, code));
+}
+
+async function codigoDeError(respuesta) {
+  try {
+    const json = await respuesta.clone().json();
+    return json?.error?.code;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * fetch con la cookie de sesión y la misma renovación automática que
+ * apiRequest, pero devolviendo la Response cruda — para lo que no es
+ * JSON: subir archivos (FormData) y descargar archivos protegidos
+ * (fotos/PDFs de /api/uploads) como blob. `path` es relativo a la API
+ * ("/uploads") o una URL ya armada con "/api" ("/api/uploads/x.pdf").
+ */
+export async function fetchConSesion(path, init = {}) {
+  // archivoUrl llega como "/api/uploads/x": se le quita el "/api" y se
+  // usa BASE_URL, que puede ser "/api", "/API" o una URL completa.
+  const pathApi = /^\/api\//i.test(path) ? path.slice(4) : path;
+  const url = new URL(BASE_URL + pathApi, window.location.origin);
+  const hacer = () => fetch(url, { ...init, credentials: "include" });
+
+  let respuesta;
+  try {
+    respuesta = await hacer();
+  } catch (err) {
+    if (err.name === "AbortError") throw err;
+    throw new ApiError("SIN_CONEXION", "No se pudo conectar con el servidor. Revisa tu conexión.", 0);
+  }
+
+  if (respuesta.status === 401) {
+    const code = await codigoDeError(respuesta);
+    if (puedeRenovar(pathApi, code) && (await intentarRenovarSesion())) {
+      respuesta = await hacer();
+    } else if (debeAvisarExpiracion(pathApi, code)) {
+      avisarSesionExpirada();
+    }
+  }
+  return respuesta;
 }
 
 /**
@@ -133,14 +189,14 @@ export async function apiRequest(path, { method = "GET", body, params, signal } 
     // mensaje. Antes esto se decidía solo por el status 401, sin mirar
     // el código real, y tapaba errores como "contraseña incorrecta" o
     // "código MFA inválido" con un mensaje de sesión vencida.
-    if (err.code === "SESION_EXPIRADA") {
+    if (respuesta.status === 401 && puedeRenovar(path, err.code)) {
       if (!_esReintento) {
         const seRenovo = await intentarRenovarSesion();
         if (seRenovo) {
           return apiRequest(path, { method, body, params, signal }, true);
         }
       }
-      avisarSesionExpirada();
+      if (debeAvisarExpiracion(path, err.code)) avisarSesionExpirada();
     }
 
     if (respuesta.status >= 500) {

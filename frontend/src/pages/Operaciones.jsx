@@ -30,7 +30,7 @@ export default function Operaciones() {
       topbarExtra={
         <button className="btn-primary" onClick={o.openNuevo} type="button">
           <IconPlus width={15} height={15} />
-          {o.tab === "equipos" ? "Nuevo equipo" : "Nuevo vehículo"}
+          <span className="topbar-accion-texto">{o.tab === "equipos" ? "Nuevo equipo" : "Nuevo vehículo"}</span>
         </button>
       }
     >

@@ -18,8 +18,12 @@
     flex-wrap: wrap;
   }
 
+  /* flex-basis 100%: con el "flex: 1" (base 0) de filters.css el
+     buscador se encogía a ~90px al lado de los selects. */
   .main .filters .search {
+    flex: 1 1 100%;
     width: 100%;
+    max-width: none;
     order: -1;
   }
 
@@ -38,12 +42,39 @@
     grid-template-columns: 1fr;
   }
 
+  /* Pestañas: ocupan todo el ancho y, si no entran (ej. "Facturas por
+     pagar" en 360px), se desplazan horizontalmente dentro de su propia
+     barra en vez de partirse en 2 líneas o empujar la página. */
   .main .tabs {
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .main .tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .main .tabs button {
-    flex: 1;
+    flex: 1 0 auto;
+    white-space: nowrap;
+    padding-inline: var(--space-4);
+  }
+
+  /* Red de seguridad: si algún contenido se pasa de ancho, que no
+     aparezca scroll horizontal en toda la página. Las causas conocidas
+     (tarjetas, acciones, grillas) ya se corrigen una por una. */
+  .main {
+    overflow-x: hidden;
+  }
+
+  /* Grillas de tarjetas con mínimo de 320px: en un celular de 360px
+     sin margen sobrante, una columna nunca más ancha que la pantalla. */
+  .main .fin-grid,
+  .main .usuarios-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .main .categoria-seccion-header h3 {
@@ -77,8 +108,11 @@
 
 /* ---------- Formularios dentro de modales ---------- */
 @media (max-width: 560px) {
-  .modal .form-row {
+  /* Antes decía ".modal .form-row" — esa clase no existe (el modal es
+     .modal-electro), así que los campos de a 2 nunca se apilaban. */
+  .modal-electro .form-row {
     grid-template-columns: 1fr;
+    row-gap: 0; /* cada .form-field ya trae su margin-bottom */
   }
 }
 
@@ -122,19 +156,38 @@
 
   html .btn-primary,
   html .btn-secondary,
+  html .btn-danger,
   html .btn-outline-sm,
   html .tabs button,
   html .doc-chip,
   html .menu-acciones__item,
   html .notificaciones-bell__push-toggle,
-  html .nav a {
+  html .nav a,
+  html .co-choice label,
+  html .igv-choice label,
+  html .btn-confirm-primary,
+  html .btn-confirm-secondary,
+  html .btn-confirm-danger,
+  html .btn-seguir-conectado {
     min-height: 44px;
+  }
+
+  /* Enlaces de texto dentro de tarjetas ("Ver comprobante", nombre del
+     documento, "Adjuntar comprobante"): el área táctil crece hasta 44px
+     con padding, y el margen negativo evita que cambie el diseño. */
+  html .fin-card-archivo,
+  html .docs-row-sub--link,
+  html .vehiculo-doc-nombre--link,
+  html .link-button {
+    padding-block: var(--space-3);
+    margin-block: calc(-1 * var(--space-3));
   }
 
   /* Campos de formulario */
   html .search,
   html .month-select,
   html .filters select,
+  html .equipo-card-select select,
   html .aviso-input-row input {
     min-height: 44px;
   }

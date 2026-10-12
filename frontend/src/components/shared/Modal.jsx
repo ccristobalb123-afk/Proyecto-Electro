@@ -46,6 +46,12 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant 
     }
 
     function onKeyDown(e) {
+      // Con un modal abierto encima de otro (ej. el visor de archivos
+      // dentro de "Documentos"), solo responde el de más arriba — si
+      // no, Escape cerraría los dos a la vez.
+      const dialogos = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
+      if (dialogos[dialogos.length - 1] !== dialogRef.current) return;
+
       if (e.key === "Escape") {
         onCloseRef.current?.();
         return;

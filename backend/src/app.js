@@ -92,7 +92,11 @@ if (fs.existsSync(distFrontend)) {
   // React (ej. /operaciones, /finanzas) sigue funcionando aunque el
   // usuario refresque la página estando en esa URL, en vez de darle
   // un 404 porque el servidor no conoce esa ruta.
-  app.get(/^(?!\/api).*/, (req, res) => {
+  // Insensible a mayúsculas, igual que el router de Express: si no,
+  // un pedido a "/API/..." que no matchea ninguna ruta (ej. un enlace
+  // a archivo mal armado) recibía el index.html con 200 en vez de un
+  // 404, y el navegador mostraba la app en blanco en vez de un error.
+  app.get(/^(?!\/api(\/|$)).*/i, (req, res) => {
     res.sendFile(path.join(distFrontend, "index.html"));
   });
 }

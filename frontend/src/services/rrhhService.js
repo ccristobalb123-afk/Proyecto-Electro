@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient";
+import { subirArchivo } from "./uploadsService";
 
 export async function listarCursos({ empresa, estado, q, signal } = {}) {
   return apiClient.get("/cursos-certificaciones", { empresa, estado, q }, { signal });
@@ -14,4 +15,9 @@ export async function actualizarCurso(cursoId, datos) {
 
 export async function eliminarCurso(cursoId) {
   return apiClient.delete(`/cursos-certificaciones/${cursoId}`);
+}
+
+export async function adjuntarArchivoCurso(cursoId, archivo) {
+  const { url, nombre } = await subirArchivo(archivo);
+  return apiClient.post(`/cursos-certificaciones/${cursoId}/documento`, { archivoNombre: nombre, archivoUrl: url });
 }

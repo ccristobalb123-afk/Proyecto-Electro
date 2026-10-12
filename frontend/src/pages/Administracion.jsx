@@ -165,7 +165,7 @@ export default function Administracion() {
       topbarExtra={
         <button className="btn-primary" onClick={abrirNuevo} type="button">
           <IconPlus width={15} height={15} />
-          Nuevo usuario
+          <span className="topbar-accion-texto">Nuevo usuario</span>
         </button>
       }
     >

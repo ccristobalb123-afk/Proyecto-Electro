@@ -19,6 +19,14 @@ function serializar(curso) {
     tipo: TIPO_A_TEXTO[curso.tipo],
     vence: formatearFecha(curso.fechaVencimiento),
     estado: calcularEstado(curso.fechaVencimiento, curso.diasAnticipacion, curso.estadoManual),
+    // "yyyy-mm-dd" para precargar los <input type="date"> al editar.
+    fechaInicio: curso.fechaInicio.toISOString().slice(0, 10),
+    fechaVencimiento: curso.fechaVencimiento.toISOString().slice(0, 10),
+    diasAnticipacion: curso.diasAnticipacion,
+    // Mismos campos que serializa Contratos, así la tabla de RRHH
+    // muestra "Ver" / "Adjuntar" igual en las dos pestañas.
+    archivo: !!curso.archivoUrl,
+    ...(curso.archivoUrl ? { archivoUrl: curso.archivoUrl, archivoNombre: curso.archivoNombre } : {}),
   };
 }
 
@@ -67,6 +75,8 @@ export async function crearCurso(datos, empresasPermitidas) {
         fechaInicio: new Date(datos.fechaInicio),
         fechaVencimiento: new Date(datos.fechaVencimiento),
         diasAnticipacion: datos.diasAnticipacion ?? 30,
+        archivoNombre: datos.archivoNombre || null,
+        archivoUrl: datos.archivoUrl || null,
       },
       include: { personal: true, empresa: true },
     });
@@ -98,6 +108,9 @@ export async function actualizarCurso(cursoId, datos, empresasPermitidas) {
         fechaInicio: new Date(datos.fechaInicio),
         fechaVencimiento: new Date(datos.fechaVencimiento),
         diasAnticipacion: datos.diasAnticipacion ?? 30,
+        // Solo se reemplaza si llegó un archivo nuevo — editar las
+        // fechas no debe borrar el documento que ya estaba adjunto.
+        ...(datos.archivoUrl ? { archivoNombre: datos.archivoNombre || null, archivoUrl: datos.archivoUrl } : {}),
       },
       include: { personal: true, empresa: true },
     });
@@ -108,6 +121,17 @@ export async function actualizarCurso(cursoId, datos, empresasPermitidas) {
     }
     throw err;
   }
+}
+
+export async function adjuntarArchivoCurso(cursoId, archivoNombre, archivoUrl, empresasPermitidas) {
+  await buscarCurso(cursoId, empresasPermitidas);
+
+  const actualizado = await db.curso.update({
+    where: { id: cursoId },
+    data: { archivoNombre, archivoUrl },
+    include: { personal: true, empresa: true },
+  });
+  return serializar(actualizado);
 }
 
 export async function eliminarCurso(cursoId, empresasPermitidas) {

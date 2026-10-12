@@ -185,6 +185,7 @@
 }
 
 .topbar h1 {
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
   white-space: nowrap;
@@ -313,5 +314,32 @@
 @media (max-width: 640px) {
   .search {
     display: none;
+  }
+}
+
+/* Botón de acción del topbar ("+ Nueva factura por pagar"): en
+   celulares angostos el texto le quitaba casi todo el ancho al título
+   de la página. Queda solo el "+" en un botón cuadrado de 44px, y el
+   texto sigue disponible para lectores de pantalla (patrón .sr-only). */
+.topbar-right .btn-primary {
+  white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+  .topbar-right .btn-primary {
+    width: var(--control-height-lg);
+    height: var(--control-height-lg);
+    padding: 0;
+    justify-content: center;
+  }
+
+  .topbar-accion-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 }

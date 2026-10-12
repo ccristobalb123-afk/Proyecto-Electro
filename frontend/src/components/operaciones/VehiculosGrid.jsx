@@ -1,5 +1,5 @@
 import { IconPlus, IconEye, IconFile, IconTrash } from "../icons/Icons";
-import { ARCHIVOS_BASE_URL } from "../../services/apiClient";
+import { BotonVerArchivo } from "../shared/VisorArchivo";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
@@ -69,9 +69,9 @@ export default function VehiculosGrid({
               return (
                 <div className="vehiculo-doc-item" key={d.id}>
                   {d.archivo ? (
-                    <a className="vehiculo-doc-nombre vehiculo-doc-nombre--link" href={`${ARCHIVOS_BASE_URL}${d.archivoUrl}`} target="_blank" rel="noreferrer">
+                    <BotonVerArchivo className="vehiculo-doc-nombre vehiculo-doc-nombre--link" url={d.archivoUrl} nombre={d.archivoNombre} icono={false}>
                       {d.tipo}
-                    </a>
+                    </BotonVerArchivo>
                   ) : (
                     <span className="vehiculo-doc-nombre">{d.tipo}</span>
                   )}

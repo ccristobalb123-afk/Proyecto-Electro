@@ -1,13 +1,14 @@
 import { db } from "./db.js";
 
 // Un mismo archivoUrl puede estar referenciado por exactamente 1 de
-// estos 5 lugares — se buscan todos en paralelo y se devuelve el
+// estos 6 lugares — se buscan todos en paralelo y se devuelve el
 // primero que aparezca. Documentos de vehículo devuelven 2 empresas
 // (dueña y uso) porque un camión puede ser de una y estar en uso de
 // la otra, igual que en el resto del sistema.
 export async function empresasDelArchivo(archivoUrl) {
-  const [contrato, factura, facturaPorPagar, gasto, documentoVehiculo] = await Promise.all([
+  const [contrato, curso, factura, facturaPorPagar, gasto, documentoVehiculo] = await Promise.all([
     db.contrato.findFirst({ where: { archivoUrl }, include: { empresa: true } }),
+    db.curso.findFirst({ where: { archivoUrl }, include: { empresa: true } }),
     db.factura.findFirst({ where: { archivoUrl }, include: { empresa: true } }),
     db.facturaPorPagar.findFirst({ where: { archivoUrl }, include: { empresa: true } }),
     db.gasto.findFirst({ where: { archivoUrl }, include: { empresa: true } }),
@@ -18,6 +19,7 @@ export async function empresasDelArchivo(archivoUrl) {
   ]);
 
   if (contrato) return [contrato.empresa.slug];
+  if (curso) return [curso.empresa.slug];
   if (factura) return [factura.empresa.slug];
   if (facturaPorPagar) return [facturaPorPagar.empresa.slug];
   if (gasto) return [gasto.empresa.slug];

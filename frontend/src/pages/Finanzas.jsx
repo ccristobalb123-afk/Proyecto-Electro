@@ -20,7 +20,7 @@ export default function Finanzas() {
       topbarExtra={
         <button className="btn-primary" onClick={f.abrirNuevo} type="button">
           <IconPlus width={15} height={15} />
-          {f.tituloNuevo}
+          <span className="topbar-accion-texto">{f.tituloNuevo}</span>
         </button>
       }
     >

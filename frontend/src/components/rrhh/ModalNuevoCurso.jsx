@@ -1,6 +1,7 @@
 import { Modal, ModalActions, CompanyChoice, AvisoVencimiento } from "../shared/Modal";
+import { IconUpload } from "../icons/Icons";
 
-export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, error, onSubmit, trabajadoresRegistrados, editando }) {
+export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, error, onArchivoChange, onSubmit, trabajadoresRegistrados, editando }) {
   return (
     <Modal open={open} title={editando ? "Editar registro" : "Nuevo registro"} subtitle="Completa los datos del curso, fotocheck o EMO." onClose={onClose}>
       <form onSubmit={onSubmit}>
@@ -56,6 +57,23 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
         </div>
 
         <AvisoVencimiento value={fCurso.diasAnticipacion} onChange={(v) => setFCurso({ ...fCurso, diasAnticipacion: v })} />
+
+        <div className="form-field">
+          <span className="form-field-heading">Foto o PDF {fCurso.tipo === "Curso" ? "del certificado" : `del ${fCurso.tipo}`} (opcional)</span>
+          <label className={`dropzone ${fCurso.archivoNombre ? "has-file" : ""}`}>
+            <IconUpload width={22} height={22} />
+            <p>
+              {fCurso.archivoNombre ? (
+                <b>{fCurso.archivoNombre}</b>
+              ) : (
+                <>
+                  <b>Haz clic para subir</b> una foto o PDF — JPG, PNG, WEBP o PDF, hasta 10 MB
+                </>
+              )}
+            </p>
+            <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" onChange={onArchivoChange} hidden />
+          </label>
+        </div>
 
         {error && <p className="field-error">{error}</p>}
 

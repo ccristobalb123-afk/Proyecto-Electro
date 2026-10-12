@@ -120,3 +120,21 @@
     background: var(--danger-dark);
   }
 }
+
+@media (max-width: 640px) {
+  .confirm-overlay {
+    padding: var(--space-4);
+  }
+
+  .confirm-card {
+    padding: var(--space-5);
+  }
+
+  .confirm-acciones {
+    flex-wrap: wrap;
+  }
+
+  .confirm-acciones > button {
+    flex: 1 1 auto;
+  }
+}

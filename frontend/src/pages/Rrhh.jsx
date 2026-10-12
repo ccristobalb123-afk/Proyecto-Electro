@@ -2,6 +2,7 @@ import { AppShell } from "../components/layout/AppShell";
 import { Modal } from "../components/shared/Modal";
 import { IconPlus } from "../components/icons/Icons";
 import { useRrhhManager, ESTADO_LABEL_RRHH as ESTADO_LABEL } from "../hooks/useRrhhManager";
+import { BotonVerArchivo } from "../components/shared/VisorArchivo";
 import TablaRrhh from "../components/rrhh/TablaRrhh";
 import ModalNuevoContrato from "../components/rrhh/ModalNuevoContrato";
 import ModalNuevoCurso from "../components/rrhh/ModalNuevoCurso";
@@ -16,7 +17,7 @@ export default function Rrhh() {
       topbarExtra={
         <button className="btn-primary" onClick={r.openModal} type="button">
           <IconPlus width={15} height={15} />
-          {r.tab === "contratos" ? "Nuevo contrato" : "Nuevo registro"}
+          <span className="topbar-accion-texto">{r.tab === "contratos" ? "Nuevo contrato" : "Nuevo registro"}</span>
         </button>
       }
     >
@@ -103,6 +104,7 @@ export default function Rrhh() {
         fCurso={r.fCurso}
         setFCurso={r.setFCurso}
         error={r.errorCurso}
+        onArchivoChange={r.handleArchivoCursoChange}
         onSubmit={r.handleGuardarCurso}
         trabajadoresRegistrados={r.trabajadoresRegistrados}
         editando={!!r.idEditando}
@@ -133,12 +135,16 @@ export default function Rrhh() {
               <span className="equipo-card-label">Estado</span>
               <p>{ESTADO_LABEL[r.modalDetalle.dato.estado]}</p>
             </div>
-            {r.tab === "contratos" && (
-              <div>
-                <span className="equipo-card-label">Documento</span>
-                <p>{r.modalDetalle.dato.archivo ? "Adjunto" : "Sin adjuntar"}</p>
-              </div>
-            )}
+            <div>
+              <span className="equipo-card-label">Documento</span>
+              <p>
+                {r.modalDetalle.dato.archivo ? (
+                  <BotonVerArchivo url={r.modalDetalle.dato.archivoUrl} nombre={r.modalDetalle.dato.archivoNombre} />
+                ) : (
+                  "Sin adjuntar"
+                )}
+              </p>
+            </div>
           </div>
         )}
       </Modal>

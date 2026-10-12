@@ -38,6 +38,7 @@ function formCursoVacio() {
     fechaInicio: "",
     fechaVencimiento: "",
     diasAnticipacion: 30,
+    archivoNombre: "",
   };
 }
 
@@ -66,6 +67,7 @@ export function useRrhhManager() {
 
   const [fCurso, setFCurso] = useState(formCursoVacio());
   const [errorCurso, setErrorCurso] = useState("");
+  const [archivoCursoSeleccionado, setArchivoCursoSeleccionado] = useState(null);
 
   // Lista de personal ya registrado (deriva de los contratos reales) —
   // se usa para el selector de "Trabajador" en Cursos/Fotocheck/EMO.
@@ -110,6 +112,7 @@ export function useRrhhManager() {
     } else {
       setFCurso(formCursoVacio());
       setErrorCurso("");
+      setArchivoCursoSeleccionado(null);
     }
     setModalOpen(true);
   }
@@ -139,8 +142,10 @@ export function useRrhhManager() {
         fechaInicio: item.fechaInicio || "",
         fechaVencimiento: item.fechaVencimiento || "",
         diasAnticipacion: item.diasAnticipacion ?? 30,
+        archivoNombre: item.archivo ? item.archivoNombre || "Archivo ya adjunto" : "",
       });
       setErrorCurso("");
+      setArchivoCursoSeleccionado(null);
     }
     setModalOpen(true);
   }
@@ -181,11 +186,20 @@ export function useRrhhManager() {
       return;
     }
     try {
+      // archivoNombre del formulario es solo para mostrar en el
+      // dropzone — lo que se guarda es lo que devuelve la subida.
+      const { archivoNombre: _soloVista, ...datosForm } = fCurso;
+      let datos = datosForm;
+      if (archivoCursoSeleccionado) {
+        const { url, nombre } = await subirArchivo(archivoCursoSeleccionado);
+        datos = { ...datosForm, archivoNombre: nombre, archivoUrl: url };
+      }
+
       if (idEditando) {
-        const actualizado = await rrhhService.actualizarCurso(idEditando, fCurso);
+        const actualizado = await rrhhService.actualizarCurso(idEditando, datos);
         setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
       } else {
-        const nuevo = await rrhhService.crearCurso(fCurso);
+        const nuevo = await rrhhService.crearCurso(datos);
         setLista((prev) => [nuevo, ...prev]);
       }
       setModalOpen(false);
@@ -216,9 +230,26 @@ export function useRrhhManager() {
     setFContrato((f) => ({ ...f, archivoNombre: file ? file.name : "" }));
   }
 
+  function handleArchivoCursoChange(e) {
+    const file = e.target.files?.[0];
+    setArchivoCursoSeleccionado(file || null);
+    setFCurso((f) => ({ ...f, archivoNombre: file ? file.name : "" }));
+  }
+
+  // "Adjuntar" desde la tabla, en cualquiera de las 2 pestañas. Antes
+  // no tenía try/catch: si la subida fallaba (archivo muy pesado, tipo
+  // no permitido) no se le mostraba nada al usuario.
   async function handleAdjuntarArchivo(item, archivo) {
-    const actualizado = await contratosService.adjuntarArchivoContrato(item.id, archivo);
-    setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
+    try {
+      const actualizado =
+        tab === "contratos"
+          ? await contratosService.adjuntarArchivoContrato(item.id, archivo)
+          : await rrhhService.adjuntarArchivoCurso(item.id, archivo);
+      setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
+      mostrarToast("Archivo adjuntado.", { tipo: "success" });
+    } catch (err) {
+      mostrarToast(err.message || "No se pudo adjuntar el archivo.", { tipo: "error" });
+    }
   }
 
   const hayFiltrosActivos = !!(filtroEmpresa || filtroEstado || busqueda);
@@ -234,7 +265,7 @@ export function useRrhhManager() {
     cargando, error, reload,
     listaFiltrada, hayFiltrosActivos,
     fContrato, setFContrato, errorContrato, handleGuardarContrato, handleArchivoChange,
-    fCurso, setFCurso, errorCurso, handleGuardarCurso,
+    fCurso, setFCurso, errorCurso, handleGuardarCurso, handleArchivoCursoChange,
     trabajadoresRegistrados,
     handleAdjuntarArchivo,
     handleEliminar,

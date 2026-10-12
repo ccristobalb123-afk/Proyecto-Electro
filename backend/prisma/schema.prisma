@@ -209,6 +209,10 @@ model Curso {
   fechaVencimiento DateTime      @map("fecha_vencimiento") @db.Date
   diasAnticipacion Int           @default(30) @map("dias_anticipacion")
   estadoManual     EstadoManual? @map("estado_manual")
+  // Foto o PDF del certificado / fotocheck / EMO — mismo formato que
+  // Contrato.archivoUrl ("/api/uploads/<archivo>").
+  archivoNombre    String?       @map("archivo_nombre")
+  archivoUrl       String?       @map("archivo_url")
   creadoEn         DateTime      @default(now()) @map("creado_en")
 
   // Un solo EMO, un solo Fotocheck y un solo Curso "vivo" por persona

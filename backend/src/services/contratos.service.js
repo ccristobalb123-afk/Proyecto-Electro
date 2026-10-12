@@ -17,8 +17,13 @@ function serializar(contrato) {
     tipo: TIPO_A_TEXTO[contrato.tipo],
     vence: formatearFecha(contrato.fechaFin),
     estado: calcularEstado(contrato.fechaFin, contrato.diasAnticipacion, contrato.estadoManual),
+    // "yyyy-mm-dd" para precargar los <input type="date"> al editar —
+    // sin esto el formulario de "Editar" abría con las fechas vacías.
+    fechaInicio: contrato.fechaInicio.toISOString().slice(0, 10),
+    fechaFin: contrato.fechaFin.toISOString().slice(0, 10),
+    diasAnticipacion: contrato.diasAnticipacion,
     archivo: !!contrato.archivoNombre,
-    ...(contrato.archivoUrl ? { archivoUrl: contrato.archivoUrl } : {}),
+    ...(contrato.archivoUrl ? { archivoUrl: contrato.archivoUrl, archivoNombre: contrato.archivoNombre } : {}),
   };
 }
 
@@ -103,6 +108,10 @@ export async function actualizarContrato(contratoId, datos, empresasPermitidas) 
         fechaInicio: new Date(datos.fechaInicio),
         fechaFin: new Date(datos.fechaFin),
         diasAnticipacion: datos.diasAnticipacion ?? 30,
+        // Antes el archivo elegido al editar se subía pero no se
+        // guardaba acá (y la limpieza lo borraba como huérfano). Solo
+        // se reemplaza si llegó uno nuevo, para no borrar el que ya había.
+        ...(datos.archivoUrl ? { archivoNombre: datos.archivoNombre || null, archivoUrl: datos.archivoUrl } : {}),
       },
       include: { personal: true, empresa: true },
     });

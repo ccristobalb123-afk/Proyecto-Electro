@@ -1,6 +1,6 @@
 import { Modal, ModalActions } from "../shared/Modal";
 import { IconFile, IconUpload } from "../icons/Icons";
-import { ARCHIVOS_BASE_URL } from "../../services/apiClient";
+import { BotonVerArchivo } from "../shared/VisorArchivo";
 
 export default function ModalDocumentos({ open, vehiculo, onClose, onSubirArchivo }) {
   return (
@@ -12,14 +12,9 @@ export default function ModalDocumentos({ open, vehiculo, onClose, onSubirArchiv
             <div className="docs-row-main">
               <div className="docs-row-title">{d.tipo}</div>
               {d.archivo ? (
-                <a
-                  className="docs-row-sub docs-row-sub--link"
-                  href={`${ARCHIVOS_BASE_URL}${d.archivoUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {d.archivoNombre || "documento.pdf"}
-                </a>
+                <BotonVerArchivo className="docs-row-sub docs-row-sub--link" url={d.archivoUrl} nombre={d.archivoNombre} icono={false}>
+                  {d.archivoNombre || "Ver documento"}
+                </BotonVerArchivo>
               ) : (
                 <div className="docs-row-sub docs-row-sub--pendiente">Sin adjuntar</div>
               )}
