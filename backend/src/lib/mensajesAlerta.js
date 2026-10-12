@@ -8,7 +8,11 @@
 // ============================================================
 import { diasHasta } from "./estadoVencimiento.js";
 
-/** Días DESPUÉS del vencimiento en que se sigue avisando (1, 2 y 3). */
+/**
+ * Días DESPUÉS del vencimiento en que se sigue mandando PUSH (1, 2 y 3).
+ * La campana y el Dashboard no tienen este límite: muestran lo vencido
+ * hasta que se renueve (se cambie la fecha de vencimiento).
+ */
 export const DIAS_AVISO_DESPUES_DE_VENCER = 3;
 
 /** Las facturas no guardan días de anticipación propios: se avisa desde estos días antes. */
@@ -54,11 +58,13 @@ const dias = (n) => `${n} ${n === 1 ? "día" : "días"}`;
  * @param {string[]} p.empresas  slugs con acceso (para filtrar y para el push)
  * @param {string} p.modulo      módulo necesario para verlo (rrhh | operaciones | finanzas)
  * @param {string} p.url         a dónde lleva al tocarlo
+ * @param {boolean} [p.vencidoSinLimite] true para la campana y el Dashboard: lo
+ *   vencido se muestra siempre, no solo los primeros días (el push sí tiene límite)
  * @returns {object|null} null si hoy no corresponde avisar
  */
 export function crearAviso(p) {
   const d = diasHasta(p.fecha);
-  const severidad = p.faseFija ?? faseAviso(d, p.diasAnticipacion);
+  const severidad = d < 0 && p.vencidoSinLimite ? "vencido" : faseAviso(d, p.diasAnticipacion);
   if (!severidad) return null;
   return { ...p, id: `${p.tipo}-${p.entidadId}`, dias: d, severidad };
 }

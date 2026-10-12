@@ -144,7 +144,7 @@ export default function Dashboard() {
           ) : errorAlertas ? (
             <EstadoError error={errorAlertas} onReintentar={recargarAlertas} mensaje="No se pudieron cargar los vencimientos." />
           ) : proximosVencimientos.length === 0 ? (
-            <EstadoVacio titulo="Sin documentos por vencer" descripcion="No hay vencimientos recientes ni próximos. Todo al día." />
+            <EstadoVacio titulo="Sin documentos por vencer" descripcion="No hay nada vencido ni por vencer. Todo al día." />
           ) : (
             avisosVisibles.map((aviso) => {
               const Icon = ICONO_POR_TIPO[aviso.tipo] || IconBell;

@@ -5,7 +5,7 @@
 // siempre de construirMensaje (lib/mensajesAlerta.js).
 // ============================================================
 import { db } from "../lib/db.js";
-import { diasHasta, TIPO_CURSO_A_TEXTO } from "../lib/estadoVencimiento.js";
+import { TIPO_CURSO_A_TEXTO } from "../lib/estadoVencimiento.js";
 import { infoDocumento, nombreDocumento } from "../lib/documentosVehiculo.js";
 import { calcularEstadoPago, montoNetoAPagar } from "../lib/estadoPago.js";
 import { modulosDe } from "../lib/roles.js";
@@ -29,24 +29,34 @@ function desdeFecha() {
 }
 
 /**
- * Todos los avisos que corresponden HOY (por vencer, vence hoy, vencido
- * hace 1..3 días): lo que se manda por push. La campana y el Dashboard
- * agregan además las facturas impagas vencidas hace más tiempo (ver
- * listarAvisos).
+ * Avisos de hoy, en uno de dos modos (mismos registros, mismo texto):
+ *   - "push":  por vencer, vence hoy y vencido hace 1..3 días
+ *              (DIAS_AVISO_DESPUES_DE_VENCER) — lo que se envía.
+ *   - "lista": por vencer, vence hoy y TODO lo vencido hasta que se
+ *              renueve — lo que muestran la campana y el Dashboard.
+ * Nunca aparecen: "No vence", documentos del sistema anterior, registros
+ * con estado manual, equipos de baja y facturas pagadas o anuladas.
  */
-export async function recolectarAvisos() {
-  const desde = desdeFecha();
+export async function recolectarAvisos({ modo = "push" } = {}) {
+  const lista = modo === "lista";
+  // En push solo se traen de la base los que pueden estar en ventana.
+  const desde = lista ? undefined : desdeFecha();
+  // En la lista no se acota por fecha: lo vencido aparece hasta que se
+  // renueve. Lo que no tiene fecha se excluye explícitamente más abajo.
+  const filtroFecha = (campo) => (desde ? { [campo]: { gte: desde } } : {});
   const avisos = [];
   const agregar = (aviso) => aviso && avisos.push(aviso);
+  const base = { vencidoSinLimite: lista };
 
   // Contratos y Cursos/EMO: un estado manual (Renovado/Terminado) no avisa.
   const contratos = await db.contrato.findMany({
-    where: { estadoManual: null, fechaFin: { gte: desde } },
+    where: { estadoManual: null, ...filtroFecha("fechaFin") },
     include: { personal: true, empresa: true },
   });
   for (const c of contratos) {
     agregar(
       crearAviso({
+        ...base,
         tipo: "contrato", entidadId: c.id, claveDedupe: "contrato",
         que: "Contrato", genero: "m", sujeto: `Contrato de ${c.personal.nombre}`,
         fecha: c.fechaFin, diasAnticipacion: c.diasAnticipacion,
@@ -57,13 +67,14 @@ export async function recolectarAvisos() {
   }
 
   const cursos = await db.curso.findMany({
-    where: { estadoManual: null, fechaVencimiento: { gte: desde } },
+    where: { estadoManual: null, ...filtroFecha("fechaVencimiento") },
     include: { personal: true, empresa: true },
   });
   for (const c of cursos) {
     const tipo = TIPO_CURSO_A_TEXTO[c.tipo];
     agregar(
       crearAviso({
+        ...base,
         tipo: "curso", entidadId: c.id, claveDedupe: "curso",
         que: tipo, genero: "m", sujeto: `${tipo} de ${c.personal.nombre}`,
         fecha: c.fechaVencimiento, diasAnticipacion: c.diasAnticipacion,
@@ -76,7 +87,8 @@ export async function recolectarAvisos() {
   // Documentos de vehículo: solo los del catálogo con vencimiento. Los
   // que "No vence" (sin fecha) y los del sistema anterior no avisan.
   const documentos = await db.documentoVehiculo.findMany({
-    where: { tipoDocumento: { not: null }, fechaVencimiento: { gte: desde } },
+    // Sin fecha = "No vence": nunca avisa ni aparece.
+    where: { tipoDocumento: { not: null }, fechaVencimiento: { not: null }, ...filtroFecha("fechaVencimiento") },
     include: { vehiculo: { include: { empresaDuena: true, empresaUso: true } } },
   });
   for (const d of documentos) {
@@ -84,6 +96,7 @@ export async function recolectarAvisos() {
     const v = d.vehiculo;
     agregar(
       crearAviso({
+        ...base,
         tipo: "vehiculo", entidadId: d.id, claveDedupe: "documento_vehiculo",
         que: nombreDocumento(d), genero, plural, sujeto: `${frase} del vehículo ${v.placa}`,
         fecha: d.fechaVencimiento, diasAnticipacion: d.diasAnticipacion,
@@ -95,12 +108,13 @@ export async function recolectarAvisos() {
   }
 
   const equipos = await db.equipo.findMany({
-    where: { proximaInspeccion: { gte: desde }, estado: { not: "DEBAJA" } },
+    where: { proximaInspeccion: { not: null }, ...filtroFecha("proximaInspeccion"), estado: { not: "DEBAJA" } },
     include: { empresa: true },
   });
   for (const eq of equipos) {
     agregar(
       crearAviso({
+        ...base,
         tipo: "equipo", entidadId: eq.id, claveDedupe: "equipo_inspeccion",
         que: "Inspección", genero: "f", sujeto: `Inspección del equipo ${eq.codigo}`,
         fecha: eq.proximaInspeccion, diasAnticipacion: eq.diasAnticipacionInspeccion,
@@ -110,19 +124,15 @@ export async function recolectarAvisos() {
     );
   }
 
-  avisos.push(...(await avisosDeFacturas({ desde })));
+  avisos.push(...(await avisosDeFacturas({ desde, lista })));
   return avisos;
 }
 
 // Facturas por cobrar y por pagar, mientras estén impagas (ni anuladas
 // ni pagadas: lo pagado se mide contra el monto NETO, sin la detracción,
-// igual que en Finanzas — antes se comparaba con el total y una factura
-// con detracción ya pagada seguía avisando).
-//   - Push (`desde`): la misma regla que todo lo demás — desde 30 días
-//     antes hasta 3 días después de vencer.
-//   - Campana y Dashboard (`desde` null): además, siguen visibles todo el
-//     tiempo que sigan impagas después de vencer.
-async function avisosDeFacturas({ desde = null, empresas = null } = {}) {
+// igual que en Finanzas). Misma regla que todo lo demás: en push hasta
+// 3 días después de vencer; en la lista, mientras sigan impagas.
+async function avisosDeFacturas({ desde, lista, empresas = null } = {}) {
   const where = {
     anulada: false,
     ...(desde ? { fechaVencimiento: { gte: desde } } : {}),
@@ -133,8 +143,6 @@ async function avisosDeFacturas({ desde = null, empresas = null } = {}) {
     db.facturaPorPagar.findMany({ where, include: { pagos: true, empresa: true } }),
   ]);
   const impaga = (f) => calcularEstadoPago(montoNetoAPagar(f.montoTotal, f.montoDetraccion), f.pagos) !== "pagado";
-  // Vencida hace más de 3 días: solo para la campana y el Dashboard.
-  const faseFija = (f) => (desde ? undefined : diasHasta(f.fechaVencimiento) < 0 ? "vencido" : undefined);
 
   const avisos = [];
   for (const f of porCobrar.filter(impaga)) {
@@ -142,7 +150,7 @@ async function avisosDeFacturas({ desde = null, empresas = null } = {}) {
       crearAviso({
         tipo: "factura", entidadId: f.id, claveDedupe: "factura",
         que: "Cobro de factura", genero: "m", sujeto: `El cobro de la factura ${f.serie}-${f.numero} (${f.cliente})`,
-        fecha: f.fechaVencimiento, diasAnticipacion: DIAS_AVISO_FACTURA, faseFija: faseFija(f),
+        fecha: f.fechaVencimiento, diasAnticipacion: DIAS_AVISO_FACTURA, vencidoSinLimite: lista,
         empresa: f.empresa.nombre, empresas: [f.empresa.slug], modulo: "finanzas",
         url: `/finanzas?q=${encodeURIComponent(f.cliente)}`,
       })
@@ -153,7 +161,7 @@ async function avisosDeFacturas({ desde = null, empresas = null } = {}) {
       crearAviso({
         tipo: "facturaPagar", entidadId: f.id, claveDedupe: "factura_por_pagar",
         que: "Pago a proveedor", genero: "m", sujeto: `El pago a ${f.proveedor} (${f.motivo})`,
-        fecha: f.fechaVencimiento, diasAnticipacion: DIAS_AVISO_FACTURA, faseFija: faseFija(f),
+        fecha: f.fechaVencimiento, diasAnticipacion: DIAS_AVISO_FACTURA, vencidoSinLimite: lista,
         empresa: f.empresa.nombre, empresas: [f.empresa.slug], modulo: "finanzas",
         url: `/finanzas?tab=facturasPagar&q=${encodeURIComponent(f.proveedor)}`,
       })
@@ -173,10 +181,7 @@ function puedeVer(aviso, empresas, modulos) {
  */
 export async function listarAvisos(usuario, empresasPermitidas, { limit } = {}) {
   const modulos = modulosDe(usuario);
-  // Todo menos las facturas (que en la campana siguen visibles mientras
-  // estén impagas, no solo 3 días después de vencer).
-  const avisos = (await recolectarAvisos()).filter((a) => !a.tipo.startsWith("factura") && puedeVer(a, empresasPermitidas, modulos));
-  if (modulos.includes("finanzas")) avisos.push(...(await avisosDeFacturas({ empresas: empresasPermitidas })));
+  const avisos = (await recolectarAvisos({ modo: "lista" })).filter((a) => puedeVer(a, empresasPermitidas, modulos));
   const mensajes = avisos.map((a) => construirMensaje(a, { incluirEmpresa: empresasPermitidas.length > 1 })).sort(porUrgencia);
   return limit ? mensajes.slice(0, limit) : mensajes;
 }
@@ -215,7 +220,7 @@ async function reservarAvisoDeHoy(aviso) {
  */
 export async function notificarVencimientos({ enviar = enviarAUsuario } = {}) {
   const nuevos = [];
-  for (const aviso of await recolectarAvisos()) {
+  for (const aviso of await recolectarAvisos({ modo: "push" })) {
     if (await reservarAvisoDeHoy(aviso)) nuevos.push(aviso);
   }
   if (nuevos.length === 0) return [];
