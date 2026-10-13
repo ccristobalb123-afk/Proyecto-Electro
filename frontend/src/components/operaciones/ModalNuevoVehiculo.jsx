@@ -18,7 +18,7 @@ export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehic
           <div className="form-field">
             <label>
               Placa
-              <input value={fVehiculo.placa} onChange={(e) => setFVehiculo({ ...fVehiculo, placa: e.target.value })} placeholder="Ej. A7P-925" />
+              <input autoCapitalize="characters" autoCorrect="off" spellCheck={false} value={fVehiculo.placa} onChange={(e) => setFVehiculo({ ...fVehiculo, placa: e.target.value })} placeholder="Ej. A7P-925" />
             </label>
           </div>
           <div className="form-field">

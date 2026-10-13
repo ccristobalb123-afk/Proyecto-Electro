@@ -268,7 +268,10 @@
 }
 
 /* ===== Formulario: SuperAdmin y qué ventanas tiene un usuario ===== */
-.superadmin-toggle {
+/* ".form-field label." para ganarle a ".form-field label { display: block }"
+   de Modal.css, que dejaba la casilla sola arriba del texto. */
+.superadmin-toggle,
+.form-field label.superadmin-toggle {
   display: flex;
   align-items: center;
   gap: 10px;

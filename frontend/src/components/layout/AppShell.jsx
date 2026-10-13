@@ -84,38 +84,51 @@ export function AppShell({ title, topbarExtra, children }) {
         </nav>
 
         <div className="sidebar-user">
-          <div className="avatar">{usuario?.iniciales || "—"}</div>
+          <div className="avatar" aria-hidden="true">
+            {usuario?.iniciales || "—"}
+          </div>
           <div className="sidebar-user-info">
-            <div className="name">{usuario?.nombre || "Invitado"}</div>
+            <div className="name" title={usuario?.nombre}>
+              {usuario?.nombre || "Invitado"}
+            </div>
             <div className="company-pills">
               {(usuario?.empresas || []).map((e) => (
                 <span key={e}>{e}</span>
               ))}
             </div>
           </div>
-          <button
-            className="logout-btn"
-            onClick={() => {
-              // En celular el menú lateral queda encima de los modales.
-              setMenuAbierto(false);
-              setModalSesiones(true);
-            }}
-            title="Sesiones y dispositivos"
-            aria-label="Sesiones y dispositivos"
-            type="button"
-          >
-            <IconDevices width={16} height={16} />
-          </button>
-          <button className="logout-btn" onClick={() => {
-              setMenuAbierto(false);
-              setModalPassword(true);
-            }}
-            title="Cambiar contraseña" aria-label="Cambiar contraseña" type="button">
-            <IconLock width={16} height={16} />
-          </button>
-          <button className="logout-btn" onClick={handleLogout} title="Cerrar sesión" aria-label="Cerrar sesión" type="button">
-            <IconClose width={16} height={16} />
-          </button>
+          {/* Fila propia debajo del nombre: con 3 botones de 44px al lado, un
+              nombre largo quedaba aplastado y los botones encima del texto. */}
+          <div className="sidebar-user-acciones">
+            <button
+              className="logout-btn"
+              onClick={() => {
+                // En celular el menú lateral queda encima de los modales.
+                setMenuAbierto(false);
+                setModalSesiones(true);
+              }}
+              title="Sesiones y dispositivos"
+              aria-label="Sesiones y dispositivos"
+              type="button"
+            >
+              <IconDevices width={16} height={16} />
+            </button>
+            <button
+              className="logout-btn"
+              onClick={() => {
+                setMenuAbierto(false);
+                setModalPassword(true);
+              }}
+              title="Cambiar contraseña"
+              aria-label="Cambiar contraseña"
+              type="button"
+            >
+              <IconLock width={16} height={16} />
+            </button>
+            <button className="logout-btn" onClick={handleLogout} title="Cerrar sesión" aria-label="Cerrar sesión" type="button">
+              <IconClose width={16} height={16} />
+            </button>
+          </div>
         </div>
       </aside>
 

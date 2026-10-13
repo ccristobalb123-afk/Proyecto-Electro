@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { IconHourglass } from "../icons/Icons";
+import { useBloquearScroll } from "../../hooks/useBloquearScroll";
 import "./AvisoInactividad.css";
 
 // Momentos en que el lector de pantalla anuncia cuánto falta (anunciarlo
@@ -17,6 +18,7 @@ export default function AvisoInactividad({ segundosRestantes, onSeguirConectado 
   const descripcionId = useId();
   const botonRef = useRef(null);
   const [enviando, setEnviando] = useState(false);
+  useBloquearScroll();
 
   const minutos = Math.floor(segundosRestantes / 60);
   const segundos = segundosRestantes % 60;

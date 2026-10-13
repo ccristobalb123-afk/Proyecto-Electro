@@ -357,7 +357,7 @@ export default function Administracion() {
           <div className="form-field">
             <label>
               Usuario (para iniciar sesión)
-              <input required value={fUsuario.usuario} onChange={(e) => setFUsuario({ ...fUsuario, usuario: e.target.value })} placeholder="Ej. mrios" />
+              <input required autoCapitalize="none" autoCorrect="off" spellCheck={false} value={fUsuario.usuario} onChange={(e) => setFUsuario({ ...fUsuario, usuario: e.target.value })} placeholder="Ej. mrios" />
             </label>
           </div>
           <div className="form-field">
@@ -423,7 +423,7 @@ export default function Administracion() {
           <div className="form-field">
             <label>
               Usuario (para iniciar sesión)
-              <input required value={fUsuarioEditar.usuario} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, usuario: e.target.value })} placeholder="Ej. mrios" />
+              <input required autoCapitalize="none" autoCorrect="off" spellCheck={false} value={fUsuarioEditar.usuario} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, usuario: e.target.value })} placeholder="Ej. mrios" />
             </label>
           </div>
           <div className="form-field">

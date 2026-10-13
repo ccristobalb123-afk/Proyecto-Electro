@@ -40,7 +40,7 @@ export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura
           <div className="form-field">
             <label>
               Número
-              <input required value={fFactura.numero} onChange={(e) => setFFactura({ ...fFactura, numero: e.target.value })} placeholder="00821" />
+              <input required inputMode="numeric" value={fFactura.numero} onChange={(e) => setFFactura({ ...fFactura, numero: e.target.value })} placeholder="00821" />
             </label>
           </div>
         </div>

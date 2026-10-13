@@ -60,7 +60,7 @@ export default function FacturasGrid({ cargando, error, onReintentar, facturas, 
 
               {f.catalogoDetraccion && (
                 <span className="fin-tag-detraccion">
-                  {f.catalogoDetraccion.codigo} · {f.catalogoDetraccion.descripcion} — S/ {f.montoDetraccion.toFixed(2)}
+                  {f.catalogoDetraccion.codigo} · {f.catalogoDetraccion.descripcion} — {soles(f.montoDetraccion)}
                 </span>
               )}
 

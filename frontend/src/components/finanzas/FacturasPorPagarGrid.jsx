@@ -53,7 +53,7 @@ export default function FacturasPorPagarGrid({ cargando, error, onReintentar, fa
 
               {f.catalogoDetraccion && (
                 <span className="fin-tag-detraccion">
-                  {f.catalogoDetraccion.codigo} · {f.catalogoDetraccion.descripcion} — S/ {f.montoDetraccion.toFixed(2)}
+                  {f.catalogoDetraccion.codigo} · {f.catalogoDetraccion.descripcion} — {soles(f.montoDetraccion)}
                 </span>
               )}
 

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import { IconClose } from "../icons/Icons";
+import { useBloquearScroll } from "../../hooks/useBloquearScroll";
 import "./Modal.css";
 
 // `ocupado`: hay una operación en curso (guardando, subiendo un
@@ -22,6 +23,9 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant,
   // usando siempre la versión más reciente de onClose.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  // El scroll de la página de atrás queda bloqueado mientras el modal
+  // está abierto (con la rueda del mouse o con el dedo).
+  useBloquearScroll(open);
   const ocupadoRef = useRef(ocupado);
   useEffect(() => {
     ocupadoRef.current = ocupado;
@@ -40,12 +44,6 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant,
     if (!open) return;
     const disparador = document.activeElement;
     dialogRef.current?.focus();
-
-    // El scroll de la página de atrás queda bloqueado mientras el
-    // modal está abierto — evita el efecto raro de poder desplazar el
-    // fondo con la rueda del mouse mientras hay un diálogo encima.
-    const overflowOriginal = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
     function elementosFocalizables() {
       if (!dialogRef.current) return [];
@@ -86,7 +84,6 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant,
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = overflowOriginal;
       disparador?.focus?.();
     };
   }, [open]);

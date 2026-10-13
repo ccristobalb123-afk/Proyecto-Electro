@@ -135,6 +135,7 @@
 .notificaciones-bell__lista {
   max-height: min(60vh, 420px);
   overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
 }
@@ -178,8 +179,11 @@
   min-width: 0;
 }
 
+/* Si el título se quedaría con menos de ~8em al lado de la etiqueta
+   (celular), la etiqueta pasa a la línea de abajo en vez de aplastarlo. */
 .notificacion-item__titulo {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
@@ -191,6 +195,7 @@
 }
 
 .notificacion-item__titulo > span:first-child {
+  flex: 1 1 8em;
   min-width: 0;
   overflow-wrap: anywhere;
 }

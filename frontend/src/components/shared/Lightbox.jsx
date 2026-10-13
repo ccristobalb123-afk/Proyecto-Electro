@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import "./Lightbox.css";
 import { IconClose } from "../icons/Icons";
+import { useBloquearScroll } from "../../hooks/useBloquearScroll";
 
 // Visor de imagen a pantalla casi completa. Deliberadamente separado del
 // Modal genérico: Modal tiene un ancho fijo pensado para formularios
 // (460/560px), y acá queremos aprovechar casi toda la pantalla para ver
 // la foto con detalle.
 export default function Lightbox({ src, alt, onClose }) {
+  useBloquearScroll(!!src);
   useEffect(() => {
     if (!src) return;
     function onKeyDown(e) {

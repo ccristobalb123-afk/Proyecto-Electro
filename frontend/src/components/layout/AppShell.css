@@ -20,6 +20,7 @@
   height: 100vh;
   height: 100dvh;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .sidebar-brand {
@@ -81,10 +82,15 @@
   border-left-color: var(--volt);
 }
 
+/* Dos filas: avatar + nombre/empresas arriba, botones abajo. Con los
+   botones en la misma fila (44px cada uno en pantallas táctiles), un
+   nombre largo quedaba en una columna de 0px y se pintaba encima. */
 .sidebar-user {
   padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--ink-border);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
@@ -92,6 +98,15 @@
 .sidebar-user-info {
   flex: 1;
   min-width: 0;
+}
+
+.sidebar-user-acciones {
+  flex: 1 0 100%;
+  display: flex;
+  justify-content: flex-start;
+  gap: 4px;
+  /* alineados con el texto, no con el avatar (36px + 10px de separación) */
+  padding-left: 40px;
 }
 
 .logout-btn {
@@ -128,14 +143,23 @@
   flex: none;
 }
 
+/* Como mucho 2 líneas; el nombre completo queda en el title. */
 .sidebar-user .name {
   font-size: 13px;
   font-weight: 600;
   color: var(--on-ink);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .company-pills {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-top: 4px;
 }
@@ -301,8 +325,16 @@
     z-index: var(--z-drawer-overlay);
   }
 
+  /* Arriba también: con viewport-fit=cover, en un iPhone sin barra del
+     navegador (app en pantalla de inicio, horizontal) la barra quedaba
+     debajo del notch. En Safari normal env() vale 0 y no cambia nada. */
   .topbar {
-    padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+    height: calc(var(--topbar-height) + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  }
+
+  .sidebar-brand {
+    padding-top: max(22px, env(safe-area-inset-top));
   }
 
   .main {

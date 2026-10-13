@@ -9,7 +9,7 @@ export default function ModalEditarVehiculo({ open, onClose, fVehiculo, setFVehi
         <div className="form-field">
           <label>
             Placa
-            <input required value={fVehiculo.placa} onChange={(e) => setFVehiculo({ ...fVehiculo, placa: e.target.value })} />
+            <input required autoCapitalize="characters" autoCorrect="off" spellCheck={false} value={fVehiculo.placa} onChange={(e) => setFVehiculo({ ...fVehiculo, placa: e.target.value })} />
           </label>
         </div>
         <div className="form-field">

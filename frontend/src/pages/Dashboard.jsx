@@ -23,6 +23,8 @@ const ICONO_KPI = [IconContrato, IconWrench, IconInvoice, IconBell];
 const TONE_KPI = ["copper", "success", "copper", "danger"];
 
 function soles(monto) {
+  // Antes solo había "k": 557 millones se mostraban como "S/ 557682.1k".
+  if (monto >= 1_000_000) return `S/ ${(monto / 1_000_000).toFixed(1)}M`;
   if (monto >= 1000) return `S/ ${(monto / 1000).toFixed(1)}k`;
   return `S/ ${monto.toFixed(0)}`;
 }

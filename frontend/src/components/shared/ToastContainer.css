@@ -111,3 +111,29 @@
     background: rgba(255, 255, 255, 0.06);
   }
 }
+
+/* Celular: arriba, justo debajo del topbar. Abajo tapaban la barra de
+   "Guardar" de los modales (un toque en "Guardar" durante esos 5 s caía
+   en el aviso); encima del topbar tapaban el botón "+". */
+@media (max-width: 640px) {
+  .toast-container {
+    bottom: auto;
+    top: calc(var(--topbar-height) + env(safe-area-inset-top) + 8px);
+    flex-direction: column;
+  }
+
+  .toast {
+    animation-name: toast-aparecer-arriba;
+  }
+}
+
+@keyframes toast-aparecer-arriba {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

@@ -81,15 +81,22 @@
     font-size: 14.5px;
   }
 
-  /* Tabla de RRHH -> tarjetas: una tabla de 6-7 columnas con scroll
-     horizontal es incómoda de leer con el dedo en un celular, así que
-     ahí se reemplaza por una lista de tarjetas con la misma info. */
+}
+
+/* Tabla de RRHH -> tarjetas: una tabla de 6-7 columnas con scroll
+   horizontal es incómoda de leer con el dedo, así que se reemplaza por
+   una lista de tarjetas con la misma info. Hasta 800px (no 640): en una
+   tablet vertical (768px) la tabla partía las fechas en 3 líneas, los
+   nombres en 5 y dejaba "Editar" cortado fuera de la vista. En dos
+   columnas para aprovechar el ancho. */
+@media (max-width: 800px) {
   .main .table-scroll {
     display: none;
   }
 
   .main .rrhh-cards-mobile {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   }
 }
 
@@ -181,6 +188,32 @@
   html .link-button {
     padding-block: var(--space-3);
     margin-block: calc(-1 * var(--space-3));
+    /* Solo con el padding llegaban a 42px de alto, y un nombre corto
+       ("SOAT") a 36px de ancho. */
+    min-height: 44px;
+    min-width: 44px;
+    text-align: left;
+  }
+
+  /* Sin cambiar a flex el nombre de archivo de la lista de documentos:
+     su "…" para nombres largos necesita inline-block. 13px de padding
+     (en vez de 12) completan los 44px. */
+  html .docs-row-sub--link {
+    padding-block: 13px;
+    margin-block: -13px;
+  }
+
+  html .vehiculo-doc-nombre--link,
+  html .link-button {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* "Gestionar categorías" debajo de un select: con margen negativo su
+     área táctil se metía dentro del select (tocar el borde del select
+     podía abrir la gestión de categorías). */
+  html .form-field > .link-button {
+    margin-top: 0;
   }
 
   /* Campos de formulario */
@@ -194,6 +227,16 @@
 
   html .filters .search input {
     height: 44px;
+  }
+
+  /* Buscador global del topbar: la caja medía 44px pero el campo solo
+     26px, y tocar el borde de la caja no lo enfocaba. */
+  html .global-search {
+    padding-block: 0;
+  }
+
+  html .global-search input {
+    min-height: 42px;
   }
 
   /* Casillas: toda la fila responde, no solo el cuadro de 16px */

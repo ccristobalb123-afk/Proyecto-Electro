@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { useBloquearScroll } from "../../hooks/useBloquearScroll";
 import { IconAlertCircle, IconHelpCircle } from "../icons/Icons";
 import { Spinner } from "./Carga";
 import "./ConfirmDialog.css";
@@ -40,6 +41,7 @@ export default function ConfirmDialog({
   // una alternativa (ej. "Desactivar en su lugar"), el diálogo cambia a
   // ofrecerla en vez de dejar al usuario solo con el error.
   const [alternativaActiva, setAlternativaActiva] = useState(null);
+  useBloquearScroll();
 
   const esPeligro = tipo === "peligro" && !alternativaActiva;
   const bloqueadoPorPalabra = !!palabraConfirmacion && !alternativaActiva && !coincide(escrito, palabraConfirmacion);
