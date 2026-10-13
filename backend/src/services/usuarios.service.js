@@ -3,7 +3,7 @@ import { db } from "../lib/db.js";
 import { serializarUsuarioAdmin, buscarPorId } from "./usuario.service.js";
 import { generarPasswordTemporal } from "../lib/password.js";
 import { enviarCorreoPasswordTemporal } from "./email.service.js";
-import { revocarTodosLosRefreshTokens } from "./refreshTokens.service.js";
+import { cerrarTodasLasSesiones } from "./sesiones.service.js";
 import { MODULOS_DISPONIBLES } from "../lib/roles.js";
 import { validacionFallida, ApiError, conflicto } from "../lib/errors.js";
 
@@ -221,7 +221,7 @@ export async function cambiarEstadoUsuario(usuarioId, activo, solicitante) {
   // Si se lo está desactivando, corta cualquier sesión que tenga
   // abierta ahora mismo — no tiene sentido dejarlo seguir renovando su
   // token mientras el refresh token no expire solo.
-  if (!activo) await revocarTodosLosRefreshTokens(usuarioId);
+  if (!activo) await cerrarTodasLasSesiones(usuarioId, "usuario_desactivado");
 
   return serializarUsuarioAdmin(actualizado);
 }
@@ -271,6 +271,7 @@ export async function eliminarUsuario(usuarioId, solicitante) {
       await tx.usuarioEmpresa.deleteMany({ where: { usuarioId } });
       await tx.usuarioModulo.deleteMany({ where: { usuarioId } });
       await tx.refreshToken.deleteMany({ where: { usuarioId } });
+      await tx.sesion.deleteMany({ where: { usuarioId } });
       await tx.passwordResetToken.deleteMany({ where: { usuarioId } });
       await tx.pushSubscription.deleteMany({ where: { usuarioId } });
       await tx.usuario.delete({ where: { id: usuarioId } });
@@ -300,7 +301,7 @@ export async function resetearPassword(usuarioId, solicitante) {
   await db.usuario.update({ where: { id: usuarioId }, data: { passwordHash } });
   // Con la contraseña anterior ya sin valor, cualquier sesión que
   // siguiera abierta con ella se corta acá.
-  await revocarTodosLosRefreshTokens(usuarioId);
+  await cerrarTodasLasSesiones(usuarioId, "password_restablecida");
 
   // La contraseña YA cambió en este punto, pase lo que pase con el
   // correo — si el envío falla, el usuario admin necesita saberlo para
@@ -314,4 +315,16 @@ export async function resetearPassword(usuarioId, solicitante) {
   }
 
   return { ok: true, correoEnviado, passwordTemporal };
+}
+
+// "Cerrar sesión en todos sus dispositivos" (ej. perdió el celular). Solo
+// SuperAdmin (lo exige la ruta). Corta también las suscripciones push.
+export async function cerrarSesionesDeUsuario(usuarioId, solicitante) {
+  const usuario = await buscarPorId(usuarioId);
+  if (!usuario) throw new ApiError(404, "NO_ENCONTRADO", "El usuario no existe.");
+  if (usuario.id === solicitante.id) {
+    throw conflicto("Para cerrar tus propias sesiones usa \"Sesiones y dispositivos\" en tu perfil.", "ACCION_SOBRE_SI_MISMO");
+  }
+  const cerradas = await cerrarTodasLasSesiones(usuarioId, "cierre_admin");
+  return { ok: true, cerradas };
 }

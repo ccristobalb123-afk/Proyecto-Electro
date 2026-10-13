@@ -1,26 +1,18 @@
 import * as authService from "../services/auth.service.js";
-import * as refreshTokensService from "../services/refreshTokens.service.js";
+import * as sesiones from "../services/sesiones.service.js";
 import { serializarUsuario, buscarPorId } from "../services/usuario.service.js";
-import { firmarAccessToken, firmarRefreshToken, verificarRefreshToken } from "../lib/jwt.js";
-import {
-  OPCIONES_COOKIE_ACCESS,
-  OPCIONES_COOKIE_REFRESH,
-  NOMBRE_COOKIE_ACCESS,
-  NOMBRE_COOKIE_REFRESH,
-} from "../lib/cookies.js";
-import { asyncHandler, noAutenticado, sesionExpirada } from "../lib/errors.js";
+import { NOMBRE_COOKIE_ACCESS, NOMBRE_COOKIE_REFRESH, borrarCookiesDeSesion } from "../lib/cookies.js";
+import { asyncHandler, noAutenticado, validacionFallida } from "../lib/errors.js";
+import { db } from "../lib/db.js";
 
-// Deja al usuario con sesión iniciada: firma ambos tokens, registra el
-// refresh token en la base de datos (para poder revocarlo después si
-// hace falta — ver refreshTokens.service.js) y los manda como cookies
-// httpOnly — el frontend nunca ve el token en sí, así que un XSS no
-// puede robarlo con `document.cookie` ni con localStorage.
-async function iniciarSesion(res, usuarioId) {
-  const refreshToken = firmarRefreshToken(usuarioId);
-  await refreshTokensService.registrarRefreshToken(usuarioId, refreshToken);
-
-  res.cookie(NOMBRE_COOKIE_ACCESS, firmarAccessToken(usuarioId), OPCIONES_COOKIE_ACCESS);
-  res.cookie(NOMBRE_COOKIE_REFRESH, refreshToken, OPCIONES_COOKIE_REFRESH);
+// Deja al usuario con sesión iniciada en este dispositivo: crea la
+// sesión, firma ambos tokens y los manda como cookies httpOnly — el
+// frontend nunca ve el token en sí, así que un XSS no puede robarlo con
+// `document.cookie` ni con localStorage. Devuelve las fechas de la sesión
+// para la cuenta regresiva del frontend.
+async function iniciarSesion(req, res, usuarioId) {
+  const sesion = await sesiones.iniciarSesion(req, res, usuarioId);
+  return sesiones.estadoSesion(sesion);
 }
 
 export const postLogin = asyncHandler(async (req, res) => {
@@ -36,15 +28,15 @@ export const postLogin = asyncHandler(async (req, res) => {
     });
   }
 
-  await iniciarSesion(res, resultado.usuario.id);
-  res.json({ requiereMfa: false, usuario: resultado.usuario });
+  const sesion = await iniciarSesion(req, res, resultado.usuario.id);
+  res.json({ requiereMfa: false, usuario: resultado.usuario, sesion });
 });
 
 export const postVerifyMfa = asyncHandler(async (req, res) => {
   const { mfaToken, codigo } = req.body;
   const { usuario: usuarioActualizado } = await authService.verificarMfa(mfaToken, codigo);
-  await iniciarSesion(res, usuarioActualizado.id);
-  res.json({ usuario: usuarioActualizado });
+  const sesion = await iniciarSesion(req, res, usuarioActualizado.id);
+  res.json({ usuario: usuarioActualizado, sesion });
 });
 
 // El frontend debe llamar a esto cuando login() devuelve requiereMfa:true
@@ -72,7 +64,7 @@ export const postResetPassword = asyncHandler(async (req, res) => {
 
 export const postCambiarPassword = asyncHandler(async (req, res) => {
   const { passwordActual, passwordNueva } = req.body;
-  const resultado = await authService.cambiarPassword(req.usuario.id, passwordActual, passwordNueva);
+  const resultado = await authService.cambiarPassword(req.usuario.id, passwordActual, passwordNueva, req.sesion.id);
   res.json(resultado);
 });
 
@@ -83,52 +75,77 @@ export const getMe = asyncHandler(async (req, res) => {
   res.json(serializarUsuario(usuarioCompleto));
 });
 
-// El access token dura poco a propósito (15 min) — este endpoint es el
-// que permite renovarlo sin que el usuario tenga que volver a loguearse,
-// usando el refresh token (que vive en una cookie separada, restringida
-// a /api/auth) mientras siga siendo válido Y no haya sido revocado
-// (logout, cambio de contraseña, o que un Administrador haya
-// desactivado la cuenta cierran esa puerta de inmediato, no hay que
-// esperar a que el token expire solo).
-//
-// Además, cada renovación "rota" el refresh token: se revoca el que
-// llegó y se entrega uno nuevo — así, si alguien alguna vez roba un
-// refresh token viejo, ya no le sirve de nada.
+// Renueva el access token (15 min) con el refresh token, que vive en una
+// cookie separada restringida a /api/auth. Cada renovación rota el
+// refresh token; NO cuenta como actividad ni alarga la sesión: si pasaron
+// 30 min sin actividad o se llegó a las 12 h, responde 401 con el motivo.
+// Ver services/sesiones.service.js.
 export const postRefresh = asyncHandler(async (req, res) => {
   const token = req.cookies?.[NOMBRE_COOKIE_REFRESH];
   if (!token) throw noAutenticado();
-
-  let payload;
   try {
-    payload = verificarRefreshToken(token);
-  } catch {
-    throw sesionExpirada();
+    const sesion = await sesiones.renovar(req, res, token, {
+      usuarioActivo: async (id) => !!(await db.usuario.findUnique({ where: { id }, select: { activo: true } }))?.activo,
+    });
+    res.json({ ok: true, sesion: sesiones.estadoSesion(sesion) });
+  } catch (err) {
+    // 409 = otra pestaña ya renovó: sus cookies nuevas sirven, no se borran.
+    if (err.status === 401) borrarCookiesDeSesion(res);
+    throw err;
   }
+});
 
-  const registro = await refreshTokensService.refreshTokenValido(token);
-  if (!registro) throw sesionExpirada();
-
-  // Sin esto, alguien recién desactivado por un Administrador podría
-  // seguir renovando su sesión indefinidamente mientras su refresh
-  // token no haya expirado — requireAuth revisa "activo" en cada
-  // pedido normal, pero acá se estaba emitiendo el access token nuevo
-  // sin pasar por ese mismo chequeo.
-  const usuario = await buscarPorId(payload.sub);
-  if (!usuario || !usuario.activo) {
-    await refreshTokensService.revocarRefreshToken(token);
-    throw sesionExpirada();
+// Cierra la sesión de ESTE dispositivo en el servidor (no solo borra las
+// cookies): sus refresh tokens dejan de servir y, si el usuario cerró a
+// propósito, se borra la suscripción push de este dispositivo.
+// motivo "inactividad" / "maxima": el cierre automático del frontend; ahí
+// se conserva la suscripción para seguir recibiendo avisos de vencimientos.
+// Funciona aunque el access token haya vencido (identifica la sesión por
+// la firma de cualquiera de las dos cookies).
+export const postLogout = asyncHandler(async (req, res) => {
+  const { motivo, pushEndpoint } = req.body || {};
+  const automatico = motivo === "inactividad" || motivo === "maxima";
+  const sesionId = sesiones.sesionIdDeCookies(req.cookies?.[NOMBRE_COOKIE_REFRESH], req.cookies?.[NOMBRE_COOKIE_ACCESS]);
+  if (sesionId) {
+    const sesion = await db.sesion.findUnique({ where: { id: sesionId } });
+    if (sesion) {
+      await sesiones.cerrarSesion(sesionId, automatico ? motivo : "cierre");
+      if (pushEndpoint && !automatico) {
+        await db.pushSubscription.deleteMany({ where: { endpoint: pushEndpoint, usuarioId: sesion.usuarioId } });
+      }
+    }
   }
-
-  await refreshTokensService.revocarRefreshToken(token);
-  await iniciarSesion(res, payload.sub);
+  borrarCookiesDeSesion(res);
   res.json({ ok: true });
 });
 
-export const postLogout = asyncHandler(async (req, res) => {
-  const token = req.cookies?.[NOMBRE_COOKIE_REFRESH];
-  if (token) await refreshTokensService.revocarRefreshToken(token);
+// El usuario hizo algo en la pantalla (el frontend lo reporta como mucho
+// cada 30 s mientras haya clics, teclas, scroll o toques).
+export const postActividad = asyncHandler(async (req, res) => {
+  const sesion = await sesiones.registrarActividad(req.sesion);
+  res.json({ sesion: sesiones.estadoSesion(sesion) });
+});
 
-  res.clearCookie(NOMBRE_COOKIE_ACCESS, OPCIONES_COOKIE_ACCESS);
-  res.clearCookie(NOMBRE_COOKIE_REFRESH, OPCIONES_COOKIE_REFRESH);
-  res.json({ ok: true });
+// Fechas de la sesión actual, sin contarlo como actividad (al recargar).
+export const getSesion = asyncHandler(async (req, res) => {
+  res.json({ sesion: sesiones.estadoSesion(req.sesion) });
+});
+
+export const getSesiones = asyncHandler(async (req, res) => {
+  res.json(await sesiones.listarSesiones(req.usuario.id, req.sesion.id));
+});
+
+export const deleteSesion = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) throw validacionFallida("Identificador de sesión inválido.");
+  await sesiones.cerrarSesionPropia(req.usuario.id, id);
+  if (id === req.sesion.id) borrarCookiesDeSesion(res);
+  res.json({ ok: true, eraActual: id === req.sesion.id });
+});
+
+// "Cerrar sesión en todos los dispositivos" (incluido este).
+export const postCerrarTodas = asyncHandler(async (req, res) => {
+  const cerradas = await sesiones.cerrarTodasLasSesiones(req.usuario.id, "cierre_todas");
+  borrarCookiesDeSesion(res);
+  res.json({ ok: true, cerradas });
 });

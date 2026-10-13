@@ -71,6 +71,19 @@
   animation: auth-error-entrada 160ms var(--ease-out) both;
 }
 
+/* Aviso informativo (no es un error del formulario): por qué se volvió
+   al login, por ejemplo "Tu sesión se cerró por inactividad". */
+.auth-aviso {
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--volt-tint);
+  border-left: 3px solid var(--volt-dark);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+
 @keyframes auth-error-entrada {
   from {
     opacity: 0;

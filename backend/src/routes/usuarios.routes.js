@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as usuariosController from "../controllers/usuarios.controller.js";
-import { requireAuth, requireModulo } from "../middleware/auth.middleware.js";
+import { requireAuth, requireModulo, requireSuperAdmin } from "../middleware/auth.middleware.js";
 import { validar, validarQuery } from "../middleware/validar.js";
 import {
   crearUsuarioSchema,
@@ -20,5 +20,6 @@ router.post("/", validar(crearUsuarioSchema), usuariosController.postUsuario);
 router.patch("/:id", validar(patchUsuarioSchema), usuariosController.patchUsuario);
 router.post("/:id/reset-password", usuariosController.postResetPassword);
 router.delete("/:id", usuariosController.deleteUsuario);
+router.post("/:id/cerrar-sesiones", requireSuperAdmin, usuariosController.postCerrarSesiones);
 
 export default router;

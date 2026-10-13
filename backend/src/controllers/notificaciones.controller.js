@@ -6,11 +6,11 @@ export const getVapidPublicKey = asyncHandler(async (req, res) => {
 });
 
 export const postSuscribir = asyncHandler(async (req, res) => {
-  await pushService.guardarSuscripcion(req.usuario.id, req.body);
+  await pushService.guardarSuscripcion(req.usuario.id, req.body, req.sesion.id);
   res.status(201).json({ ok: true });
 });
 
 export const postDesuscribir = asyncHandler(async (req, res) => {
-  await pushService.eliminarSuscripcion(req.body.endpoint);
+  await pushService.eliminarSuscripcion(req.usuario.id, req.body.endpoint);
   res.json({ ok: true });
 });

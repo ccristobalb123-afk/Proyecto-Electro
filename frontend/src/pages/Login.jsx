@@ -5,6 +5,15 @@ import AuthShell from "../components/auth/AuthShell";
 import OtpInput from "../components/auth/OtpInput";
 import PasswordField from "../components/shared/PasswordField";
 import { IconChevronLeft } from "../components/icons/Icons";
+import { useAuth } from "../context/AuthContext";
+
+// Por qué se volvió al login (ver AuthContext → motivoCierre).
+const MENSAJES_CIERRE = {
+  inactividad: "Tu sesión se cerró por inactividad.",
+  maxima: "Por seguridad, tu sesión llegó a su duración máxima. Vuelve a iniciar sesión.",
+  revocada: "Tu sesión se cerró desde otro dispositivo o por un administrador. Vuelve a iniciar sesión.",
+  expirada: "Tu sesión expiró. Vuelve a iniciar sesión.",
+};
 
 // Pasos del riel. "Verificación" solo existe si el sistema pide MFA, y eso se
 // sabe recién después de validar las credenciales: por eso el riel arranca con
@@ -18,6 +27,7 @@ const PASOS_RECUPERACION = [
 
 export default function Login() {
   const l = useLoginFlow();
+  const { motivoCierre } = useAuth();
 
   const enRecuperacion = l.step === STEPS.RECOVERY || l.step === STEPS.RECOVERY_SENT;
   const enMfa = l.step === STEPS.MFA_SETUP || l.step === STEPS.MFA;
@@ -51,6 +61,11 @@ export default function Login() {
             Inicia sesión
           </h2>
           <p className="auth-sub">Ingresa tus credenciales para continuar.</p>
+          {MENSAJES_CIERRE[motivoCierre] && (
+            <p className="auth-aviso" role="status">
+              {MENSAJES_CIERRE[motivoCierre]}
+            </p>
+          )}
           <div className="auth-field">
             <label htmlFor="usuario">Usuario</label>
             <input

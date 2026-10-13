@@ -301,3 +301,14 @@ export function IconLock(props) {
     </svg>
   );
 }
+
+export function IconDevices(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2" y="4" width="14" height="10" rx="1.5" />
+      <path d="M5 18h8" />
+      <rect x="16" y="9" width="6" height="11" rx="1.5" />
+      <path d="M18.5 17.5h1" />
+    </svg>
+  );
+}

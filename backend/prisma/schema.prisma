@@ -17,16 +17,16 @@ datasource db {
 
 // CorevexSAC / ElectroSAC — un usuario puede tener acceso a una o ambas.
 model Empresa {
-  id      Int      @id @default(autoincrement())
-  nombre  String   @unique // "CorevexSAC" | "ElectroSAC"
-  slug    String   @unique // "corevex" | "electro" — el valor que ya usa el frontend
-  usuarios UsuarioEmpresa[]
-  contratos Contrato[]
-  cursos    Curso[]
-  equipos   Equipo[]
-  vehiculosDuena Vehiculo[] @relation("EmpresaDuena")
-  vehiculosUso   Vehiculo[] @relation("EmpresaUso")
-  facturas       Factura[]
+  id               Int               @id @default(autoincrement())
+  nombre           String            @unique // "CorevexSAC" | "ElectroSAC"
+  slug             String            @unique // "corevex" | "electro" — el valor que ya usa el frontend
+  usuarios         UsuarioEmpresa[]
+  contratos        Contrato[]
+  cursos           Curso[]
+  equipos          Equipo[]
+  vehiculosDuena   Vehiculo[]        @relation("EmpresaDuena")
+  vehiculosUso     Vehiculo[]        @relation("EmpresaUso")
+  facturas         Factura[]
   facturasPorPagar FacturaPorPagar[]
   gastos           Gasto[]
 
@@ -41,37 +41,38 @@ model Empresa {
 // RolModulo para él) y no se puede editar ni borrar — es quien
 // gestiona los demás roles.
 model Usuario {
-  id            Int      @id @default(autoincrement())
-  usuario       String   @unique // nombre de usuario para iniciar sesión (ej. "ccorahua")
-  correo        String   @unique // solo se usa para recuperar contraseña, no para loguearse
-  passwordHash  String   @map("password_hash")
-  nombre        String
+  id           Int             @id @default(autoincrement())
+  usuario      String          @unique // nombre de usuario para iniciar sesión (ej. "ccorahua")
+  correo       String          @unique // solo se usa para recuperar contraseña, no para loguearse
+  passwordHash String          @map("password_hash")
+  nombre       String
   // Ya no hay un "rol" con nombre — cada usuario tiene directamente su
   // propio interruptor de control total, y su propia lista de ventanas
   // (ver UsuarioModulo). esSuperAdmin siempre implica acceso a TODO sin
   // necesitar filas en UsuarioModulo, y es el único con control total
   // real (nunca se le pueden restringir ventanas ni quitarlo si es el
   // último).
-  esSuperAdmin  Boolean  @default(false) @map("es_super_admin")
-  modulos       UsuarioModulo[]
+  esSuperAdmin Boolean         @default(false) @map("es_super_admin")
+  modulos      UsuarioModulo[]
 
   // MFA (TOTP — Google Authenticator / Authy / etc.)
   // `mfaHabilitado`: el usuario ya escaneó el QR y confirmó el setup.
   // Antes de eso, aunque su rol "requiera" MFA, todavía no tiene nada
   // que verificar — ese caso se resuelve en el login (ver auth.service).
-  mfaSecret      String?  @map("mfa_secret")
-  mfaHabilitado  Boolean  @default(false) @map("mfa_habilitado")
+  mfaSecret     String? @map("mfa_secret")
+  mfaHabilitado Boolean @default(false) @map("mfa_habilitado")
 
   activo        Boolean  @default(true)
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
 
-  empresas          UsuarioEmpresa[]
+  empresas           UsuarioEmpresa[]
   tokensRecuperacion PasswordResetToken[]
-  suscripcionesPush PushSubscription[]
-  refreshTokens     RefreshToken[]
-  historialEquipo   HistorialEquipo[]
-  historialVehiculo HistorialVehiculo[]
+  suscripcionesPush  PushSubscription[]
+  refreshTokens      RefreshToken[]
+  sesiones           Sesion[]
+  historialEquipo    HistorialEquipo[]
+  historialVehiculo  HistorialVehiculo[]
 
   @@map("usuarios")
 }
@@ -94,7 +95,7 @@ model UsuarioModulo {
   id        Int     @id @default(autoincrement())
   usuarioId Int     @map("usuario_id")
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  modulo    String  // "dashboard" | "rrhh" | "operaciones" | "finanzas" | "administracion"
+  modulo    String // "dashboard" | "rrhh" | "operaciones" | "finanzas" | "administracion"
 
   @@unique([usuarioId, modulo])
   @@map("usuario_modulos")
@@ -104,13 +105,13 @@ model UsuarioModulo {
 // (igual que una contraseña) — si la tabla se filtra, los tokens
 // crudos (los que sí funcionan) no quedan expuestos.
 model PasswordResetToken {
-  id         Int      @id @default(autoincrement())
-  usuarioId  Int      @map("usuario_id")
-  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  tokenHash  String   @unique @map("token_hash")
-  expiraEn   DateTime @map("expira_en")
-  usadoEn    DateTime? @map("usado_en")
-  creadoEn   DateTime @default(now()) @map("creado_en")
+  id        Int       @id @default(autoincrement())
+  usuarioId Int       @map("usuario_id")
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash")
+  expiraEn  DateTime  @map("expira_en")
+  usadoEn   DateTime? @map("usado_en")
+  creadoEn  DateTime  @default(now()) @map("creado_en")
 
   @@map("password_reset_tokens")
 }
@@ -121,15 +122,48 @@ model PasswordResetToken {
 // sus sesiones activas de inmediato en vez de esperar a que el token
 // expire solo.
 model RefreshToken {
-  id         Int       @id @default(autoincrement())
-  usuarioId  Int       @map("usuario_id")
-  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  tokenHash  String    @unique @map("token_hash")
-  expiraEn   DateTime  @map("expira_en")
-  revocadoEn DateTime? @map("revocado_en")
-  creadoEn   DateTime  @default(now()) @map("creado_en")
+  id               Int       @id @default(autoincrement())
+  usuarioId        Int       @map("usuario_id")
+  usuario          Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  // Sesión (dispositivo) a la que pertenece: todos los tokens que salen
+  // de rotar el mismo inicio de sesión forman una "familia". Null en los
+  // tokens de antes de esta versión, que ya no se aceptan.
+  sesionId         String?   @map("sesion_id")
+  sesion           Sesion?   @relation(fields: [sesionId], references: [id], onDelete: Cascade)
+  tokenHash        String    @unique @map("token_hash")
+  expiraEn         DateTime  @map("expira_en")
+  revocadoEn       DateTime? @map("revocado_en")
+  // "rotado" (se cambió por uno nuevo al renovar) o el motivo del cierre.
+  // Si vuelve a llegar un token "rotado", alguien lo copió: se cierra
+  // toda la sesión (detección de reutilización).
+  motivoRevocacion String?   @map("motivo_revocacion")
+  creadoEn         DateTime  @default(now()) @map("creado_en")
 
+  @@index([sesionId])
   @@map("refresh_tokens")
+}
+
+// Un inicio de sesión en un dispositivo. Vence por inactividad
+// (SESION_INACTIVIDAD_MIN sin actividad del usuario) o al llegar a
+// expiraAbsolutaEn (SESION_MAXIMA_HORAS desde el login), lo que pase
+// primero; renovar los tokens NO mueve ninguna de las dos fechas.
+model Sesion {
+  id                String    @id
+  usuarioId         Int       @map("usuario_id")
+  usuario           Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  creadoEn          DateTime  @default(now()) @map("creado_en")
+  ultimaActividadEn DateTime  @default(now()) @map("ultima_actividad_en")
+  expiraAbsolutaEn  DateTime  @map("expira_absoluta_en")
+  revocadaEn        DateTime? @map("revocada_en")
+  motivoCierre      String?   @map("motivo_cierre")
+  userAgent         String?   @map("user_agent")
+  ip                String?
+
+  refreshTokens     RefreshToken[]
+  suscripcionesPush PushSubscription[]
+
+  @@index([usuarioId])
+  @@map("sesiones")
 }
 
 // ============================================================
@@ -235,7 +269,7 @@ model Curso {
 model CategoriaEquipo {
   id      Int      @id @default(autoincrement())
   nombre  String   @unique
-  campos  Json     // [{ nombre, placeholder }]
+  campos  Json // [{ nombre, placeholder }]
   equipos Equipo[]
 
   @@map("categorias_equipo")
@@ -250,31 +284,31 @@ enum EstadoEquipo {
 }
 
 model Equipo {
-  id                      Int             @id @default(autoincrement())
-  codigo                  String          @unique
-  categoriaId             Int             @map("categoria_id")
-  categoria               CategoriaEquipo @relation(fields: [categoriaId], references: [id])
-  empresaId               Int             @map("empresa_id")
-  empresa                 Empresa         @relation(fields: [empresaId], references: [id])
-  estado                  EstadoEquipo    @default(DISPONIBLE)
+  id          Int             @id @default(autoincrement())
+  codigo      String          @unique
+  categoriaId Int             @map("categoria_id")
+  categoria   CategoriaEquipo @relation(fields: [categoriaId], references: [id])
+  empresaId   Int             @map("empresa_id")
+  empresa     Empresa         @relation(fields: [empresaId], references: [id])
+  estado      EstadoEquipo    @default(DISPONIBLE)
 
   // Solo se puede asignar a un camión REGISTRADO (nunca a una persona
   // ni a texto libre) — ver ModalAsignarEquipo en el frontend. El
   // texto "Camión ABC-123" que se muestra en la tarjeta se arma al
   // vuelo a partir de vehiculo.placa, no se guarda por separado.
-  vehiculoId              Int?            @map("vehiculo_id")
-  vehiculo                Vehiculo?       @relation(fields: [vehiculoId], references: [id])
+  vehiculoId Int?      @map("vehiculo_id")
+  vehiculo   Vehiculo? @relation(fields: [vehiculoId], references: [id])
 
-  camposValores           Json            @default("{}") @map("campos_valores")
-  fotos                   Json            @default("[]") // hasta 2 URLs/base64
-  comentarioMantenimiento String?         @map("comentario_mantenimiento")
-  motivoBaja              String?         @map("motivo_baja")
-  ultimaInspeccion        DateTime?       @map("ultima_inspeccion") @db.Date
-  proximaInspeccion       DateTime?       @map("proxima_inspeccion") @db.Date
+  camposValores              Json      @default("{}") @map("campos_valores")
+  fotos                      Json      @default("[]") // hasta 2 URLs/base64
+  comentarioMantenimiento    String?   @map("comentario_mantenimiento")
+  motivoBaja                 String?   @map("motivo_baja")
+  ultimaInspeccion           DateTime? @map("ultima_inspeccion") @db.Date
+  proximaInspeccion          DateTime? @map("proxima_inspeccion") @db.Date
   // Días antes de la próxima inspección en que se avisa (el valor del
   // modal de inspección). 15 para los equipos que ya existían.
-  diasAnticipacionInspeccion Int  @default(15) @map("dias_anticipacion_inspeccion")
-  creadoEn                DateTime        @default(now()) @map("creado_en")
+  diasAnticipacionInspeccion Int       @default(15) @map("dias_anticipacion_inspeccion")
+  creadoEn                   DateTime  @default(now()) @map("creado_en")
 
   historial HistorialEquipo[]
 
@@ -310,20 +344,20 @@ enum TipoUnidad {
 }
 
 model Vehiculo {
-  id             Int        @id @default(autoincrement())
-  placa          String     @unique
-  tipoUnidad     TipoUnidad @map("tipo_unidad")
+  id         Int        @id @default(autoincrement())
+  placa      String     @unique
+  tipoUnidad TipoUnidad @map("tipo_unidad")
 
   // Dueña y de uso pueden ser distintas empresas (ej. un camión de
   // ElectroSAC prestado a un proyecto de CorevexSAC) — por eso son 2
   // relaciones separadas, no la misma columna reusada.
-  empresaDuenaId Int        @map("empresa_duena_id")
-  empresaDuena   Empresa    @relation("EmpresaDuena", fields: [empresaDuenaId], references: [id])
-  empresaUsoId   Int        @map("empresa_uso_id")
-  empresaUso     Empresa    @relation("EmpresaUso", fields: [empresaUsoId], references: [id])
+  empresaDuenaId Int     @map("empresa_duena_id")
+  empresaDuena   Empresa @relation("EmpresaDuena", fields: [empresaDuenaId], references: [id])
+  empresaUsoId   Int     @map("empresa_uso_id")
+  empresaUso     Empresa @relation("EmpresaUso", fields: [empresaUsoId], references: [id])
 
-  cuadrilla      String?
-  creadoEn       DateTime   @default(now()) @map("creado_en")
+  cuadrilla String?
+  creadoEn  DateTime @default(now()) @map("creado_en")
 
   documentos DocumentoVehiculo[]
   historial  HistorialVehiculo[]
@@ -396,14 +430,14 @@ model HistorialVehiculo {
 // cambia de tanto en tanto (por eso vigenteDesde/vigenteHasta en vez
 // de una constante en el código).
 model CatalogoDetraccion {
-  id            Int       @id @default(autoincrement())
-  codigo        String    @unique // "030", "019", "021"...
-  descripcion   String
-  anexo         Int       // 1 | 2 | 3
-  porcentaje    Decimal   @db.Decimal(5, 4) // 0.0400, 0.1200, 0.0150...
-  montoMinimo   Decimal?  @map("monto_minimo") @db.Decimal(12, 2)
-  vigenteDesde  DateTime  @map("vigente_desde") @db.Date
-  vigenteHasta  DateTime? @map("vigente_hasta") @db.Date // null = sigue vigente
+  id           Int       @id @default(autoincrement())
+  codigo       String    @unique // "030", "019", "021"...
+  descripcion  String
+  anexo        Int // 1 | 2 | 3
+  porcentaje   Decimal   @db.Decimal(5, 4) // 0.0400, 0.1200, 0.0150...
+  montoMinimo  Decimal?  @map("monto_minimo") @db.Decimal(12, 2)
+  vigenteDesde DateTime  @map("vigente_desde") @db.Date
+  vigenteHasta DateTime? @map("vigente_hasta") @db.Date // null = sigue vigente
 
   facturas         Factura[]
   facturasPorPagar FacturaPorPagar[]
@@ -416,15 +450,15 @@ model CatalogoDetraccion {
 // estadoPago() en el frontend). Mismo motivo que en RRHH/Operaciones:
 // evita que quede desactualizado.
 model Factura {
-  id                   Int          @id @default(autoincrement())
-  empresaId            Int          @map("empresa_id")
-  empresa              Empresa      @relation(fields: [empresaId], references: [id])
-  cliente              String
-  serie                String
-  numero               String
-  montoTotal           Decimal      @map("monto_total") @db.Decimal(12, 2)
-  fechaEmision         DateTime     @map("fecha_emision") @db.Date
-  fechaVencimiento     DateTime     @map("fecha_vencimiento") @db.Date
+  id               Int      @id @default(autoincrement())
+  empresaId        Int      @map("empresa_id")
+  empresa          Empresa  @relation(fields: [empresaId], references: [id])
+  cliente          String
+  serie            String
+  numero           String
+  montoTotal       Decimal  @map("monto_total") @db.Decimal(12, 2)
+  fechaEmision     DateTime @map("fecha_emision") @db.Date
+  fechaVencimiento DateTime @map("fecha_vencimiento") @db.Date
 
   // Presente = "aplica detracción". Reemplaza al booleano suelto que
   // había antes (aplicaDetraccion) — no hacía falta guardar las dos
@@ -435,14 +469,14 @@ model Factura {
   // No se recalcula al leer: el % del catálogo puede cambiar con el
   // tiempo y este monto ya fue depositado a SUNAT — es historia, no
   // algo derivable como el estado de pago.
-  montoDetraccion      Decimal?     @map("monto_detraccion") @db.Decimal(12, 2)
-  detraccionMedioPago  String?      @map("detraccion_medio_pago")
-  detraccionCuentaBn   String?      @map("detraccion_cuenta_bn")
+  montoDetraccion      Decimal?            @map("monto_detraccion") @db.Decimal(12, 2)
+  detraccionMedioPago  String?             @map("detraccion_medio_pago")
+  detraccionCuentaBn   String?             @map("detraccion_cuenta_bn")
 
-  archivoNombre        String?      @map("archivo_nombre")
-  archivoUrl           String?      @map("archivo_url")
-  anulada              Boolean      @default(false)
-  creadoEn             DateTime     @default(now()) @map("creado_en")
+  archivoNombre String?  @map("archivo_nombre")
+  archivoUrl    String?  @map("archivo_url")
+  anulada       Boolean  @default(false)
+  creadoEn      DateTime @default(now()) @map("creado_en")
 
   pagos PagoFactura[]
 
@@ -462,25 +496,25 @@ model PagoFactura {
 }
 
 model FacturaPorPagar {
-  id                   Int      @id @default(autoincrement())
-  empresaId            Int      @map("empresa_id")
-  empresa              Empresa  @relation(fields: [empresaId], references: [id])
-  proveedor            String
-  motivo               String
-  montoTotal           Decimal  @map("monto_total") @db.Decimal(12, 2)
-  fechaEmision         DateTime @map("fecha_emision") @db.Date
-  fechaVencimiento     DateTime @map("fecha_vencimiento") @db.Date
+  id               Int      @id @default(autoincrement())
+  empresaId        Int      @map("empresa_id")
+  empresa          Empresa  @relation(fields: [empresaId], references: [id])
+  proveedor        String
+  motivo           String
+  montoTotal       Decimal  @map("monto_total") @db.Decimal(12, 2)
+  fechaEmision     DateTime @map("fecha_emision") @db.Date
+  fechaVencimiento DateTime @map("fecha_vencimiento") @db.Date
 
   catalogoDetraccionId Int?                @map("catalogo_detraccion_id")
   catalogoDetraccion   CatalogoDetraccion? @relation(fields: [catalogoDetraccionId], references: [id])
-  montoDetraccion      Decimal?     @map("monto_detraccion") @db.Decimal(12, 2)
-  detraccionMedioPago  String?      @map("detraccion_medio_pago")
-  detraccionCuentaBn   String?      @map("detraccion_cuenta_bn")
+  montoDetraccion      Decimal?            @map("monto_detraccion") @db.Decimal(12, 2)
+  detraccionMedioPago  String?             @map("detraccion_medio_pago")
+  detraccionCuentaBn   String?             @map("detraccion_cuenta_bn")
 
-  archivoNombre        String?  @map("archivo_nombre")
-  archivoUrl           String?  @map("archivo_url")
-  anulada              Boolean  @default(false)
-  creadoEn             DateTime @default(now()) @map("creado_en")
+  archivoNombre String?  @map("archivo_nombre")
+  archivoUrl    String?  @map("archivo_url")
+  anulada       Boolean  @default(false)
+  creadoEn      DateTime @default(now()) @map("creado_en")
 
   pagos PagoFacturaPorPagar[]
 
@@ -501,8 +535,8 @@ model PagoFacturaPorPagar {
 // endpoint para que el usuario cree categorías nuevas, igual que ya
 // existe para CategoriaEquipo, cuando la UI de Finanzas lo pida.
 model CategoriaGasto {
-  id     Int    @id @default(autoincrement())
-  nombre String @unique
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique
   gastos Gasto[]
 
   @@map("categorias_gasto")
@@ -520,7 +554,7 @@ model Gasto {
   trabajador    String?
   descripcion   String?
   archivoNombre String?        @map("archivo_nombre")
-  archivoUrl       String?       @map("archivo_url")
+  archivoUrl    String?        @map("archivo_url")
   creadoEn      DateTime       @default(now()) @map("creado_en")
 
   @@map("gastos")
@@ -539,6 +573,11 @@ model PushSubscription {
   id        Int      @id @default(autoincrement())
   usuarioId Int      @map("usuario_id")
   usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  // Sesión del dispositivo que se suscribió: al cerrar o revocar ESA
+  // sesión se borra su suscripción (un celular perdido deja de recibir
+  // avisos). Si la sesión solo vence (inactividad, 12 h), se conserva.
+  sesionId  String?  @map("sesion_id")
+  sesion    Sesion?  @relation(fields: [sesionId], references: [id], onDelete: SetNull)
   endpoint  String   @unique
   p256dh    String
   auth      String
@@ -554,7 +593,7 @@ model PushSubscription {
 // que se repite a medida que se acerca la fecha, no una alerta única.
 model AlertaNotificada {
   id        Int      @id @default(autoincrement())
-  tipo      String   // "contrato" | "curso" | "documento_vehiculo" | "equipo_inspeccion"
+  tipo      String // "contrato" | "curso" | "documento_vehiculo" | "equipo_inspeccion"
   entidadId Int      @map("entidad_id")
   fecha     DateTime @default(now()) @db.Date
   creadoEn  DateTime @default(now()) @map("creado_en")

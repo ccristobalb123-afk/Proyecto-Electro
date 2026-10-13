@@ -29,3 +29,9 @@ export async function cambiarEstadoUsuario(usuarioId, activo) {
 export async function eliminarUsuario(usuarioId) {
   return apiClient.delete(`/usuarios/${usuarioId}`);
 }
+
+// Cierra la sesión del usuario en todos sus dispositivos y corta sus
+// notificaciones push (ej. perdió el celular). Solo SuperAdmin.
+export async function cerrarSesionesDeUsuario(usuarioId) {
+  return apiClient.post(`/usuarios/${usuarioId}/cerrar-sesiones`);
+}

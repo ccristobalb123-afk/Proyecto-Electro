@@ -109,6 +109,11 @@ export function auditoria(req, res, next) {
   next();
 }
 
+/** Evento puntual de seguridad (reutilización de token, cierre de sesiones…). */
+export function registrarEventoAuditoria(datos) {
+  console.log("AUDITORIA " + JSON.stringify({ fecha: new Date().toISOString(), ...datos }));
+}
+
 // Firmas ("magic bytes") de los únicos tipos que se aceptan. El tipo MIME
 // lo declara el navegador y se puede falsificar; el contenido no.
 const FIRMAS = {

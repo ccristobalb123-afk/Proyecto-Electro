@@ -39,3 +39,9 @@ export const deleteUsuario = asyncHandler(async (req, res) => {
   if (!Number.isInteger(usuarioId)) throw validacionFallida("Identificador de usuario inválido.");
   res.json(await usuariosService.eliminarUsuario(usuarioId, solicitante(req)));
 });
+
+export const postCerrarSesiones = asyncHandler(async (req, res) => {
+  const usuarioId = Number(req.params.id);
+  if (!Number.isInteger(usuarioId)) throw validacionFallida("Identificador de usuario inválido.");
+  res.json(await usuariosService.cerrarSesionesDeUsuario(usuarioId, solicitante(req)));
+});

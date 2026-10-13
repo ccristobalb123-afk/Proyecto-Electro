@@ -15,12 +15,16 @@ export function vapidConfigurado() {
   return VAPID_CONFIGURADO;
 }
 
-export async function guardarSuscripcion(usuarioId, suscripcion) {
+// sesionId: la sesión del dispositivo que se suscribe (al cerrar o
+// revocar esa sesión se borra la suscripción). El frontend vuelve a
+// mandarla después de cada inicio de sesión para actualizar el vínculo.
+export async function guardarSuscripcion(usuarioId, suscripcion, sesionId) {
   await db.pushSubscription.upsert({
     where: { endpoint: suscripcion.endpoint },
-    update: { usuarioId, p256dh: suscripcion.keys.p256dh, auth: suscripcion.keys.auth },
+    update: { usuarioId, sesionId, p256dh: suscripcion.keys.p256dh, auth: suscripcion.keys.auth },
     create: {
       usuarioId,
+      sesionId,
       endpoint: suscripcion.endpoint,
       p256dh: suscripcion.keys.p256dh,
       auth: suscripcion.keys.auth,
@@ -28,8 +32,10 @@ export async function guardarSuscripcion(usuarioId, suscripcion) {
   });
 }
 
-export async function eliminarSuscripcion(endpoint) {
-  await db.pushSubscription.deleteMany({ where: { endpoint } });
+// Solo la del propio usuario (antes se podía borrar la de cualquiera
+// conociendo su endpoint).
+export async function eliminarSuscripcion(usuarioId, endpoint) {
+  await db.pushSubscription.deleteMany({ where: { endpoint, usuarioId } });
 }
 
 // Manda la notificación a TODOS los dispositivos suscritos de un

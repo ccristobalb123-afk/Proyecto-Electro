@@ -9,6 +9,8 @@
 // y ninguna página necesita cambiar una sola línea.
 // ============================================================
 
+import { guardarEstadoServidor } from "./sesionCompartida";
+
 export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 // Ninguna petición puede quedarse esperando para siempre: con señal
@@ -60,37 +62,70 @@ export class ApiError extends Error {
   }
 }
 
-// ---- Aviso global de "sesión expirada" ----
+// ---- Aviso global de "sesión terminada" ----
 // El AuthContext se suscribe a esto para poder limpiar la sesión y
 // redirigir al login sin que apiClient necesite importar el contexto
-// (evita una dependencia circular services <-> context).
+// (evita una dependencia circular services <-> context). Recibe el código
+// del servidor, que dice el motivo (SESION_INACTIVA, SESION_MAXIMA,
+// SESION_REVOCADA o SESION_EXPIRADA) para mostrarlo en el login.
 const listenersSesionExpirada = new Set();
 export function onSesionExpirada(callback) {
   listenersSesionExpirada.add(callback);
   return () => listenersSesionExpirada.delete(callback);
 }
-export function avisarSesionExpirada() {
-  listenersSesionExpirada.forEach((cb) => cb());
+export function avisarSesionExpirada(code = "SESION_EXPIRADA") {
+  listenersSesionExpirada.forEach((cb) => cb(code));
 }
+
+// Cierres decididos por el servidor (ver backend sesiones.service.js):
+// renovar no sirve, se va directo al login con el motivo.
+const CODIGOS_SESION_TERMINADA = new Set(["SESION_INACTIVA", "SESION_MAXIMA", "SESION_REVOCADA"]);
 
 // ---- Renovación automática del access token ----
 // El access token dura poco a propósito (15 min) por seguridad — pero
 // eso no debería significar que la sesión se corte cada 15 min. Antes
 // de avisar "sesión expirada", se intenta renovar en silencio con el
-// refresh token (que dura mucho más) y reintentar el pedido original
-// UNA vez. Si varios pedidos fallan al mismo tiempo (ej. el Dashboard
-// dispara 4 en paralelo justo cuando el token vence), todos comparten
-// el mismo intento de renovación en vez de disparar 4 refrescos a la
-// vez.
+// refresh token y reintentar el pedido original UNA vez. El servidor
+// solo renueva si hubo actividad del usuario en los últimos 30 min y
+// si la sesión no llegó a su duración máxima.
+//
+// Varios pedidos que fallan a la vez comparten el mismo intento, y entre
+// pestañas se hace de a una (Web Locks): cada renovación cambia el
+// refresh token, y dos pestañas renovando con el mismo token parecerían
+// un robo. Si aun así otra pestaña se adelantó, el servidor responde 409
+// y la cookie nueva que dejó esa pestaña ya sirve.
 let renovacionEnCurso = null;
-export async function intentarRenovarSesion() {
-  if (!renovacionEnCurso) {
-    renovacionEnCurso = fetch(new URL(BASE_URL + "/auth/refresh", window.location.origin), {
+
+async function pedirRenovacion() {
+  let respuesta;
+  try {
+    respuesta = await fetch(new URL(BASE_URL + "/auth/refresh", window.location.origin), {
       method: "POST",
       credentials: "include",
-    })
-      .then((r) => r.ok)
-      .catch(() => false)
+    });
+  } catch {
+    return { ok: false, code: "SIN_CONEXION" };
+  }
+  if (respuesta.ok) {
+    try {
+      guardarEstadoServidor((await respuesta.json()).sesion);
+    } catch {
+      // Sin cuerpo: la renovación igual sirvió.
+    }
+    return { ok: true };
+  }
+  if (respuesta.status === 409) return { ok: true };
+  return { ok: false, code: (await codigoDeError(respuesta)) || "SESION_EXPIRADA" };
+}
+
+/** Intenta renovar la sesión. Devuelve { ok, code } (code = motivo si no se pudo). */
+export async function intentarRenovarSesion() {
+  if (!renovacionEnCurso) {
+    const conCandado = navigator.locks?.request
+      ? navigator.locks.request("electro-renovar-sesion", pedirRenovacion)
+      : pedirRenovacion();
+    renovacionEnCurso = conCandado
+      .catch(() => ({ ok: false, code: "SIN_CONEXION" }))
       .finally(() => {
         renovacionEnCurso = null;
       });
@@ -98,25 +133,55 @@ export async function intentarRenovarSesion() {
   return renovacionEnCurso;
 }
 
+// Rutas de auth que se usan SIN sesión: ahí un 401 es una respuesta
+// normal (contraseña incorrecta, código MFA inválido…), no una sesión
+// vencida, y nunca se renueva ni se avisa nada.
+const RUTAS_AUTH_PUBLICAS = ["/auth/login", "/auth/verify-mfa", "/auth/mfa-setup", "/auth/forgot-password", "/auth/reset-password", "/auth/refresh", "/auth/logout"];
+const esRutaPublica = (path) => RUTAS_AUTH_PUBLICAS.some((r) => path.startsWith(r));
+
 // La cookie de acceso vence a los 15 min junto con el token, así que
 // pasado ese tiempo el navegador directamente deja de enviarla y el
-// backend responde NO_AUTENTICADO (no SESION_EXPIRADA). Antes solo se
-// renovaba ante SESION_EXPIRADA, por lo que todo pedido hecho después
-// de los 15 min fallaba sin intentar el refresh token. Se excluyen las
-// rutas públicas de auth (login, MFA, refresh...): ahí un 401 es una
-// respuesta normal, no una sesión vencida. /auth/me sí renueva — así
-// un F5 después de 15 min recupera la sesión en vez de pedir login.
+// backend responde NO_AUTENTICADO (no SESION_EXPIRADA): en los dos casos
+// se intenta renovar. /auth/me también — así un F5 después de 15 min
+// recupera la sesión en vez de pedir login.
 function puedeRenovar(path, code) {
-  if (code === "SESION_EXPIRADA") return true;
-  if (code !== "NO_AUTENTICADO") return false;
-  return !path.startsWith("/auth/") || path === "/auth/me" || path === "/auth/cambiar-password";
+  if (esRutaPublica(path)) return false;
+  return code === "SESION_EXPIRADA" || code === "NO_AUTENTICADO";
 }
 
 // Se avisa "sesión expirada" (limpia la sesión y manda al login) solo
 // si de verdad había una — un /auth/me sin sesión al abrir la app es
 // la situación normal de cualquiera que no inició sesión todavía.
 function debeAvisarExpiracion(path, code) {
-  return code === "SESION_EXPIRADA" || (code === "NO_AUTENTICADO" && path !== "/auth/me" && puedeRenovar(path, code));
+  if (esRutaPublica(path)) return false;
+  return code === "SESION_EXPIRADA" || (code === "NO_AUTENTICADO" && path !== "/auth/me");
+}
+
+// Qué hacer ante un 401 de una ruta con sesión. Devuelve true si se
+// renovó y conviene reintentar; si no, ya avisó el cierre cuando
+// correspondía. Lanza SIN_CONEXION si no se pudo ni preguntar.
+async function manejar401(path, code, puedeReintentar) {
+  if (esRutaPublica(path)) return false;
+  if (CODIGOS_SESION_TERMINADA.has(code)) {
+    avisarSesionExpirada(code);
+    return false;
+  }
+  if (!puedeRenovar(path, code)) return false;
+  if (puedeReintentar) {
+    const renovacion = await intentarRenovarSesion();
+    if (renovacion.ok) return true;
+    if (renovacion.code === "SIN_CONEXION") {
+      throw new ApiError("SIN_CONEXION", "No se pudo conectar con el servidor. Revisa tu conexión.", 0);
+    }
+    // El refresh dice el motivo real (inactividad, 12 h, revocada…);
+    // NO_AUTENTICADO = no había refresh token (abrir la app sin sesión).
+    if (renovacion.code !== "NO_AUTENTICADO" || path !== "/auth/me") {
+      avisarSesionExpirada(renovacion.code === "NO_AUTENTICADO" ? "SESION_EXPIRADA" : renovacion.code);
+    }
+    return false;
+  }
+  if (debeAvisarExpiracion(path, code)) avisarSesionExpirada(code);
+  return false;
 }
 
 async function codigoDeError(respuesta) {
@@ -150,13 +215,8 @@ export async function fetchConSesion(path, init = {}) {
     throw new ApiError("SIN_CONEXION", "No se pudo conectar con el servidor. Revisa tu conexión.", 0);
   }
 
-  if (respuesta.status === 401) {
-    const code = await codigoDeError(respuesta);
-    if (puedeRenovar(pathApi, code) && (await intentarRenovarSesion())) {
-      respuesta = await hacer();
-    } else if (debeAvisarExpiracion(pathApi, code)) {
-      avisarSesionExpirada();
-    }
+  if (respuesta.status === 401 && (await manejar401(pathApi, await codigoDeError(respuesta), true))) {
+    respuesta = await hacer();
   }
   return respuesta;
 }
@@ -220,14 +280,8 @@ export async function apiRequest(path, { method = "GET", body, params, signal } 
     // mensaje. Antes esto se decidía solo por el status 401, sin mirar
     // el código real, y tapaba errores como "contraseña incorrecta" o
     // "código MFA inválido" con un mensaje de sesión vencida.
-    if (respuesta.status === 401 && puedeRenovar(path, err.code)) {
-      if (!_esReintento) {
-        const seRenovo = await intentarRenovarSesion();
-        if (seRenovo) {
-          return apiRequest(path, { method, body, params, signal }, true);
-        }
-      }
-      if (debeAvisarExpiracion(path, err.code)) avisarSesionExpirada();
+    if (respuesta.status === 401 && (await manejar401(path, err.code, !_esReintento))) {
+      return apiRequest(path, { method, body, params, signal }, true);
     }
 
     if (respuesta.status >= 500) {

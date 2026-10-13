@@ -22,6 +22,20 @@ export function sesionExpirada() {
   return new ApiError(401, "SESION_EXPIRADA", "Tu sesión expiró. Vuelve a iniciar sesión.");
 }
 
+// La sesión terminó por una regla del servidor (no solo "venció el
+// token de 15 min"): renovar no sirve y el frontend lleva al login con el
+// motivo. Ver services/sesiones.service.js.
+export const MOTIVOS_SESION = {
+  inactividad: { code: "SESION_INACTIVA", message: "Tu sesión se cerró por inactividad." },
+  maxima: { code: "SESION_MAXIMA", message: "Tu sesión llegó a su duración máxima. Vuelve a iniciar sesión." },
+  revocada: { code: "SESION_REVOCADA", message: "Tu sesión se cerró. Vuelve a iniciar sesión." },
+};
+
+export function sesionTerminada(motivo) {
+  const { code, message } = MOTIVOS_SESION[motivo] || MOTIVOS_SESION.revocada;
+  return new ApiError(401, code, message);
+}
+
 export function sinPermiso() {
   return new ApiError(403, "SIN_PERMISO", "No tienes permiso para realizar esta acción.");
 }

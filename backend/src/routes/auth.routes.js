@@ -9,6 +9,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   cambiarPasswordSchema,
+  logoutSchema,
 } from "../validators/auth.validators.js";
 
 const router = Router();
@@ -20,10 +21,15 @@ router.get("/mfa-setup", authController.getMfaSetup);
 router.post("/forgot-password", limiteRecuperarPassword, validar(forgotPasswordSchema), authController.postForgotPassword);
 router.post("/reset-password", limiteMfa, validar(resetPasswordSchema), authController.postResetPassword);
 router.post("/refresh", authController.postRefresh);
-router.post("/logout", authController.postLogout);
+router.post("/logout", validar(logoutSchema), authController.postLogout);
 
 // Requieren sesión activa
 router.get("/me", requireAuth, authController.getMe);
 router.post("/cambiar-password", requireAuth, validar(cambiarPasswordSchema), authController.postCambiarPassword);
+router.post("/actividad", requireAuth, authController.postActividad);
+router.get("/sesion", requireAuth, authController.getSesion);
+router.get("/sesiones", requireAuth, authController.getSesiones);
+router.delete("/sesiones/:id", requireAuth, authController.deleteSesion);
+router.post("/cerrar-todas", requireAuth, authController.postCerrarTodas);
 
 export default router;

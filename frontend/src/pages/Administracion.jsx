@@ -201,6 +201,26 @@ export default function Administracion() {
     if (ok) mostrarToast(desactivar ? "Acceso desactivado" : "Acceso reactivado", { tipo: "success" });
   }
 
+  async function handleCerrarSesiones(u) {
+    let cerradas = 0;
+    const ok = await confirmar({
+      titulo: `¿Cerrar las sesiones de ${u.nombre}?`,
+      mensaje:
+        "Se cerrará su sesión en todos sus dispositivos y dejará de recibir notificaciones en ellos (por ejemplo, si perdió el celular). Podrá volver a iniciar sesión con su contraseña.",
+      tipo: "peligro",
+      textoConfirmar: "Cerrar sesiones",
+      textoCargando: "Cerrando…",
+      accion: async () => {
+        cerradas = (await usuariosService.cerrarSesionesDeUsuario(u.id)).cerradas;
+      },
+    });
+    if (ok) {
+      mostrarToast(cerradas > 0 ? `Se cerraron ${cerradas} ${cerradas === 1 ? "sesión" : "sesiones"} de ${u.nombre}.` : `${u.nombre} no tenía sesiones abiertas.`, {
+        tipo: "success",
+      });
+    }
+  }
+
   async function handleEliminar(u) {
     const resultado = await confirmar({
       titulo: `¿Eliminar a ${u.nombre}?`,
@@ -296,6 +316,11 @@ export default function Administracion() {
                 )}
                 {puedeEditar(u) && (
                   <button className="btn-outline-sm" type="button" onClick={() => abrirEditar(u)}>Editar</button>
+                )}
+                {usuarioActual?.esSuperAdmin && u.id !== usuarioActual.id && (
+                  <button className="btn-outline-sm" type="button" onClick={() => handleCerrarSesiones(u)}>
+                    Cerrar sesiones
+                  </button>
                 )}
                 {puedeGestionar(u) && (
                   <>

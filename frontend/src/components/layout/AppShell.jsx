@@ -10,11 +10,11 @@ import {
   IconMenu,
   IconClose,
   IconLock,
+  IconDevices,
 } from "../icons/Icons";
-import { useInactividad } from "../../hooks/useInactividad";
-import AvisoInactividad from "../shared/AvisoInactividad";
 import NotificacionesBell from "../shared/NotificacionesBell";
 import CambiarPasswordModal from "../shared/CambiarPasswordModal";
+import SesionesModal from "../shared/SesionesModal";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import "./AppShell.css";
@@ -31,20 +31,12 @@ export function AppShell({ title, topbarExtra, children }) {
   const navigate = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalPassword, setModalPassword] = useState(false);
+  const [modalSesiones, setModalSesiones] = useState(false);
   const { usuario, tieneAcceso, logout } = useAuth();
   const { mostrarToast } = useToast();
 
-  // Cierra sesión y devuelve a /login tras 30 min de inactividad, avisando
-  // con 1 minuto de anticipación.
-  const { mostrarAviso, segundosRestantes, seguirConectado } = useInactividad({
-    tiempoInactividadMinutos: 30,
-    tiempoAvisoMinutos: 1,
-    activo: true,
-    onCerrarSesion: () => {
-      logout();
-      navigate("/login");
-    },
-  });
+  // El cierre por inactividad y por duración máxima lo maneja
+  // <MonitorSesion /> (en App), para todas las pantallas.
 
   async function handleLogout() {
     await logout();
@@ -59,10 +51,6 @@ export function AppShell({ title, topbarExtra, children }) {
 
   return (
     <div className="app-shell">
-      {mostrarAviso && (
-        <AvisoInactividad segundosRestantes={segundosRestantes} onSeguirConectado={seguirConectado} />
-      )}
-
       {/* Overlay oscuro detrás del sidebar cuando está abierto en celular */}
       {menuAbierto && <div className="sidebar-overlay" onClick={() => setMenuAbierto(false)} />}
 
@@ -105,10 +93,27 @@ export function AppShell({ title, topbarExtra, children }) {
               ))}
             </div>
           </div>
-          <button className="logout-btn" onClick={() => setModalPassword(true)} title="Cambiar contraseña" type="button">
+          <button
+            className="logout-btn"
+            onClick={() => {
+              // En celular el menú lateral queda encima de los modales.
+              setMenuAbierto(false);
+              setModalSesiones(true);
+            }}
+            title="Sesiones y dispositivos"
+            aria-label="Sesiones y dispositivos"
+            type="button"
+          >
+            <IconDevices width={16} height={16} />
+          </button>
+          <button className="logout-btn" onClick={() => {
+              setMenuAbierto(false);
+              setModalPassword(true);
+            }}
+            title="Cambiar contraseña" aria-label="Cambiar contraseña" type="button">
             <IconLock width={16} height={16} />
           </button>
-          <button className="logout-btn" onClick={handleLogout} title="Cerrar sesión" type="button">
+          <button className="logout-btn" onClick={handleLogout} title="Cerrar sesión" aria-label="Cerrar sesión" type="button">
             <IconClose width={16} height={16} />
           </button>
         </div>
@@ -131,6 +136,8 @@ export function AppShell({ title, topbarExtra, children }) {
         </header>
         <main className="main">{children}</main>
       </div>
+
+      <SesionesModal open={modalSesiones} onClose={() => setModalSesiones(false)} />
 
       <CambiarPasswordModal
         open={modalPassword}

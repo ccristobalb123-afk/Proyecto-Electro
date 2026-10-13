@@ -99,11 +99,15 @@ export async function subirArchivo(archivo, { onProgreso } = {}) {
   onProgreso?.(0);
 
   let { status, json } = await enviar(archivo, onProgreso);
-  if (status === 401 && ["SESION_EXPIRADA", "NO_AUTENTICADO"].includes(json?.error?.code)) {
-    if (await intentarRenovarSesion()) {
+  const code = json?.error?.code;
+  if (status === 401 && ["SESION_INACTIVA", "SESION_MAXIMA", "SESION_REVOCADA"].includes(code)) {
+    avisarSesionExpirada(code);
+  } else if (status === 401 && ["SESION_EXPIRADA", "NO_AUTENTICADO"].includes(code)) {
+    const renovacion = await intentarRenovarSesion();
+    if (renovacion.ok) {
       ({ status, json } = await enviar(archivo, onProgreso));
-    } else {
-      avisarSesionExpirada();
+    } else if (renovacion.code !== "SIN_CONEXION") {
+      avisarSesionExpirada(renovacion.code === "NO_AUTENTICADO" ? "SESION_EXPIRADA" : renovacion.code);
     }
   }
   if (status < 200 || status >= 300) {

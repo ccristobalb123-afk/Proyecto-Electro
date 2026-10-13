@@ -7,32 +7,34 @@ const ALGORITMOS = ["HS256"];
 
 // Además de la firma, cada verificación exige el `tipo` correcto: un
 // token de un tipo nunca sirve como otro, aunque compartieran secreto.
-function verificarConTipo(token, secreto, tipo) {
-  const payload = jwt.verify(token, secreto, { algorithms: ALGORITMOS });
+function verificarConTipo(token, secreto, tipo, opciones = {}) {
+  const payload = jwt.verify(token, secreto, { algorithms: ALGORITMOS, ...opciones });
   if (payload.tipo !== tipo) throw new Error("Token de tipo incorrecto.");
   return payload;
 }
 
-// Dos tokens con secretos y duraciones distintas:
-// - accessToken: vive poco (15 min por defecto), es el que se manda en
+// Dos tokens con secretos y duraciones distintas, ambos atados a una
+// sesión (`sid`, ver services/sesiones.service.js):
+// - accessToken: vive poco (15 min como máximo), es el que se manda en
 //   cada request y el que la app realmente usa para autorizar.
-// - refreshToken: vive semanas, solo sirve para pedir un accessToken
-//   nuevo sin que el usuario tenga que volver a loguearse. Si el
-//   accessToken se filtra, el daño está acotado a esos 15 minutos.
-export function firmarAccessToken(usuarioId) {
-  return jwt.sign({ sub: usuarioId, tipo: "access" }, process.env.JWT_ACCESS_SECRET, {
+// - refreshToken: sirve solo para pedir un accessToken nuevo. Vence
+//   EXACTAMENTE cuando vence la sesión (duración máxima absoluta): rotarlo
+//   no lo extiende.
+// La duración la decide quien llama, en segundos.
+export function firmarAccessToken(usuarioId, sesionId, segundos) {
+  return jwt.sign({ sub: usuarioId, sid: sesionId, tipo: "access" }, process.env.JWT_ACCESS_SECRET, {
     algorithm: "HS256",
-    expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
+    expiresIn: Math.max(1, Math.floor(segundos)),
   });
 }
 
-export function firmarRefreshToken(usuarioId) {
-  // jti aleatorio: sin él, dos inicios de sesión del mismo usuario en el
-  // mismo segundo generaban EXACTAMENTE el mismo token, chocaban con la
-  // clave única de refresh_tokens y el segundo recibía un error 500.
-  return jwt.sign({ sub: usuarioId, tipo: "refresh", jti: crypto.randomUUID() }, process.env.JWT_REFRESH_SECRET, {
+export function firmarRefreshToken(usuarioId, sesionId, segundos) {
+  // jti aleatorio: sin él, dos renovaciones de la misma sesión en el
+  // mismo segundo generaban EXACTAMENTE el mismo token y chocaban con la
+  // clave única de refresh_tokens.
+  return jwt.sign({ sub: usuarioId, sid: sesionId, tipo: "refresh", jti: crypto.randomUUID() }, process.env.JWT_REFRESH_SECRET, {
     algorithm: "HS256",
-    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+    expiresIn: Math.max(1, Math.floor(segundos)),
   });
 }
 
@@ -42,6 +44,18 @@ export function verificarAccessToken(token) {
 
 export function verificarRefreshToken(token) {
   return verificarConTipo(token, process.env.JWT_REFRESH_SECRET, "refresh");
+}
+
+// Para cerrar sesión: identifica la sesión aunque el token ya haya
+// vencido (la firma sí se exige). Devuelve null si no es un token válido.
+export function sesionDeTokenAunqueVencido(token, tipo) {
+  if (!token) return null;
+  const secreto = tipo === "refresh" ? process.env.JWT_REFRESH_SECRET : process.env.JWT_ACCESS_SECRET;
+  try {
+    return verificarConTipo(token, secreto, tipo, { ignoreExpiration: true });
+  } catch {
+    return null;
+  }
 }
 
 // Se emite justo después de validar la contraseña, cuando el usuario

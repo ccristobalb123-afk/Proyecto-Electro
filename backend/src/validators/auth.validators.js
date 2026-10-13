@@ -26,3 +26,13 @@ export const cambiarPasswordSchema = z.object({
   passwordActual: z.string().min(1, "Ingresa tu contraseña actual."),
   passwordNueva: z.string().min(8, "La contraseña nueva debe tener al menos 8 caracteres."),
 });
+
+// Cerrar sesión: el cuerpo es opcional. motivo "inactividad"/"maxima" lo
+// manda el cierre automático (conserva la suscripción push); pushEndpoint es la
+// suscripción de este dispositivo, que se borra al cerrar a propósito.
+export const logoutSchema = z
+  .object({
+    motivo: z.enum(["usuario", "inactividad", "maxima"]).optional(),
+    pushEndpoint: z.string().url().max(2000).optional(),
+  })
+  .default({});

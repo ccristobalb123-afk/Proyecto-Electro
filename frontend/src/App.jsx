@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute, RutaPublicaSoloInvitado } from "./components/auth/ProtectedRoute";
 import { Spinner } from "./components/shared/Carga";
+import MonitorSesion from "./components/shared/MonitorSesion";
 
 // Cada página se descarga al entrar a su ruta (code-splitting): así Chart.js
 // (Dashboard) y qrcode (Login) no viajan con quien solo abre otra sección.
@@ -78,6 +79,7 @@ export default function App() {
         />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      <MonitorSesion />
     </Suspense>
   );
 }

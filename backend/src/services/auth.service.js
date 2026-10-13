@@ -7,7 +7,7 @@ import { requiereMfaPorPolitica } from "../lib/roles.js";
 import { credencialesInvalidas, validacionFallida, ApiError } from "../lib/errors.js";
 import { enviarCorreoRecuperacion } from "./email.service.js";
 import { firmarMfaPendingToken, verificarMfaPendingToken } from "../lib/jwt.js";
-import { revocarTodosLosRefreshTokens } from "./refreshTokens.service.js";
+import { cerrarTodasLasSesiones } from "./sesiones.service.js";
 
 const RONDAS_BCRYPT = 12;
 
@@ -197,13 +197,13 @@ export async function restablecerPassword(tokenCrudo, passwordNueva) {
     });
   });
   // Si alguien restableció la contraseña es porque probablemente la
-  // anterior estaba comprometida — cualquier sesión que siguiera activa
-  // con la contraseña vieja se corta acá, no espera a que expire sola.
-  await revocarTodosLosRefreshTokens(registro.usuarioId);
+  // anterior estaba comprometida — todas las sesiones abiertas (y sus
+  // suscripciones push) se cortan acá, no esperan a vencer solas.
+  await cerrarTodasLasSesiones(registro.usuarioId, "password_restablecida");
   return { ok: true };
 }
 
-export async function cambiarPassword(usuarioId, passwordActual, passwordNueva) {
+export async function cambiarPassword(usuarioId, passwordActual, passwordNueva, sesionActualId) {
   const usuario = await db.usuario.findUnique({ where: { id: usuarioId } });
   const claveValida = await bcrypt.compare(passwordActual, usuario.passwordHash);
   if (!claveValida) {
@@ -211,9 +211,9 @@ export async function cambiarPassword(usuarioId, passwordActual, passwordNueva) 
   }
   const passwordHash = await bcrypt.hash(passwordNueva, RONDAS_BCRYPT);
   await db.usuario.update({ where: { id: usuarioId }, data: { passwordHash } });
-  // Cierra cualquier otra sesión que haya quedado abierta en otro
-  // dispositivo con la contraseña anterior — esta sesión actual sigue
-  // funcionando hasta que su access token expire solo (máx. 15 min).
-  await revocarTodosLosRefreshTokens(usuarioId);
+  // Cierra todas las demás sesiones (otros dispositivos que entraron con
+  // la contraseña anterior) en el acto. La de este dispositivo sigue: es
+  // quien acaba de demostrar la contraseña actual.
+  await cerrarTodasLasSesiones(usuarioId, "password_cambiada", { exceptoSesionId: sesionActualId });
   return { ok: true };
 }
