@@ -8,7 +8,7 @@ export default function ModalAsignarEquipo({ open, equipo, vehiculos, vehiculoId
       open={open}
       ocupado={guardando}
       title="Asignar equipo"
-      subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""}
+      subtitle={equipo ? `${equipo.identificador} — ${equipo.categoria}` : ""}
       onClose={onClose}
     >
       {vehiculos.length === 0 ? (

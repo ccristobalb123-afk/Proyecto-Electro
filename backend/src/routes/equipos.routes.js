@@ -24,6 +24,6 @@ router.patch("/:id/fotos", validar(actualizarFotosSchema), equiposController.pat
 router.patch("/:id/estado", validar(patchEstadoEquipoSchema), equiposController.patchEstado);
 router.patch("/:id/dar-de-baja", validar(darDeBajaSchema), equiposController.patchDarDeBaja);
 router.post("/:id/inspecciones", validar(registrarInspeccionSchema), equiposController.postInspeccion);
-router.get("/:codigo/historial", equiposController.getHistorial);
+router.get("/:id/historial", equiposController.getHistorial);
 
 export default router;

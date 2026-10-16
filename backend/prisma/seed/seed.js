@@ -117,8 +117,8 @@ async function main() {
     await db.curso.createMany({
       data: [
         { personalId: personal["J. Ramírez Soto"].id, empresaId: corevex.id, tipo: "EMO", fechaInicio: dias(-340), fechaVencimiento: dias(-14) },
-        { personalId: personal["Milagros Ríos"].id, empresaId: corevex.id, tipo: "CURSO", fechaInicio: dias(-350), fechaVencimiento: dias(6) },
-        { personalId: personal["Alonso Torres"].id, empresaId: electro.id, tipo: "CURSO", fechaInicio: dias(-30), fechaVencimiento: dias(150) },
+        { personalId: personal["Milagros Ríos"].id, empresaId: corevex.id, tipo: "CURSO", codigoCurso: "TA-01", nombreCurso: "Trabajo en altura", fechaInicio: dias(-350), fechaVencimiento: dias(6) },
+        { personalId: personal["Alonso Torres"].id, empresaId: electro.id, tipo: "CURSO", codigoCurso: "RE-02", nombreCurso: "Riesgo eléctrico", fechaInicio: dias(-30), fechaVencimiento: dias(150) },
       ],
     });
 
@@ -126,46 +126,18 @@ async function main() {
   }
 
   // ---- Operaciones: Categorías + Equipos + Vehículos de ejemplo ----
-  const hayCategorias = await db.categoriaEquipo.count();
-  if (hayCategorias === 0) {
-    const CATEGORIAS = {
-      "Escaleras Embonables": [
-        { nombre: "Serie", placeholder: "Ej. SC-2201" },
-        { nombre: "Marca", placeholder: "Ej. Escalerín Pro" },
-        { nombre: "Pasos", placeholder: "Ej. 8" },
-      ],
-      "Guantes Dieléctricos": [
-        { nombre: "Serie", placeholder: "Ej. GD-0091" },
-        { nombre: "Clase", placeholder: "Ej. Clase 0" },
-        { nombre: "Talla", placeholder: "Ej. M" },
-      ],
-      "Pinzas Amperimétricas": [
-        { nombre: "Serie", placeholder: "Ej. PA-118" },
-        { nombre: "Marca", placeholder: "Ej. Fluke" },
-      ],
-      "Línea de Vida": [
-        { nombre: "Serie", placeholder: "Ej. LV-3310" },
-        { nombre: "Longitud (m)", placeholder: "Ej. 1.8" },
-      ],
-      "Estrobo Regulable": [
-        { nombre: "Serie", placeholder: "Ej. ER-4410" },
-        { nombre: "Longitud (m)", placeholder: "Ej. 1.2" },
-        { nombre: "Capacidad (kg)", placeholder: "Ej. 100" },
-      ],
-      "Estrobo Largo": [
-        { nombre: "Serie", placeholder: "Ej. EL-5510" },
-        { nombre: "Longitud (m)", placeholder: "Ej. 1.8" },
-        { nombre: "Capacidad (kg)", placeholder: "Ej. 100" },
-      ],
-      "Eslinga de Anclaje": [
-        { nombre: "Serie", placeholder: "Ej. EA-6610" },
-        { nombre: "Longitud (m)", placeholder: "Ej. 1.5" },
-      ],
+  // Los 9 tipos de equipo los crea la migración 20261016000000_tipos_equipo
+  // (ver src/lib/tiposEquipo.js); acá solo se buscan por su tipo.
+  const hayEquipos = await db.equipo.count();
+  if (hayEquipos === 0) {
+    const porTipo = Object.fromEntries((await db.categoriaEquipo.findMany({ where: { tipo: { not: null } } })).map((c) => [c.tipo, c]));
+    const categoriaRows = {
+      "Escaleras Embonables": porTipo.ESCALERA_EMBONABLE,
+      "Guantes Dieléctricos": porTipo.GUANTES_DIELECTRICOS,
+      "Estrobo Regulable": porTipo.ESTROBO_REGULABLE,
+      "Pinzas Amperimétricas": porTipo.PINZA_AMPERIMETRICA,
+      "Línea de Vida": porTipo.LINEA_DE_VIDA,
     };
-    const categoriaRows = {};
-    for (const [nombre, campos] of Object.entries(CATEGORIAS)) {
-      categoriaRows[nombre] = await db.categoriaEquipo.create({ data: { nombre, campos } });
-    }
 
     const vehiculo1 = await db.vehiculo.create({
       data: {
@@ -214,7 +186,9 @@ async function main() {
         empresaId: corevex.id,
         estado: "ASIGNADO",
         vehiculoId: vehiculo1.id,
-        camposValores: { Pasos: "8" },
+        marca: "Escalerín Pro",
+        pasos: 8,
+        ultimaInspeccion: dias(-30),
         proximaInspeccion: dias(150),
       },
     });
@@ -227,18 +201,26 @@ async function main() {
         categoriaId: categoriaRows["Guantes Dieléctricos"].id,
         empresaId: electro.id,
         estado: "VENCIDO",
-        camposValores: { Clase: "Clase 0", Talla: "M" },
+        marca: "Salisbury",
+        talla: "M",
+        ultimaInspeccion: dias(-200),
+        proximaInspeccion: dias(-20),
       },
     });
     await db.historialEquipo.create({ data: { equipoId: equipo2.id, titulo: "Registrado en el sistema" } });
 
     const equipo3 = await db.equipo.create({
       data: {
-        codigo: "EQ-ER-072",
+        codigo: null,
+        serial: "ER-4410",
+        marca: "3M",
+        lote: "L2025-07",
+        fechaFabricacion: dias(-400),
+        ultimaInspeccion: dias(-60),
+        proximaInspeccion: dias(120),
         categoriaId: categoriaRows["Estrobo Regulable"].id,
         empresaId: corevex.id,
         estado: "MANTENIMIENTO",
-        camposValores: { "Longitud (m)": "1.2", "Capacidad (kg)": "100" },
         comentarioMantenimiento: "Cable deshilachado en el mosquetón.",
       },
     });
@@ -252,7 +234,10 @@ async function main() {
         empresaId: electro.id,
         estado: "DEBAJA",
         motivoBaja: "Desgaste irreversible.",
-        camposValores: { Marca: "Fluke" },
+        marca: "Fluke",
+        serial: "PA-118",
+        ultimaInspeccion: dias(-300),
+        proximaInspeccion: dias(-100),
       },
     });
     await db.historialEquipo.create({ data: { equipoId: equipo4.id, titulo: "Registrado en el sistema" } });
@@ -260,15 +245,20 @@ async function main() {
 
     await db.equipo.create({
       data: {
-        codigo: "EQ-LV-058",
+        codigo: null,
+        serial: "LV-3310",
+        marca: "MSA",
+        lote: "L2024-11",
+        fechaFabricacion: dias(-500),
+        ultimaInspeccion: dias(-10),
+        proximaInspeccion: dias(10),
         categoriaId: categoriaRows["Línea de Vida"].id,
         empresaId: corevex.id,
         estado: "DISPONIBLE",
-        camposValores: { "Longitud (m)": "1.8" },
       },
     });
 
-    console.log(" Operaciones sembrado: 7 categorías, 5 equipos, 2 vehículos.");
+    console.log(" Operaciones sembrado: 5 equipos, 2 vehículos.");
   }
 
   // ---- Catálogo de detracción (SUNAT R.S. 183-2004 y modificatorias) ----

@@ -5,7 +5,7 @@ export default function ModalHistorialOperaciones({ open, seleccionado, cargando
   return (
     <Modal
       open={open}
-      title={seleccionado ? `Hoja de vida — ${seleccionado.codigo || seleccionado.placa}` : ""}
+      title={seleccionado ? `Hoja de vida — ${seleccionado.identificador || seleccionado.placa}` : ""}
       subtitle={seleccionado ? seleccionado.categoria || seleccionado.tipoUnidad : ""}
       onClose={onClose}
     >

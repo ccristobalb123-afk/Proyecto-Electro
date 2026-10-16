@@ -21,8 +21,13 @@ function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
     return <BotonVerArchivo url={item.archivoUrl} nombre={item.archivoNombre} />;
   }
   const titulo = tab === "contratos" ? "Adjuntar el documento del contrato" : `Adjuntar foto o PDF del ${item.tipo.toLowerCase()}`;
+  // En Cursos / EMO el documento es opcional: "Sin documento" y la opción
+  // de adjuntar, sin el aviso en rojo de algo que falta.
+  const opcional = tab === "cursos";
   return (
-    <label className="doc-chip doc-chip--pendiente" title={titulo}>
+    <span className="doc-celda">
+      {opcional && <span className="sin-adjuntar">Sin documento</span>}
+    <label className={`doc-chip ${opcional ? "doc-chip--opcional" : "doc-chip--pendiente"}`} title={titulo}>
       <IconUpload width={13} height={13} />
       Adjuntar
       <input
@@ -36,6 +41,20 @@ function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
         }}
       />
     </label>
+    </span>
+  );
+}
+
+// "Curso" + nombre y código, o "EMO". Un curso anterior sin código o
+// nombre se muestra con "—" y el aviso "Faltan datos".
+function DescripcionRegistro({ item }) {
+  if (item.tipo !== "Curso") return item.tipo;
+  return (
+    <span className="registro-curso">
+      <span className="registro-curso__nombre">{item.nombreCurso || "—"}</span>
+      <span className="registro-curso__codigo">{item.codigoCurso || "—"}</span>
+      {item.faltantes?.length > 0 && <span className="rrhh-faltan-chip">Faltan datos</span>}
+    </span>
   );
 }
 
@@ -62,7 +81,8 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
             <tr>
               <th scope="col">Trabajador</th>
               <th scope="col">Empresa</th>
-              <th scope="col">Tipo</th>
+              <th scope="col">{tab === "cursos" ? "Registro" : "Tipo"}</th>
+              {tab === "cursos" && <th scope="col">Inicio</th>}
               <th scope="col">Vence</th>
               <th scope="col">Documento</th>
               <th scope="col">Estado</th>
@@ -85,7 +105,8 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
                     {item.empresa === "corevex" ? "Corevex" : "Electro"}
                   </span>
                 </td>
-                <td>{item.tipo}</td>
+                <td>{tab === "cursos" ? <DescripcionRegistro item={item} /> : item.tipo}</td>
+                {tab === "cursos" && <td className="code">{item.inicio}</td>}
                 <td className="code">{item.vence}</td>
                 <td>
                   <CeldaDocumento item={item} tab={tab} onAdjuntarArchivo={onAdjuntarArchivo} estadoAdjunto={estadoAdjunto} />
@@ -146,10 +167,16 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
             </div>
 
             <div className="rrhh-mobile-card-datos">
-              <div>
-                <span className="rrhh-mobile-label">Tipo</span>
-                <p>{item.tipo}</p>
+              <div className={tab === "cursos" ? "rrhh-mobile-dato-ancho" : undefined}>
+                <span className="rrhh-mobile-label">{tab === "cursos" ? "Registro" : "Tipo"}</span>
+                <p>{tab === "cursos" ? <DescripcionRegistro item={item} /> : item.tipo}</p>
               </div>
+              {tab === "cursos" && (
+                <div>
+                  <span className="rrhh-mobile-label">Inicio</span>
+                  <p>{item.inicio}</p>
+                </div>
+              )}
               <div>
                 <span className="rrhh-mobile-label">Vence</span>
                 <p>{item.vence}</p>

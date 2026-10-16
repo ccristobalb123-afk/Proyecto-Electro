@@ -7,12 +7,24 @@ import { Spinner } from "../shared/Carga";
 import Lightbox from "../shared/Lightbox";
 
 import { ESTADOS_EQUIPO as ESTADOS } from "../../services/equiposService";
+import { CAMPOS_EQUIPO } from "./camposEquipo";
+
+// Datos de la tarjeta según el tipo (las fechas de inspección van aparte,
+// y el campo que identifica al equipo ya está en la cabecera).
+function camposDeLaTarjeta(eq, tipo) {
+  if (!tipo || tipo.antigua) return Object.entries(eq.camposValores || {});
+  const valor = (c) => (c === "fechaFabricacion" ? eq.fechaFabricacion : eq[c]);
+  return tipo.campos
+    .filter((c) => c !== tipo.identificador && c !== "fechaInspeccion" && c !== "fechaVencimiento")
+    .map((c) => [CAMPOS_EQUIPO[c].etiqueta, valor(c) ?? "—"]);
+}
 
 export default function EquiposGrid({
   cargando,
   error,
   onReintentar,
   equiposPorCategoria,
+  tipos = [],
   hayFiltrosActivos,
   onNuevo,
   onInspeccionar,
@@ -50,12 +62,17 @@ export default function EquiposGrid({
           {/* Las tarjetas de una misma fila se igualan en alto solas (align-items: stretch) */}
           <div className="equipos-grid">
             {items.map((eq) => {
-              const campos = Object.entries(eq.camposValores || {});
+              const tipo = tipos.find((t) => t.nombre === eq.categoria);
+              const campos = camposDeLaTarjeta(eq, tipo);
+              const conReglas = tipo && !tipo.antigua;
               return (
                 <div key={eq.id} className="equipo-card">
                   <div className="equipo-card-header">
                     <div>
-                      <div className="equipo-card-code">{eq.codigo}</div>
+                      <div className="equipo-card-code">
+                        {!eq.codigo && eq.serial && <span className="equipo-card-id-tipo">Serial </span>}
+                        {eq.identificador}
+                      </div>
                       <div className="equipo-card-cat">{eq.categoria}</div>
                     </div>
                     <span className={`estado ${eq.estado}`}><i />{ESTADOS[eq.estado]}</span>
@@ -73,7 +90,7 @@ export default function EquiposGrid({
                               title="Ver foto en grande"
                               onClick={() => setFotoMaximizada(foto)}
                             >
-                              <img src={foto} alt={`${eq.codigo} — foto ${i + 1}`} loading="lazy" decoding="async" />
+                              <img src={foto} alt={`${eq.identificador} — foto ${i + 1}`} loading="lazy" decoding="async" />
                             </button>
                           ) : (
                             <div key={i} className="equipo-card-foto-vacia" />
@@ -117,14 +134,19 @@ export default function EquiposGrid({
                       </div>
                     )}
 
-                    {(eq.ultInspeccion || eq.proxInspeccion) && (
+                    {(conReglas || eq.ultInspeccion || eq.proxInspeccion) && (
                       <div className="equipo-card-inspecciones">
-                        {eq.ultInspeccion && (
-                          <div><span className="equipo-card-label">Últ. inspección</span><span>{eq.ultInspeccion}</span></div>
-                        )}
-                        {eq.proxInspeccion && (
-                          <div><span className="equipo-card-label">Próx. inspección</span><span>{eq.proxInspeccion}</span></div>
-                        )}
+                        <div><span className="equipo-card-label">Inspección</span><span>{eq.ultInspeccion || "—"}</span></div>
+                        <div><span className="equipo-card-label">Vencimiento</span><span>{eq.proxInspeccion || "—"}</span></div>
+                      </div>
+                    )}
+
+                    {eq.faltantes?.length > 0 && (
+                      <div className="equipo-faltantes">
+                        <span>Faltan datos: {eq.faltantes.join(", ")}.</span>
+                        <button className="link-button" type="button" onClick={() => onEditar(eq)}>
+                          Completar datos
+                        </button>
                       </div>
                     )}
                   </div>

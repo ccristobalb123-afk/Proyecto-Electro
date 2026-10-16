@@ -7,9 +7,19 @@ import { empresasParaFiltro } from "../lib/autorizacionEmpresa.js";
 
 const TIPO_A_TEXTO = TIPO_CURSO_A_TEXTO;
 
+// Datos que pide cada tipo además de las fechas (EMO no lleva código ni
+// nombre). Un CURSO anterior a esta versión que no los tenga se muestra
+// con "—" y se piden al editarlo.
+const CAMPOS_CURSO = { codigoCurso: "Código del curso", nombreCurso: "Curso" };
+
 function serializar(curso) {
+  const faltantes = curso.tipo === "CURSO" ? Object.entries(CAMPOS_CURSO).filter(([c]) => !curso[c]).map(([, etiqueta]) => etiqueta) : [];
   return {
     id: curso.id,
+    codigoCurso: curso.codigoCurso,
+    nombreCurso: curso.nombreCurso,
+    faltantes,
+    inicio: formatearFechaDia(curso.fechaInicio),
     trabajador: curso.personal.nombre,
     dni: curso.personal.dni,
     iniciales: iniciales(curso.personal.nombre),
@@ -77,7 +87,8 @@ export async function listarCursos({ empresa, estado, q }, empresasPermitidas) {
       ...(q ? { personal: { OR: [{ nombre: { contains: q, mode: "insensitive" } }, { dni: { contains: q } }] } } : {}),
     },
     include: { personal: true, empresa: true },
-    orderBy: { creadoEn: "desc" },
+    // Lo que vence primero, arriba.
+    orderBy: [{ fechaVencimiento: "asc" }, { id: "asc" }],
   });
 
   let resultado = cursos.map(serializar);
@@ -85,17 +96,62 @@ export async function listarCursos({ empresa, estado, q }, empresasPermitidas) {
   return resultado;
 }
 
+/**
+ * Código y nombre según el tipo: obligatorios en CURSO (el código en
+ * mayúsculas), siempre NULL en EMO. También valida las fechas como
+ * calendario "AAAA-MM-DD" (sin horas ni zona: no corre el día).
+ */
+function datosDelTipo(datos) {
+  const tipo = datos.tipo.toUpperCase();
+  for (const campo of ["fechaInicio", "fechaVencimiento"]) {
+    const v = datos[campo];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || new Date(v).toISOString().slice(0, 10) !== v) {
+      throw validacionFallida(`${campo === "fechaInicio" ? "Fecha de inicio" : "Fecha de vencimiento"}: fecha inválida.`);
+    }
+  }
+  if (datos.fechaVencimiento < datos.fechaInicio) {
+    throw validacionFallida("La fecha de vencimiento no puede ser anterior a la fecha de inicio.");
+  }
+  if (tipo !== "CURSO") return { tipo, codigoCurso: null, nombreCurso: null };
+  const codigoCurso = (datos.codigoCurso || "").trim().toUpperCase();
+  const nombreCurso = (datos.nombreCurso || "").trim();
+  const faltan = [!codigoCurso && "Código del curso", !nombreCurso && "Curso"].filter(Boolean);
+  if (faltan.length) throw validacionFallida(`Completa ${faltan.length === 1 ? "el campo obligatorio" : "los campos obligatorios"}: ${faltan.join(", ")}.`);
+  return { tipo, codigoCurso, nombreCurso };
+}
+
+const mensajeCursoRepetido = (codigo) =>
+  `Este personal ya tiene registrado el curso ${codigo}. Edita el registro existente para actualizar sus fechas.`;
+
+// Una persona no repite el mismo curso (por código, sin importar fecha ni
+// empresa) y tiene un solo EMO por empresa. Otras personas sí pueden
+// tener el mismo curso. La base refuerza lo del código (índice único).
+async function verificarDuplicado({ personal, empresa, tipo, codigoCurso }, excluirId = null) {
+  const otro = { ...(excluirId ? { NOT: { id: excluirId } } : {}) };
+  if (tipo === "CURSO") {
+    const repetido = await db.curso.findFirst({ where: { personalId: personal.id, codigoCurso: { equals: codigoCurso, mode: "insensitive" }, ...otro } });
+    if (repetido) throw new ApiError(409, "CURSO_DUPLICADO", mensajeCursoRepetido(codigoCurso));
+  } else {
+    const repetido = await db.curso.findFirst({ where: { personalId: personal.id, empresaId: empresa.id, tipo, ...otro } });
+    if (repetido) {
+      throw new ApiError(409, "CURSO_DUPLICADO", `${personal.nombre} ya tiene un registro de ${TIPO_A_TEXTO[tipo]} en ${empresa.nombre} — edítalo en vez de crear uno nuevo.`);
+    }
+  }
+}
+
 export async function crearCurso(datos, empresasPermitidas) {
   // A diferencia de Contratos, acá el trabajador YA debe existir —
   // este endpoint nunca da de alta a alguien nuevo.
   const { personal, empresa } = await resolverPersonalYEmpresa(datos.dni, datos.empresa, empresasPermitidas);
+  const delTipo = datosDelTipo(datos);
+  await verificarDuplicado({ personal, empresa, ...delTipo });
 
   try {
     const creado = await db.curso.create({
       data: {
         personalId: personal.id,
         empresaId: empresa.id,
-        tipo: datos.tipo.toUpperCase(),
+        ...delTipo,
         fechaInicio: new Date(datos.fechaInicio),
         fechaVencimiento: new Date(datos.fechaVencimiento),
         diasAnticipacion: datos.diasAnticipacion ?? 30,
@@ -106,13 +162,8 @@ export async function crearCurso(datos, empresasPermitidas) {
     });
     return serializar(creado);
   } catch (err) {
-    if (err.code === "P2002") {
-      throw new ApiError(
-        409,
-        "CURSO_DUPLICADO",
-        `${personal.nombre} ya tiene un registro de "${datos.tipo}" en ${empresa.nombre} — edítalo en vez de crear uno nuevo.`
-      );
-    }
+    // Dos pedidos a la vez: el índice único de la base frena el segundo.
+    if (err.code === "P2002") throw new ApiError(409, "CURSO_DUPLICADO", mensajeCursoRepetido(delTipo.codigoCurso));
     throw err;
   }
 }
@@ -120,14 +171,20 @@ export async function crearCurso(datos, empresasPermitidas) {
 export async function actualizarCurso(cursoId, datos, empresasPermitidas) {
   await buscarCurso(cursoId, empresasPermitidas);
   const { personal, empresa } = await resolverPersonalYEmpresa(datos.dni, datos.empresa, empresasPermitidas);
+  const delTipo = datosDelTipo(datos);
+  await verificarDuplicado({ personal, empresa, ...delTipo }, cursoId);
 
+  // Renovar = editar las fechas de este mismo registro: la campana y el
+  // Dashboard se calculan con la fecha nueva, así que un curso vencido
+  // renovado deja de aparecer en el acto, y sus avisos empiezan de nuevo
+  // cuando la fecha nueva se acerque.
   try {
     const actualizado = await db.curso.update({
       where: { id: cursoId },
       data: {
         personalId: personal.id,
         empresaId: empresa.id,
-        tipo: datos.tipo.toUpperCase(),
+        ...delTipo,
         fechaInicio: new Date(datos.fechaInicio),
         fechaVencimiento: new Date(datos.fechaVencimiento),
         diasAnticipacion: datos.diasAnticipacion ?? 30,
@@ -139,9 +196,7 @@ export async function actualizarCurso(cursoId, datos, empresasPermitidas) {
     });
     return serializar(actualizado);
   } catch (err) {
-    if (err.code === "P2002") {
-      throw new ApiError(409, "CURSO_DUPLICADO", `${personal.nombre} ya tiene otro registro de ese tipo en esa empresa.`);
-    }
+    if (err.code === "P2002") throw new ApiError(409, "CURSO_DUPLICADO", mensajeCursoRepetido(delTipo.codigoCurso));
     throw err;
   }
 }

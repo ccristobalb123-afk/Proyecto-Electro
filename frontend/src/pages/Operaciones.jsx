@@ -9,7 +9,6 @@ import ModalNuevoEquipo from "../components/operaciones/ModalNuevoEquipo";
 import ModalEditarEquipo from "../components/operaciones/ModalEditarEquipo";
 import ModalNuevoVehiculo from "../components/operaciones/ModalNuevoVehiculo";
 import ModalEditarVehiculo from "../components/operaciones/ModalEditarVehiculo";
-import ModalCategoriasEquipo from "../components/operaciones/ModalCategoriasEquipo";
 import ModalHistorialOperaciones from "../components/operaciones/ModalHistorialOperaciones";
 import ModalInspeccion from "../components/operaciones/ModalInspeccion";
 import ModalBaja from "../components/operaciones/ModalBaja";
@@ -69,12 +68,12 @@ function Operaciones() {
       <div className="filters">
         <div className="search">
           <label htmlFor="buscar-operaciones" className="sr-only">
-            {o.tab === "equipos" ? "Buscar código o categoría" : "Buscar placa"}
+            {o.tab === "equipos" ? "Buscar código, serial, marca o tipo" : "Buscar placa"}
           </label>
           <input
             id="buscar-operaciones"
             type="search"
-            placeholder={o.tab === "equipos" ? "Buscar código o categoría..." : "Buscar placa..."}
+            placeholder={o.tab === "equipos" ? "Buscar código, serial o tipo..." : "Buscar placa..."}
             value={o.busqueda}
             onChange={(e) => o.setBusqueda(e.target.value)}
           />
@@ -85,10 +84,10 @@ function Operaciones() {
           <option value="electro">ElectroSAC</option>
         </select>
         {o.tab === "equipos" && (
-          <select value={o.filtroCategoria} onChange={(e) => o.setFiltroCategoria(e.target.value)} aria-label="Filtrar por categoría">
-            <option value="">Todas las categorías</option>
-            {Object.keys(o.categorias).map((c) => (
-              <option key={c} value={c}>{c}</option>
+          <select value={o.filtroCategoria} onChange={(e) => o.setFiltroCategoria(e.target.value)} aria-label="Filtrar por tipo de equipo">
+            <option value="">Todos los tipos</option>
+            {o.tipos.map((t) => (
+              <option key={t.nombre} value={t.nombre}>{t.nombre}</option>
             ))}
           </select>
         )}
@@ -121,6 +120,7 @@ function Operaciones() {
             error={o.errorEquipos}
             onReintentar={o.recargarEquipos}
             equiposPorCategoria={o.equiposPorCategoria}
+            tipos={o.tipos}
             hayFiltrosActivos={o.hayFiltrosEquipos}
             onNuevo={o.openNuevo}
             onInspeccionar={o.abrirInspeccion}
@@ -154,18 +154,8 @@ function Operaciones() {
         onClose={o.modalNuevo.cerrar}
         fEquipo={o.fEquipo}
         setFEquipo={o.setFEquipo}
-        errorCodigo={o.errorCodigo}
-        checkCodigo={o.checkCodigo}
         onSubmit={o.handleGuardarEquipo}
-        categorias={o.categorias}
-        nuevaCategoria={o.nuevaCategoria}
-        setNuevaCategoria={o.setNuevaCategoria}
-        nombreNuevaCategoria={o.nombreNuevaCategoria}
-        setNombreNuevaCategoria={o.setNombreNuevaCategoria}
-        camposNuevaCategoria={o.camposNuevaCategoria}
-        setCamposNuevaCategoria={o.setCamposNuevaCategoria}
-        errorCategoria={o.errorCategoria}
-        onAbrirGestionCategorias={() => o.setModalCategoriasEquipo(true)}
+        tipos={o.tipos.filter((t) => !t.antigua)}
         error={o.errorEquipo}
         guardando={o.guardando}
         textoGuardando={o.textoGuardando("Registrando…")}
@@ -186,9 +176,10 @@ function Operaciones() {
       <ModalEditarEquipo
         open={o.modalEditarEquipo.abierto}
         onClose={o.modalEditarEquipo.cerrar}
+        equipo={o.modalEditarEquipo.dato}
         fEquipo={o.fEquipoEditar}
         setFEquipo={o.setFEquipoEditar}
-        categorias={o.categorias}
+        tipos={o.tipos}
         onSubmit={o.handleGuardarEdicionEquipo}
         error={o.errorEditarEquipo}
         guardando={o.guardando}
@@ -206,14 +197,6 @@ function Operaciones() {
         tipoUnidad={o.modalEditarVehiculo.dato?.tipoUnidad}
         guardando={o.guardando}
         textoGuardando={o.textoGuardando("Guardando…")}
-      />
-
-      <ModalCategoriasEquipo
-        open={o.modalCategoriasEquipo}
-        onClose={() => o.setModalCategoriasEquipo(false)}
-        categorias={o.categorias}
-        onRenombrar={o.handleRenombrarCategoria}
-        onEliminar={o.handleEliminarCategoria}
       />
 
       <ModalHistorialOperaciones

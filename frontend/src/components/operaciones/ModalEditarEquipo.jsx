@@ -1,47 +1,64 @@
 import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
+import CamposEquipo from "./CamposEquipo";
 
-export default function ModalEditarEquipo({ open, onClose, fEquipo, setFEquipo, categorias, onSubmit, error, guardando, textoGuardando }) {
-  function handleCategoriaChange(nuevaCategoria) {
-    setFEquipo({ ...fEquipo, categoria: nuevaCategoria, camposValores: {} });
-  }
+// Mismos campos por tipo que al registrar. Un equipo anterior al que le
+// falte un dato obligatorio de su tipo lo muestra arriba y no se guarda
+// hasta completarlo. Categoría antigua sin tipo (si existiera): se edita
+// como antes, con su código y sus campos libres.
+export default function ModalEditarEquipo({ open, onClose, equipo, fEquipo, setFEquipo, tipos, onSubmit, error, guardando, textoGuardando }) {
+  const tipo = tipos.find((t) => t.nombre === fEquipo.categoria);
+  const opciones = tipos.filter((t) => !t.antigua || t.nombre === equipo?.categoria);
 
   return (
-    <Modal open={open} ocupado={guardando} title="Editar equipo" subtitle={fEquipo.codigo} onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title="Editar equipo" subtitle={equipo?.identificador} onClose={onClose}>
       <form onSubmit={onSubmit}>
-        <div className="form-field">
-          <label>
-            Código
-            <input required value={fEquipo.codigo} onChange={(e) => setFEquipo({ ...fEquipo, codigo: e.target.value })} />
-          </label>
-        </div>
+        {equipo?.faltantes?.length > 0 && fEquipo.categoria === equipo.categoria && (
+          <p className="equipo-faltantes" role="status">
+            Completa los datos que faltan: {equipo.faltantes.join(", ")}.
+          </p>
+        )}
 
         <div className="form-field">
           <label>
-            Categoría
-            <select value={fEquipo.categoria} onChange={(e) => handleCategoriaChange(e.target.value)}>
-              {Object.keys(categorias).map((nombre) => (
-                <option key={nombre} value={nombre}>{nombre}</option>
+            <span>
+              Tipo de equipo<span className="campo-obligatorio" aria-hidden="true"> *</span>
+            </span>
+            <select required value={fEquipo.categoria} onChange={(e) => setFEquipo({ ...fEquipo, categoria: e.target.value })}>
+              {opciones.map((t) => (
+                <option key={t.nombre} value={t.nombre}>
+                  {t.nombre}
+                </option>
               ))}
             </select>
           </label>
         </div>
 
-        {fEquipo.categoria && (categorias[fEquipo.categoria] || []).length > 0 && (
+        {tipo && !tipo.antigua && (
+          <CamposEquipo campos={tipo.campos} valores={fEquipo.valores} onChange={(valores) => setFEquipo((f) => ({ ...f, valores }))} />
+        )}
+
+        {tipo?.antigua && (
           <div className="form-row">
-            {(categorias[fEquipo.categoria] || []).map((campo) => (
+            <div className="form-field">
+              <label>
+                Código
+                <input
+                  required
+                  autoCapitalize="characters"
+                  value={fEquipo.valores.codigo}
+                  onChange={(e) => setFEquipo((f) => ({ ...f, valores: { ...f.valores, codigo: e.target.value.toUpperCase() } }))}
+                />
+              </label>
+            </div>
+            {(tipo.camposLibres || []).map((campo) => (
               <div className="form-field" key={campo.nombre}>
                 <label>
                   {campo.nombre}
                   <input
                     placeholder={campo.placeholder}
                     value={fEquipo.camposValores[campo.nombre] || ""}
-                    onChange={(e) =>
-                      setFEquipo({
-                        ...fEquipo,
-                        camposValores: { ...fEquipo.camposValores, [campo.nombre]: e.target.value },
-                      })
-                    }
+                    onChange={(e) => setFEquipo((f) => ({ ...f, camposValores: { ...f.camposValores, [campo.nombre]: e.target.value } }))}
                   />
                 </label>
               </div>

@@ -81,6 +81,16 @@
   font-weight: 700;
   font-size: 14px;
   color: var(--text);
+  /* Seriales y códigos largos no empujan la etiqueta de estado */
+  overflow-wrap: anywhere;
+}
+
+/* "Serial" delante del identificador de los equipos sin código */
+.equipo-card-id-tipo {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-xs);
+  color: var(--muted);
 }
 
 .equipo-card-cat {
@@ -212,6 +222,7 @@
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 
 .equipo-card-inspecciones {
@@ -285,4 +296,28 @@
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   color: var(--muted);
+}
+
+/* ===== Datos por tipo de equipo ===== */
+/* Equipo registrado antes de las reglas por tipo al que le falta un dato
+   obligatorio (en la tarjeta y al abrir "Editar"). */
+.equipo-faltantes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--space-3);
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  margin: 0 0 var(--space-3);
+}
+
+.equipo-faltantes .link-button {
+  margin-top: 0;
+  font-size: var(--fs-sm);
+  color: var(--volt-dark);
+  font-weight: 600;
 }

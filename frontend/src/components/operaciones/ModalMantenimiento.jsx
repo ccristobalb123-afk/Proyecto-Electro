@@ -8,7 +8,7 @@ export default function ModalMantenimiento({ open, equipo, comentario, setComent
       open={open}
       ocupado={guardando}
       title="Enviar a mantenimiento"
-      subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""}
+      subtitle={equipo ? `${equipo.identificador} — ${equipo.categoria}` : ""}
       onClose={onClose}
     >
       <div className="danger-box advertencia">

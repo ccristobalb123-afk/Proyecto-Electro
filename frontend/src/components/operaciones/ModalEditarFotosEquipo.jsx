@@ -11,7 +11,7 @@ export default function ModalEditarFotosEquipo({ open, equipo, fotos, setFotos, 
       open={open}
       ocupado={guardando}
       title="Editar fotos del equipo"
-      subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""}
+      subtitle={equipo ? `${equipo.identificador} — ${equipo.categoria}` : ""}
       onClose={onClose}
     >
       <FotosEquipo fotos={fotos} onChange={setFotos} onProcesando={setProcesandoFoto} />

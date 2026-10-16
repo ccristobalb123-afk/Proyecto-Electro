@@ -18,6 +18,7 @@ import {
   DIAS_AVISO_FACTURA,
   MAX_PUSH_INDIVIDUALES,
 } from "../lib/mensajesAlerta.js";
+import { identificadorEquipo } from "./equipos.service.js";
 import { enviarAUsuario } from "./push.service.js";
 
 // Solo se traen de la base los registros que PUEDEN estar en ventana:
@@ -76,7 +77,9 @@ export async function recolectarAvisos({ modo = "push" } = {}) {
       crearAviso({
         ...base,
         tipo: "curso", entidadId: c.id, claveDedupe: "curso",
-        que: tipo, genero: "m", sujeto: `${tipo} de ${c.personal.nombre}`,
+        // "Curso Trabajo en altura (TA-01) de Juan Pérez" — de qué curso y de quién.
+        que: tipo, genero: "m",
+        sujeto: c.tipo === "CURSO" && c.nombreCurso ? `Curso ${c.nombreCurso} (${c.codigoCurso}) de ${c.personal.nombre}` : `${tipo} de ${c.personal.nombre}`,
         fecha: c.fechaVencimiento, diasAnticipacion: c.diasAnticipacion,
         empresa: c.empresa.nombre, empresas: [c.empresa.slug], modulo: "rrhh",
         url: `/rrhh?tab=cursos&q=${encodeURIComponent(c.personal.dni)}`,
@@ -116,10 +119,10 @@ export async function recolectarAvisos({ modo = "push" } = {}) {
       crearAviso({
         ...base,
         tipo: "equipo", entidadId: eq.id, claveDedupe: "equipo_inspeccion",
-        que: "Inspección", genero: "f", sujeto: `Inspección del equipo ${eq.codigo}`,
+        que: "Inspección", genero: "f", sujeto: `Inspección del equipo ${identificadorEquipo(eq)}`,
         fecha: eq.proximaInspeccion, diasAnticipacion: eq.diasAnticipacionInspeccion,
         empresa: eq.empresa.nombre, empresas: [eq.empresa.slug], modulo: "operaciones",
-        url: `/operaciones?q=${encodeURIComponent(eq.codigo)}`,
+        url: `/operaciones?q=${encodeURIComponent(identificadorEquipo(eq))}`,
       })
     );
   }

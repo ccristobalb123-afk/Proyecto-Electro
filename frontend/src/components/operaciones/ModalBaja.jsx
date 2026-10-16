@@ -4,7 +4,7 @@ import { IconAlertCircle } from "../icons/Icons";
 
 export default function ModalBaja({ open, equipo, motivo, setMotivo, error, onClose, onConfirmar, guardando, errorServidor }) {
   return (
-    <Modal open={open} ocupado={guardando} title="Dar de baja" subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""} onClose={onClose}>
+    <Modal open={open} ocupado={guardando} title="Dar de baja" subtitle={equipo ? `${equipo.identificador} — ${equipo.categoria}` : ""} onClose={onClose}>
       <div className="danger-box">
         <div className="danger-title"><IconAlertCircle width={14} height={14} />Esta acción no se puede deshacer</div>
         <p className="danger-hint">El equipo pasará a De baja y no podrá volver a asignarse ni aparecer como disponible.</p>

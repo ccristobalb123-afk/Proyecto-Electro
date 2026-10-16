@@ -402,6 +402,18 @@ fieldset.form-field {
 }
 
 /* ===== Categoría nueva (dentro de Nuevo equipo) ===== */
+/* Campo obligatorio: asterisco junto a la etiqueta (equipos, cursos…) */
+.campo-obligatorio {
+  color: var(--danger-dark);
+  font-weight: 600;
+}
+
+.campos-obligatorios-nota {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  margin: 0 0 var(--space-3);
+}
+
 .categoria-nueva-box {
   background: var(--paper);
   border: 1px solid var(--border);

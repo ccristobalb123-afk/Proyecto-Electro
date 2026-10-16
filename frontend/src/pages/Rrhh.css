@@ -295,3 +295,72 @@ tbody tr:last-child td {
   font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
+
+/* ===== Cursos / EMO ===== */
+/* Documento opcional: "Sin documento" + "Adjuntar" neutro (no en rojo) */
+.doc-celda {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.doc-chip--opcional {
+  cursor: pointer;
+  color: var(--copper-dark);
+  background: var(--card);
+  border: 1px dashed var(--border-control);
+}
+
+@media (hover: hover) {
+  .doc-chip--opcional:hover {
+    background: var(--copper-tint);
+  }
+}
+
+/* Nombre y código de cada curso */
+.registro-curso {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.registro-curso__nombre {
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.registro-curso__codigo {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* Curso registrado antes de esta versión sin código o nombre */
+.rrhh-faltan-chip {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--volt-dark);
+  background: var(--volt-tint);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.rrhh-faltantes {
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  margin: 0 0 var(--space-3);
+}
+
+/* En la tarjeta de celular el nombre del curso ocupa todo el ancho */
+.rrhh-mobile-dato-ancho {
+  grid-column: 1 / -1;
+}

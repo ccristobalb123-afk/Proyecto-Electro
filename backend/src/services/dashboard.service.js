@@ -1,6 +1,7 @@
 import { db } from "../lib/db.js";
 import { totalPagado } from "../lib/estadoPago.js";
 import { diasHasta } from "../lib/estadoVencimiento.js";
+import { identificadorEquipo } from "./equipos.service.js";
 import { listarAvisos } from "./alertas.service.js";
 
 
@@ -93,7 +94,7 @@ export async function listarActividadReciente({ limit = 4 } = {}, empresasPermit
       iniciales: h.usuario ? iniicialesDe(h.usuario.nombre) : "SYS",
       actor: h.usuario?.nombre || "Sistema",
       accion: h.titulo.toLowerCase(),
-      detalle: h.equipo.codigo,
+      detalle: identificadorEquipo(h.equipo),
       creadoEn: h.creadoEn,
     })),
     ...historialVehiculos.map((h) => ({

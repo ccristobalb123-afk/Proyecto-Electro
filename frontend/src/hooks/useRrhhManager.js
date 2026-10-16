@@ -36,12 +36,18 @@ function formCursoVacio() {
     dni: "",
     empresa: "", // se completa con la del contrato del trabajador
     tipo: "Curso",
+    codigoCurso: "",
+    nombreCurso: "",
     fechaInicio: "",
     fechaVencimiento: "",
     diasAnticipacion: 30,
     archivoNombre: "",
   };
 }
+
+// Cursos/EMO: lo que vence primero, arriba (mismo orden que el backend).
+const ordenarPorVencimiento = (lista) =>
+  [...lista].sort((a, b) => a.fechaVencimiento.localeCompare(b.fechaVencimiento) || a.id - b.id);
 
 // Toda la lógica de negocio de la página RRHH — antes vivía dentro de
 // Rrhh.jsx mezclada con el JSX. Ahora la página solo arma la vista con
@@ -144,6 +150,8 @@ export function useRrhhManager() {
         dni: item.dni,
         empresa: item.empresa,
         tipo: item.tipo,
+        codigoCurso: item.codigoCurso || "",
+        nombreCurso: item.nombreCurso || "",
         fechaInicio: item.fechaInicio || "",
         fechaVencimiento: item.fechaVencimiento || "",
         diasAnticipacion: item.diasAnticipacion ?? 30,
@@ -195,6 +203,10 @@ export function useRrhhManager() {
       setErrorCurso("Selecciona un trabajador, fecha de inicio y fecha de vencimiento.");
       return;
     }
+    if (fCurso.tipo === "Curso" && (!fCurso.codigoCurso.trim() || !fCurso.nombreCurso.trim())) {
+      setErrorCurso("Completa el código y el nombre del curso.");
+      return;
+    }
     const empresasTrabajador = trabajadoresRegistrados.find((t) => t.dni === fCurso.dni)?.empresas || [];
     if (empresasTrabajador.length > 1 && !fCurso.empresa) {
       setErrorCurso("Elige a qué empresa corresponde este registro.");
@@ -210,7 +222,9 @@ export function useRrhhManager() {
         // archivoNombre del formulario es solo para mostrar en el
         // dropzone — lo que se guarda es lo que devuelve la subida.
         // Sin empresa elegida, el backend usa la del contrato.
-        const { archivoNombre: _soloVista, empresa, ...resto } = fCurso;
+        // EMO no lleva código ni nombre de curso (el backend igual los ignora).
+        const { archivoNombre: _soloVista, empresa, codigoCurso, nombreCurso, ...base } = fCurso;
+        const resto = fCurso.tipo === "Curso" ? { ...base, codigoCurso, nombreCurso } : base;
         const datosForm = empresa ? { ...resto, empresa } : resto;
         let datos = datosForm;
         if (archivoCursoSeleccionado) {
@@ -219,13 +233,10 @@ export function useRrhhManager() {
           etapa(idEditando ? "Guardando…" : "Registrando…");
         }
 
-        if (idEditando) {
-          const actualizado = await rrhhService.actualizarCurso(idEditando, datos);
-          setLista((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
-        } else {
-          const nuevo = await rrhhService.crearCurso(datos);
-          setLista((prev) => [nuevo, ...prev]);
-        }
+        // La lista va ordenada por vencimiento (como la devuelve el backend):
+        // una renovación (fechas nuevas) cambia de lugar.
+        const guardado = idEditando ? await rrhhService.actualizarCurso(idEditando, datos) : await rrhhService.crearCurso(datos);
+        setLista((prev) => ordenarPorVencimiento([guardado, ...prev.filter((c) => c.id !== guardado.id)]));
         setModalOpen(false);
         mostrarToast(`${fCurso.tipo} ${idEditando ? "actualizado" : "registrado"}`, { tipo: "success" });
       } catch (err) {
@@ -236,7 +247,13 @@ export function useRrhhManager() {
 
   async function handleEliminar(item) {
     const esContrato = tab === "contratos";
-    const que = esContrato ? `el contrato ${item.tipo.toLowerCase()}` : item.tipo === "EMO" ? "el EMO" : `el ${item.tipo.toLowerCase()}`;
+    const que = esContrato
+      ? `el contrato ${item.tipo.toLowerCase()}`
+      : item.tipo === "EMO"
+        ? "el EMO"
+        : item.nombreCurso
+          ? `el curso ${item.nombreCurso} (${item.codigoCurso})`
+          : `el ${item.tipo.toLowerCase()}`;
     const ok = await confirmar({
       titulo: `¿Eliminar ${que} de ${item.trabajador}?`,
       mensaje: `Se eliminará ${que} (vence ${item.vence})${item.archivo ? " junto con su documento adjunto" : ""} de forma permanente. Esta acción no se puede deshacer.`,
@@ -304,6 +321,7 @@ export function useRrhhManager() {
     listaFiltrada, hayFiltrosActivos,
     fContrato, setFContrato, errorContrato, handleGuardarContrato, handleArchivoChange,
     fCurso, setFCurso, errorCurso, handleGuardarCurso, handleArchivoCursoChange,
+    faltantesCurso: tab === "cursos" && idEditando ? listaFiltrada.find((c) => c.id === idEditando)?.faltantes || [] : [],
     trabajadoresRegistrados,
     handleAdjuntarArchivo,
     handleEliminar,

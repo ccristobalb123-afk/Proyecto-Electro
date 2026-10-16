@@ -120,6 +120,7 @@ function Rrhh() {
         onSubmit={r.handleGuardarCurso}
         trabajadoresRegistrados={r.trabajadoresRegistrados}
         editando={!!r.idEditando}
+        faltantes={r.faltantesCurso}
         guardando={r.guardando}
         textoGuardando={r.textoGuardando}
       />
@@ -141,6 +142,24 @@ function Rrhh() {
               <span className="equipo-card-label">Tipo</span>
               <p>{r.modalDetalle.dato.tipo}</p>
             </div>
+            {r.tab === "cursos" && r.modalDetalle.dato.tipo === "Curso" && (
+              <>
+                <div>
+                  <span className="equipo-card-label">Curso</span>
+                  <p>{r.modalDetalle.dato.nombreCurso || "—"}</p>
+                </div>
+                <div>
+                  <span className="equipo-card-label">Código</span>
+                  <p>{r.modalDetalle.dato.codigoCurso || "—"}</p>
+                </div>
+              </>
+            )}
+            {r.tab === "cursos" && (
+              <div>
+                <span className="equipo-card-label">Inicio</span>
+                <p>{r.modalDetalle.dato.inicio}</p>
+              </div>
+            )}
             <div>
               <span className="equipo-card-label">Vence</span>
               <p>{r.modalDetalle.dato.vence}</p>
@@ -154,6 +173,8 @@ function Rrhh() {
               <p>
                 {r.modalDetalle.dato.archivo ? (
                   <BotonVerArchivo url={r.modalDetalle.dato.archivoUrl} nombre={r.modalDetalle.dato.archivoNombre} />
+                ) : r.tab === "cursos" ? (
+                  "Sin documento"
                 ) : (
                   "Sin adjuntar"
                 )}

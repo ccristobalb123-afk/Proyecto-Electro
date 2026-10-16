@@ -137,3 +137,17 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* Con un modal o diálogo abierto, los avisos no estorban: al registrar
+   varios equipos seguidos, el "Equipo registrado" del anterior quedaba
+   encima del primer campo (celular) o del botón "Guardar" (escritorio)
+   del siguiente durante 5 segundos. Los de éxito, que se refieren a lo
+   que ya terminó, se ocultan; los demás (ej. "tu sesión llegará a su
+   duración máxima") siguen a la vista, pero los toques los atraviesan. */
+body:has(.modal-overlay.open, .confirm-overlay) .toast {
+  pointer-events: none;
+}
+
+body:has(.modal-overlay.open, .confirm-overlay) .toast--success {
+  visibility: hidden;
+}

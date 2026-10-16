@@ -45,7 +45,11 @@ export const crearCursoSchema = z
     tipo: z.enum(["Curso", "EMO"], { errorMap: () => ({ message: "Elige Curso o EMO." }) }),
     fechaInicio: fechaSchema,
     fechaVencimiento: fechaSchema,
+    // Solo tipo Curso (el servicio los exige ahí y los ignora en EMO).
+    codigoCurso: z.string().trim().max(30, "El código del curso admite hasta 30 caracteres.").optional().nullable(),
+    nombreCurso: z.string().trim().max(120, "El nombre del curso admite hasta 120 caracteres.").optional().nullable(),
     diasAnticipacion: z.number().int().positive().optional(),
+    // Opcional: Curso y EMO se pueden guardar sin documento.
     archivoNombre: z.string().optional(),
     archivoUrl: z.string().optional(),
   })

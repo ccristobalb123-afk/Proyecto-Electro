@@ -248,12 +248,15 @@ model Curso {
   archivoNombre    String?       @map("archivo_nombre")
   archivoUrl       String?       @map("archivo_url")
   creadoEn         DateTime      @default(now()) @map("creado_en")
+  // Solo en tipo CURSO (obligatorios al crear o editar uno). NULL en EMO
+  // y en los cursos registrados antes de esta versión (se piden al editarlos).
+  codigoCurso      String?       @map("codigo_curso")
+  nombreCurso      String?       @map("nombre_curso")
 
-  // Un solo EMO, un solo Fotocheck y un solo Curso "vivo" por persona
-  // en cada empresa — exactamente el bug que reportaste: antes se podía
-  // crear un EMO nuevo para alguien que ya tenía uno. Ahora, para
-  // renovarlo, se edita este mismo registro con la fecha nueva.
-  @@unique([personalId, empresaId, tipo])
+  // Una persona puede tener varios cursos, pero no el mismo curso (mismo
+  // código) dos veces: para renovarlo se editan las fechas del registro.
+  // Un solo EMO por persona y empresa: lo valida el servicio (cursos.service.js).
+  @@unique([personalId, codigoCurso])
   @@map("cursos")
 }
 
@@ -269,6 +272,11 @@ model Curso {
 model CategoriaEquipo {
   id      Int      @id @default(autoincrement())
   nombre  String   @unique
+  // Clave fija del tipo (ESCALERA_EMBONABLE, ARNES…): de ella salen los
+  // campos obligatorios de cada equipo (ver src/lib/tiposEquipo.js).
+  // Null = categoría antigua sin reglas: no se ofrece para equipos nuevos.
+  tipo    String?  @unique
+  // Campos libres de la versión anterior (ya no se usan en los 9 tipos).
   campos  Json // [{ nombre, placeholder }]
   equipos Equipo[]
 
@@ -285,7 +293,9 @@ enum EstadoEquipo {
 
 model Equipo {
   id          Int             @id @default(autoincrement())
-  codigo      String          @unique
+  // Código: solo en los tipos que lo piden; los demás se identifican
+  // por su Serial. Único dentro del mismo tipo (ver @@unique abajo).
+  codigo      String?
   categoriaId Int             @map("categoria_id")
   categoria   CategoriaEquipo @relation(fields: [categoriaId], references: [id])
   empresaId   Int             @map("empresa_id")
@@ -312,6 +322,18 @@ model Equipo {
 
   historial HistorialEquipo[]
 
+  // Datos por tipo de equipo (ver src/lib/tiposEquipo.js). Aceptan NULL:
+  // un tipo que no pide el campo lo deja vacío, y los equipos anteriores
+  // pueden no tenerlos todavía (se piden al editarlos).
+  marca            String?
+  serial           String?
+  pasos            Int?
+  talla            String?
+  lote             String?
+  fechaFabricacion DateTime? @map("fecha_fabricacion") @db.Date
+
+  @@unique([categoriaId, codigo])
+  @@unique([categoriaId, serial])
   @@map("equipos")
 }
 

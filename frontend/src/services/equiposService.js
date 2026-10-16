@@ -8,28 +8,11 @@ export const ESTADOS_EQUIPO = {
   debaja: "De baja",
 };
 
-// Antes CATEGORIAS era un objeto fijo importado directamente. Ahora
-// vive en la base de datos — hay que pedirlo (ver useOperacionesManager,
-// que lo carga una vez al montar y lo pasa como prop a quien lo necesite).
+// Los 9 tipos de equipo con sus campos obligatorios, en el orden de la
+// tabla: [{ nombre, tipo, campos: ["codigo", "marca", ...], identificador }].
+// Fijos: ya no se crean ni editan desde la aplicación.
 export async function listarCategorias() {
   return apiClient.get("/categorias-equipo");
-}
-
-export async function agregarCategoria(nombre, campos) {
-  const { nombre: nombreCreado } = await apiClient.post("/categorias-equipo", { nombre, campos });
-  return nombreCreado;
-}
-
-// Se identifican por su nombre ACTUAL, no por un id — las categorías
-// de equipo viajan como un objeto { nombre: campos }, no como una
-// lista con id.
-export async function actualizarCategoria(nombreActual, nombre, campos) {
-  const { nombre: nombreFinal } = await apiClient.patch(`/categorias-equipo/${encodeURIComponent(nombreActual)}`, { nombre, campos });
-  return nombreFinal;
-}
-
-export async function eliminarCategoria(nombre) {
-  return apiClient.delete(`/categorias-equipo/${encodeURIComponent(nombre)}`);
 }
 
 export async function listarEquipos({ empresa, categoria, estado, q, signal } = {}) {
@@ -40,16 +23,17 @@ export async function actualizarFotosEquipo(equipoId, fotos) {
   return apiClient.patch(`/equipos/${equipoId}/fotos`, { fotos });
 }
 
-export async function crearEquipo({ codigo, categoria, empresa, camposValores, fotos }) {
-  // El backend valida que el código no exista, y sube las fotos (acá
-  // van en base64) a almacenamiento real, devolviendo sus URLs.
-  return apiClient.post("/equipos", { codigo, categoria, empresa, camposValores, fotos });
+// `datos`: categoria, empresa, fotos y SOLO los campos del tipo elegido
+// (ver valoresParaEnviar en CamposEquipo.jsx). El backend exige los
+// obligatorios del tipo y que el código/serial no se repita en ese tipo.
+export async function crearEquipo(datos) {
+  return apiClient.post("/equipos", datos);
 }
 
-// Solo código, categoría y campos personalizados — no empresa (ver
-// nota en equipos.service.js del backend sobre por qué eso no se edita).
-export async function actualizarEquipo(equipoId, { codigo, categoria, camposValores }) {
-  return apiClient.patch(`/equipos/${equipoId}`, { codigo, categoria, camposValores });
+// Sin empresa (ver nota en equipos.service.js del backend sobre por qué
+// eso no se edita).
+export async function actualizarEquipo(equipoId, datos) {
+  return apiClient.patch(`/equipos/${equipoId}`, datos);
 }
 
 export async function eliminarEquipo(equipoId) {
@@ -83,6 +67,7 @@ export async function registrarInspeccion(equipoId, datosInspeccion) {
   return apiClient.post(`/equipos/${equipoId}/inspecciones`, datosInspeccion);
 }
 
-export async function obtenerHojaDeVida(codigo) {
-  return apiClient.get(`/equipos/${codigo}/historial`);
+// Por id: los equipos sin código también tienen hoja de vida.
+export async function obtenerHojaDeVida(equipoId) {
+  return apiClient.get(`/equipos/${equipoId}/historial`);
 }

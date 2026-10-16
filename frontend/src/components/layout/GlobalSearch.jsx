@@ -76,7 +76,7 @@ export default function GlobalSearch() {
   const opciones = useMemo(() => {
     if (!resultados) return [];
     return [
-      ...resultados.equipos.map((eq) => ({ id: `gs-eq-${eq.id}`, ruta: "/operaciones", texto: eq.codigo })),
+      ...resultados.equipos.map((eq) => ({ id: `gs-eq-${eq.id}`, ruta: "/operaciones", texto: eq.identificador })),
       ...resultados.vehiculos.map((v) => ({ id: `gs-veh-${v.id}`, ruta: "/operaciones", texto: v.placa })),
       ...resultados.contratos.map((c) => ({ id: `gs-con-${c.id}`, ruta: "/rrhh", texto: c.trabajador })),
     ];
@@ -138,9 +138,9 @@ export default function GlobalSearch() {
                     role="option"
                     aria-selected={opciones[indiceActivo]?.id === id}
                     className={opciones[indiceActivo]?.id === id ? "activo" : ""}
-                    onClick={() => irA("/operaciones", eq.codigo)}
+                    onClick={() => irA("/operaciones", eq.identificador)}
                   >
-                    <b>{eq.codigo}</b> — {eq.categoria}
+                    <b>{eq.identificador}</b> — {eq.categoria}
                   </button>
                 );
               })}

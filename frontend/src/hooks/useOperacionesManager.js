@@ -9,15 +9,11 @@ import { useAccion } from "./useAccion";
 import { useModal } from "./useModal";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
+import { valoresEquipoVacios, valoresParaEnviar } from "../components/operaciones/camposEquipo";
 
+// Sin tipo preelegido: al elegirlo aparecen solo sus campos.
 function formEquipoVacio() {
-  return {
-    codigo: "",
-    categoria: "Escaleras Embonables",
-    empresa: "corevex",
-    camposValores: {},
-    fotos: [null, null],
-  };
+  return { categoria: "", empresa: "corevex", valores: valoresEquipoVacios(), fotos: [null, null] };
 }
 
 function formVehiculoVacio() {
@@ -55,37 +51,13 @@ export function useOperacionesManager() {
   const [busqueda, setBusqueda] = useState(searchParams.get("q") || "");
   const busquedaDebounced = useDebounce(busqueda, 400);
 
-  // Categorías de equipo — antes era un objeto fijo importado
-  // (CATEGORIAS), ahora vive en la base de datos y hay que pedirlo.
-  // Se carga una vez al montar y se refresca cada vez que se agrega
-  // una categoría nueva desde el modal de Nuevo equipo.
-  const [categorias, setCategorias] = useState({});
-  async function cargarCategorias() {
-    const datos = await equiposService.listarCategorias();
-    setCategorias(datos);
-  }
+  // Tipos de equipo con sus campos obligatorios — los manda el backend
+  // (src/lib/tiposEquipo.js), en el orden de la tabla. Ya no se crean ni
+  // editan categorías desde la aplicación.
+  const [tipos, setTipos] = useState([]);
   useEffect(() => {
-    cargarCategorias();
+    equiposService.listarCategorias().then(setTipos).catch(() => setTipos([]));
   }, []);
-
-  const [modalCategoriasEquipo, setModalCategoriasEquipo] = useState(false);
-
-  async function handleRenombrarCategoria(nombreActual, nombreNuevo) {
-    const campos = categorias[nombreActual] || [];
-    const nombreFinal = await equiposService.actualizarCategoria(nombreActual, nombreNuevo, campos);
-    setCategorias((prev) => {
-      const { [nombreActual]: camposViejos, ...resto } = prev;
-      return { ...resto, [nombreFinal]: campos };
-    });
-  }
-
-  async function handleEliminarCategoria(nombre) {
-    await equiposService.eliminarCategoria(nombre);
-    setCategorias((prev) => {
-      const { [nombre]: _eliminada, ...resto } = prev;
-      return resto;
-    });
-  }
 
   // ---- Modales ----
   const modalNuevo = useModal();
@@ -101,15 +73,8 @@ export function useOperacionesManager() {
   const modalEditarVehiculo = useModal(); // vehiculo seleccionado
 
   const [fEquipo, setFEquipo] = useState(formEquipoVacio());
-  const [fEquipoEditar, setFEquipoEditar] = useState({ codigo: "", categoria: "", camposValores: {} });
+  const [fEquipoEditar, setFEquipoEditar] = useState({ categoria: "", valores: valoresEquipoVacios(), camposValores: {} });
   const [errorEditarEquipo, setErrorEditarEquipo] = useState("");
-  const [errorCodigo, setErrorCodigo] = useState(false);
-
-  // ---- Categoría nueva (dentro del modal de Nuevo equipo) ----
-  const [nuevaCategoria, setNuevaCategoria] = useState(false);
-  const [nombreNuevaCategoria, setNombreNuevaCategoria] = useState("");
-  const [camposNuevaCategoria, setCamposNuevaCategoria] = useState([{ id: crypto.randomUUID(), nombre: "", placeholder: "" }]);
-  const [errorCategoria, setErrorCategoria] = useState("");
 
   const [fVehiculo, setFVehiculo] = useState(formVehiculoVacio());
   const [fVehiculoEditar, setFVehiculoEditar] = useState({ placa: "", cuadrilla: "", documentos: null });
@@ -150,26 +115,20 @@ export function useOperacionesManager() {
     [filtroEmpresa, filtroTipoUnidad, busquedaDebounced]
   );
 
-  const codigosExistentes = useMemo(() => equipos.map((e) => e.codigo), [equipos]);
-
   // Trae la hoja de vida (equipo o vehículo) recién cuando se abre el
   // modal, no de antemano para todos los registros.
   useEffect(() => {
     if (!modalHistorial.dato) return;
     setCargandoHistorial(true);
-    const obtener = modalHistorial.dato.codigo
-      ? equiposService.obtenerHojaDeVida(modalHistorial.dato.codigo)
-      : vehiculosService.obtenerHistorial(modalHistorial.dato.placa);
+    // Por id: los equipos sin código (arnés, estrobos...) también tienen hoja de vida.
+    const obtener = modalHistorial.dato.placa
+      ? vehiculosService.obtenerHistorial(modalHistorial.dato.placa)
+      : equiposService.obtenerHojaDeVida(modalHistorial.dato.id);
     obtener
       .then(setHistorialItems)
       .catch(() => setHistorialItems([]))
       .finally(() => setCargandoHistorial(false));
   }, [modalHistorial.dato]);
-
-  function checkCodigo(valor) {
-    setFEquipo((f) => ({ ...f, codigo: valor }));
-    setErrorCodigo(codigosExistentes.includes(valor.trim()));
-  }
 
   function cambiarTab(nuevoTab) {
     setTab(nuevoTab);
@@ -181,12 +140,7 @@ export function useOperacionesManager() {
   function openNuevo() {
     if (tab === "equipos") {
       setFEquipo(formEquipoVacio());
-      setErrorCodigo(false);
       setErrorEquipo("");
-      setNuevaCategoria(false);
-      setNombreNuevaCategoria("");
-      setCamposNuevaCategoria([{ id: crypto.randomUUID(), nombre: "", placeholder: "" }]);
-      setErrorCategoria("");
     } else {
       setFVehiculo(formVehiculoVacio());
       setErrorVehiculo("");
@@ -197,32 +151,20 @@ export function useOperacionesManager() {
 
   async function handleGuardarEquipo(e) {
     e.preventDefault();
-    if (!fEquipo.codigo.trim() || errorCodigo) return;
+    const tipo = tipos.find((t) => t.nombre === fEquipo.categoria);
+    if (!tipo) return;
     setErrorEquipo("");
 
     await acciones.ejecutar("modal", async () => {
       try {
-        let categoriaFinal = fEquipo.categoria;
-        if (nuevaCategoria) {
-          if (!nombreNuevaCategoria.trim()) {
-            setErrorCategoria("Ponle un nombre a la categoría.");
-            return;
-          }
-          if (categorias[nombreNuevaCategoria.trim()]) {
-            setErrorCategoria("Ya existe una categoría con ese nombre.");
-            return;
-          }
-          if (!camposNuevaCategoria.some((c) => c.nombre.trim())) {
-            setErrorCategoria("Agrega al menos un campo para esta categoría.");
-            return;
-          }
-          categoriaFinal = await equiposService.agregarCategoria(nombreNuevaCategoria, camposNuevaCategoria);
-          await cargarCategorias(); // para que ya aparezca en el select la próxima vez
-        }
-
-        // El backend valida de nuevo el código único (nunca confiar solo en
-        // la validación del frontend) y crea el equipo con estado DISPONIBLE.
-        const nuevo = await equiposService.crearEquipo({ ...fEquipo, categoria: categoriaFinal });
+        // Solo los campos del tipo elegido. El backend vuelve a exigir los
+        // obligatorios, el código/serial único dentro del tipo y las fechas.
+        const nuevo = await equiposService.crearEquipo({
+          categoria: fEquipo.categoria,
+          empresa: fEquipo.empresa,
+          fotos: fEquipo.fotos,
+          ...valoresParaEnviar(fEquipo.valores, tipo.campos),
+        });
         setEquipos((prev) => [nuevo, ...prev]);
         modalNuevo.cerrar();
         mostrarToast("Equipo registrado", { tipo: "success" });
@@ -322,7 +264,7 @@ export function useOperacionesManager() {
       try {
         const actualizado = await equiposService.devolverEquipo(eq.id);
         setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-        mostrarToast(`Equipo ${eq.codigo} devuelto al almacén`, { tipo: "success" });
+        mostrarToast(`Equipo ${eq.identificador} devuelto al almacén`, { tipo: "success" });
       } catch (err) {
         mostrarToast(err.message || "No se pudo devolver el equipo.", { tipo: "error" });
       }
@@ -425,7 +367,22 @@ export function useOperacionesManager() {
   }
 
   function abrirEditarEquipo(eq) {
-    setFEquipoEditar({ codigo: eq.codigo, categoria: eq.categoria, camposValores: eq.camposValores || {} });
+    setFEquipoEditar({
+      categoria: eq.categoria,
+      camposValores: eq.camposValores || {},
+      valores: {
+        codigo: eq.codigo || "",
+        marca: eq.marca || "",
+        pasos: eq.pasos != null ? String(eq.pasos) : "",
+        serial: eq.serial || "",
+        talla: eq.talla || "",
+        lote: eq.lote || "",
+        fechaFabricacion: eq.fechaFabricacionIso || "",
+        fechaInspeccion: eq.ultInspeccionIso || "",
+        fechaVencimiento: eq.proxInspeccionIso || "",
+        diasAnticipacion: eq.diasAnticipacionInspeccion ?? 15,
+      },
+    });
     setErrorEditarEquipo("");
     modalEditarEquipo.abrir(eq);
   }
@@ -435,7 +392,11 @@ export function useOperacionesManager() {
     setErrorEditarEquipo("");
     await acciones.ejecutar("modal", async () => {
       try {
-        const actualizado = await equiposService.actualizarEquipo(modalEditarEquipo.dato.id, fEquipoEditar);
+        const tipo = tipos.find((t) => t.nombre === fEquipoEditar.categoria);
+        const datos = tipo?.antigua
+          ? { categoria: fEquipoEditar.categoria, codigo: fEquipoEditar.valores.codigo, camposValores: fEquipoEditar.camposValores }
+          : { categoria: fEquipoEditar.categoria, ...valoresParaEnviar(fEquipoEditar.valores, tipo?.campos || []) };
+        const actualizado = await equiposService.actualizarEquipo(modalEditarEquipo.dato.id, datos);
         setEquipos((prev) => prev.map((eq) => (eq.id === actualizado.id ? actualizado : eq)));
         modalEditarEquipo.cerrar();
         mostrarToast("Equipo actualizado", { tipo: "success" });
@@ -447,12 +408,12 @@ export function useOperacionesManager() {
 
   async function handleEliminarEquipo(eq) {
     const ok = await confirmar({
-      titulo: `¿Eliminar el equipo ${eq.codigo}?`,
-      mensaje: `Se eliminará el equipo ${eq.codigo} (${eq.categoria}) con sus fotos y su hoja de vida, de forma permanente. Esta acción no se puede deshacer. Si solo quieres retirarlo de uso, usa "Dar de baja".`,
+      titulo: `¿Eliminar el equipo ${eq.identificador}?`,
+      mensaje: `Se eliminará el equipo ${eq.identificador} (${eq.categoria}) con sus fotos y su hoja de vida, de forma permanente. Esta acción no se puede deshacer. Si solo quieres retirarlo de uso, usa "Dar de baja".`,
       tipo: "peligro",
       textoConfirmar: "Eliminar equipo",
       textoCargando: "Eliminando…",
-      palabraConfirmacion: eq.codigo,
+      palabraConfirmacion: eq.identificador,
       accion: async () => {
         await equiposService.eliminarEquipo(eq.id);
         setEquipos((prev) => prev.filter((x) => x.id !== eq.id));
@@ -563,13 +524,13 @@ export function useOperacionesManager() {
   // igual.
   const equiposPorCategoria = useMemo(
     () =>
-      Object.keys(categorias)
-        .map((categoria) => ({
-          categoria,
-          items: equipos.filter((eq) => eq.categoria === categoria),
+      tipos
+        .map(({ nombre }) => ({
+          categoria: nombre,
+          items: equipos.filter((eq) => eq.categoria === nombre),
         }))
         .filter((grupo) => grupo.items.length > 0),
-    [equipos, categorias]
+    [equipos, tipos]
   );
 
   return {
@@ -580,7 +541,7 @@ export function useOperacionesManager() {
     filtroTipoUnidad, setFiltroTipoUnidad,
     busqueda, setBusqueda,
     openNuevo,
-    categorias,
+    tipos,
 
     // Equipos
     cargandoEquipos, errorEquipos, recargarEquipos,
@@ -603,11 +564,7 @@ export function useOperacionesManager() {
 
     // Modal: nuevo equipo
     modalNuevo,
-    fEquipo, setFEquipo, errorCodigo, checkCodigo, handleGuardarEquipo, errorEquipo,
-    nuevaCategoria, setNuevaCategoria,
-    nombreNuevaCategoria, setNombreNuevaCategoria,
-    camposNuevaCategoria, setCamposNuevaCategoria,
-    errorCategoria,
+    fEquipo, setFEquipo, handleGuardarEquipo, errorEquipo,
 
     // Modal: nuevo vehículo
     fVehiculo, setFVehiculo, handleGuardarVehiculo, errorVehiculo, erroresDocumentos,
@@ -639,9 +596,5 @@ export function useOperacionesManager() {
     abrirEditarEquipo, handleGuardarEdicionEquipo, handleEliminarEquipo,
     modalEditarVehiculo, fVehiculoEditar, setFVehiculoEditar, errorEditarVehiculo,
     abrirEditarVehiculo, handleGuardarEdicionVehiculo, handleEliminarVehiculo,
-
-    // Gestionar categorías de equipo
-    modalCategoriasEquipo, setModalCategoriasEquipo,
-    handleRenombrarCategoria, handleEliminarCategoria,
   };
 }

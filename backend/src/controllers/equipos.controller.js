@@ -1,5 +1,5 @@
 import * as equiposService from "../services/equipos.service.js";
-import { asyncHandler } from "../lib/errors.js";
+import { asyncHandler, validacionFallida } from "../lib/errors.js";
 
 export const getEquipos = asyncHandler(async (req, res) => {
   const equipos = await equiposService.listarEquipos(req.query, req.empresasPermitidas);
@@ -58,6 +58,8 @@ export const postInspeccion = asyncHandler(async (req, res) => {
 });
 
 export const getHistorial = asyncHandler(async (req, res) => {
-  const historial = await equiposService.obtenerHojaDeVida(req.params.codigo, req.empresasPermitidas);
+  const equipoId = Number(req.params.id);
+  if (!Number.isInteger(equipoId)) throw validacionFallida("Identificador de equipo inválido.");
+  const historial = await equiposService.obtenerHojaDeVida(equipoId, req.empresasPermitidas);
   res.json(historial);
 });

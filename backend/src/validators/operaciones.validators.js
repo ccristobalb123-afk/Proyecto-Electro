@@ -3,14 +3,6 @@ import { CLAVES_DOCUMENTO } from "../lib/documentosVehiculo.js";
 
 const empresaSchema = z.enum(["corevex", "electro"]);
 
-// ---- Categorías de equipo ----
-export const agregarCategoriaSchema = z.object({
-  nombre: z.string().trim().min(2, "Ponle un nombre a la categoría."),
-  campos: z
-    .array(z.object({ nombre: z.string(), placeholder: z.string().optional() }))
-    .min(1, "Agrega al menos un campo."),
-});
-
 // ---- Equipos ----
 export const listarEquiposQuerySchema = z.object({
   empresa: empresaSchema.optional(),
@@ -19,21 +11,38 @@ export const listarEquiposQuerySchema = z.object({
   q: z.string().trim().optional(),
 });
 
+// Campos por tipo de equipo: todos opcionales ACÁ. Cuáles son
+// obligatorios y cuáles se ignoran lo decide el servicio según el tipo
+// (src/lib/tiposEquipo.js). Acá solo se limita el formato y el largo.
+const textoCorto = (max) => z.union([z.string().trim().max(max, `Máximo ${max} caracteres.`), z.null()]).optional();
+const camposPorTipo = {
+  codigo: textoCorto(40),
+  marca: textoCorto(60),
+  serial: textoCorto(40),
+  talla: textoCorto(10),
+  lote: textoCorto(40),
+  pasos: z.union([z.number().int(), z.string().trim().max(3, "Pasos debe ser un número entero mayor que 0."), z.null()]).optional(),
+  fechaFabricacion: textoCorto(10),
+  fechaInspeccion: textoCorto(10),
+  fechaVencimiento: textoCorto(10),
+  diasAnticipacion: z.union([z.number().int(), z.null()]).optional(),
+};
+
 export const crearEquipoSchema = z.object({
-  codigo: z.string().trim().min(1, "Ingresa un código."),
-  categoria: z.string().min(1, "Selecciona una categoría."),
+  categoria: z.string().min(1, "Selecciona el tipo de equipo."),
   empresa: empresaSchema,
-  camposValores: z.record(z.string(), z.string()).optional(),
+  ...camposPorTipo,
   fotos: z.array(z.string().nullable()).max(2, "Máximo 2 fotos.").optional(),
 });
 
 // Editar NO incluye "empresa" a propósito — cambiarle de empresa a un
 // equipo ya existente (con historial, posiblemente asignado a un
 // camión de esa empresa) es un cambio de negocio distinto, no una
-// simple corrección de datos.
+// simple corrección de datos. camposValores solo para categorías
+// antiguas sin tipo.
 export const actualizarEquipoSchema = z.object({
-  codigo: z.string().trim().min(1, "Ingresa un código."),
-  categoria: z.string().min(1, "Selecciona una categoría."),
+  categoria: z.string().min(1, "Selecciona el tipo de equipo."),
+  ...camposPorTipo,
   camposValores: z.record(z.string(), z.string()).optional(),
 });
 

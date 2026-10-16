@@ -8,7 +8,7 @@ export default function ModalInspeccion({ open, equipo, fInspeccion, setFInspecc
       open={open}
       ocupado={guardando}
       title="Registrar inspección"
-      subtitle={equipo ? `${equipo.codigo} — ${equipo.categoria}` : ""}
+      subtitle={equipo ? `${equipo.identificador} — ${equipo.categoria}` : ""}
       onClose={onClose}
     >
       <form onSubmit={onSubmit}>
