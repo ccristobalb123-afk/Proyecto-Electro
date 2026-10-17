@@ -65,6 +65,20 @@
   color: var(--danger);
 }
 
+/* Acción secundaria con el color principal (junto a un .btn-primary). */
+.btn-outline-sm--primario {
+  border-color: var(--copper);
+  color: var(--copper-dark);
+}
+
+@media (hover: hover) {
+  .btn-outline-sm--primario:hover {
+    border-color: var(--copper-dark);
+    color: var(--copper-dark);
+    background: var(--copper-tint);
+  }
+}
+
 @media (hover: hover) {
   .btn-outline-sm--peligro:hover {
     background: var(--danger-tint);

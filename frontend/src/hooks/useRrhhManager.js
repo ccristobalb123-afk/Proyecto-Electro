@@ -75,6 +75,11 @@ export function useRrhhManager() {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [busqueda, setBusqueda] = useState(searchParams.get("q") || "");
   const busquedaDebounced = useDebounce(busqueda, 400);
+  // Búsqueda que llegó en el enlace de un aviso (?tab=cursos&q=<dni>):
+  // mientras no se cambie, abre la ficha de esa persona aunque coincida
+  // solo por DNI (quien llega viene a ver ese aviso). La página se monta
+  // de nuevo con cada enlace (key={search} en Rrhh.jsx).
+  const [qDelEnlace] = useState(() => (searchParams.get("tab") === "cursos" ? (searchParams.get("q") || "").trim() : ""));
 
   const [fContrato, setFContrato] = useState(formContratoVacio());
   const [errorContrato, setErrorContrato] = useState("");
@@ -150,10 +155,17 @@ export function useRrhhManager() {
       };
       if (filtroEmpresa && !g.empresas.includes(filtroEmpresa)) continue;
       if (filtroEstado && !registros.some((r) => r.estado === filtroEstado)) continue;
+      // Coincidencias: en la persona (nombre o DNI) o en sus registros
+      // (código o nombre del curso, o "EMO" como tipo de registro). Solo
+      // las de un registro abren la ficha y resaltan ese registro.
+      g.coincidencias = new Set();
       if (q) {
         const enPersona = normalizar(g.nombre).includes(q) || g.dni.includes(q);
-        const enCurso = registros.some((r) => normalizar(r.codigoCurso).includes(q) || normalizar(r.nombreCurso).includes(q));
-        if (!enPersona && !enCurso) continue;
+        for (const r of registros) {
+          const enRegistro = r.tipo === "EMO" ? q === "emo" : normalizar(r.codigoCurso).includes(q) || normalizar(r.nombreCurso).includes(q);
+          if (enRegistro) g.coincidencias.add(r.id);
+        }
+        if (!enPersona && g.coincidencias.size === 0) continue;
       }
       const cursos = registros.filter((r) => r.tipo === "Curso");
       g.resumen = {
@@ -170,10 +182,15 @@ export function useRrhhManager() {
   }, [tab, trabajadoresRegistrados, listaFiltrada, filtroEmpresa, filtroEstado, busquedaDebounced]);
 
   // Abierta: lo que el usuario eligió para esta búsqueda o, si no tocó
-  // nada, abierta cuando hay una búsqueda (para ver las coincidencias).
+  // nada, abierta cuando la búsqueda coincide con alguno de sus registros
+  // (no solo con su nombre o DNI) o cuando viene del enlace de un aviso.
   const fichaAbierta = (dni) => {
     const manual = aperturas.q === busquedaDebounced ? aperturas.porDni[dni] : undefined;
-    return manual ?? !!busquedaDebounced.trim();
+    if (manual !== undefined) return manual;
+    const q = busquedaDebounced.trim();
+    if (!q) return false;
+    if (qDelEnlace && q === qDelEnlace) return true;
+    return (gruposCursos.find((g) => g.dni === dni)?.coincidencias.size ?? 0) > 0;
   };
   function fijarFicha(dni, abierta) {
     setAperturas((prev) => ({

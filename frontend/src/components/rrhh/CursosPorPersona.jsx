@@ -69,11 +69,12 @@ function Resumen({ resumen, estadoLabel }) {
   );
 }
 
-function Registro({ item, mostrarEmpresa, estadoLabel, onEditar, onVerDetalle, onEliminar, onAdjuntarArchivo, estadoAdjunto }) {
+function Registro({ item, coincide, mostrarEmpresa, estadoLabel, onEditar, onVerDetalle, onEliminar, onAdjuntarArchivo, estadoAdjunto }) {
   const esCurso = item.tipo === "Curso";
   const historico = item.tipo === "Fotocheck";
   return (
-    <li className="registro-ficha">
+    <li className={`registro-ficha ${coincide ? "registro-ficha--coincide" : ""}`}>
+      {coincide && <span className="sr-only">Coincide con la búsqueda. </span>}
       <div className="registro-ficha__cabecera">
         <span className="registro-curso">
           <span className="registro-curso__nombre">{esCurso ? item.nombreCurso || "—" : item.tipo}</span>
@@ -165,18 +166,20 @@ export default function CursosPorPersona({
                 </span>
                 <Resumen resumen={g.resumen} estadoLabel={estadoLabel} />
               </span>
-              <IconChevronLeft className="persona-cursos__flecha" width={18} height={18} />
+              <span className="persona-cursos__flecha" aria-hidden="true">
+                <IconChevronLeft width={18} height={18} />
+              </span>
             </button>
 
             {abierta && (
               <div className="persona-cursos__ficha" id={fichaId}>
                 {g.tieneContrato ? (
                   <div className="persona-cursos__acciones">
-                    <button type="button" className="btn-outline-sm" onClick={() => onAgregar(g, "Curso")}>
+                    <button type="button" className="btn-primary" onClick={() => onAgregar(g, "Curso")}>
                       <IconPlus width={13} height={13} /> Agregar curso
                     </button>
                     {!tieneEmo && (
-                      <button type="button" className="btn-outline-sm" onClick={() => onAgregar(g, "EMO")}>
+                      <button type="button" className="btn-outline-sm btn-outline-sm--primario" onClick={() => onAgregar(g, "EMO")}>
                         <IconPlus width={13} height={13} /> Registrar EMO
                       </button>
                     )}
@@ -194,6 +197,7 @@ export default function CursosPorPersona({
                       <Registro
                         key={item.id}
                         item={item}
+                        coincide={g.coincidencias?.has(item.id)}
                         mostrarEmpresa={g.empresas.length > 1}
                         estadoLabel={estadoLabel}
                         onEditar={onEditar}
