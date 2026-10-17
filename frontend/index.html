@@ -2,7 +2,13 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png" />
+    <!-- Instalable como aplicación (Chrome: "Instalar app" / "Agregar a
+         pantalla de inicio"). Íconos en public/icons/ (ver scripts/iconos/README.md). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="theme-color" content="#2f2479" />
     <!-- interactive-widget=resizes-content: en Android el teclado achica la
          página, así la barra de "Guardar" de los modales queda visible encima
          del teclado en vez de quedar tapada (iOS ignora este valor). -->

@@ -15,8 +15,15 @@ self.addEventListener("push", (event) => {
 
   const opciones = {
     body: payload.cuerpo,
-    icon: "/favicon.svg",
-    badge: "/favicon.svg",
+    // icon: el logo, a color, dentro de la notificación (Android lo
+    // muestra a la derecha). badge: silueta blanca sobre transparente para
+    // la barra de estado (Android usa solo la transparencia). Antes ambos
+    // eran un SVG (el rayo morado de la plantilla de Vite), y Android no
+    // usa SVG para el badge (por eso salía el ícono genérico).
+    // El ícono de la app a la izquierda lo pone Android: es el de Chrome
+    // mientras se usa en el navegador y el logo si se instaló como app.
+    icon: "/icons/icon-192.png",
+    badge: "/icons/badge-96.png",
     data: { url: payload.url || "/dashboard" },
     // Mismo aviso (o el resumen del día) reemplaza al anterior en vez de
     // apilarse si el teléfono todavía lo tiene en la bandeja.
