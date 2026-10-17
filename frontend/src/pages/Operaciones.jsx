@@ -73,7 +73,7 @@ function Operaciones() {
           <input
             id="buscar-operaciones"
             type="search"
-            placeholder={o.tab === "equipos" ? "Buscar código, serial o tipo..." : "Buscar placa..."}
+            placeholder={o.tab === "equipos" ? "Buscar código, serial, tipo, placa o persona..." : "Buscar placa..."}
             value={o.busqueda}
             onChange={(e) => o.setBusqueda(e.target.value)}
           />
@@ -125,6 +125,7 @@ function Operaciones() {
             onNuevo={o.openNuevo}
             onInspeccionar={o.abrirInspeccion}
             onDevolver={o.handleDevolver}
+            onReasignar={o.abrirReasignar}
             onVerHistorial={o.modalHistorial.abrir}
             onDarBaja={o.abrirBaja}
             onCambiarEstado={o.handleCambiarEstado}
@@ -204,6 +205,7 @@ function Operaciones() {
         seleccionado={o.modalHistorial.dato}
         cargando={o.cargandoHistorial}
         items={o.historialItems}
+        asignaciones={o.historialAsignaciones}
         onClose={o.modalHistorial.cerrar}
       />
 
@@ -233,9 +235,14 @@ function Operaciones() {
       <ModalAsignarEquipo
         open={o.modalAsignar.abierto}
         equipo={o.modalAsignar.dato}
-        vehiculos={o.vehiculosParaAsignar}
-        vehiculoId={o.vehiculoIdAsignar}
-        setVehiculoId={o.setVehiculoIdAsignar}
+        destinatarios={o.destinatarios}
+        cargando={o.cargandoDestinatarios}
+        errorCarga={o.errorDestinatarios}
+        onReintentar={o.cargarDestinatarios}
+        tipo={o.tipoDestino}
+        setTipo={o.setTipoDestino}
+        destinoId={o.destinoId}
+        setDestinoId={o.setDestinoId}
         error={o.errorAsignar}
         onClose={o.modalAsignar.cerrar}
         onConfirmar={o.handleConfirmarAsignar}

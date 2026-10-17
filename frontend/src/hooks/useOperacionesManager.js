@@ -42,6 +42,7 @@ export function useOperacionesManager() {
   const [errorEquipo, setErrorEquipo] = useState("");
   const [errorVehiculo, setErrorVehiculo] = useState("");
   const [historialItems, setHistorialItems] = useState([]);
+  const [historialAsignaciones, setHistorialAsignaciones] = useState(null); // solo equipos
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
 
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
@@ -85,8 +86,14 @@ export function useOperacionesManager() {
   // ---- Formularios de los modales de un solo campo ----
   const [motivoBaja, setMotivoBaja] = useState("");
   const [errorMotivo, setErrorMotivo] = useState(false);
-  const [vehiculoIdAsignar, setVehiculoIdAsignar] = useState("");
+  // Asignar: tipo de destinatario ("camion" | "persona") y su id. Los
+  // camiones y el personal (de todas las empresas) se traen al abrir.
+  const [tipoDestino, setTipoDestino] = useState("camion");
+  const [destinoId, setDestinoId] = useState("");
   const [errorAsignar, setErrorAsignar] = useState(false);
+  const [destinatarios, setDestinatarios] = useState(null);
+  const [cargandoDestinatarios, setCargandoDestinatarios] = useState(false);
+  const [errorDestinatarios, setErrorDestinatarios] = useState(null);
   const [comentarioMantenimiento, setComentarioMantenimiento] = useState("");
   const [errorMantenimiento, setErrorMantenimiento] = useState(false);
 
@@ -120,13 +127,18 @@ export function useOperacionesManager() {
   useEffect(() => {
     if (!modalHistorial.dato) return;
     setCargandoHistorial(true);
+    setHistorialAsignaciones(null);
     // Por id: los equipos sin código (arnés, estrobos...) también tienen hoja de vida.
-    const obtener = modalHistorial.dato.placa
+    const esVehiculo = !!modalHistorial.dato.placa;
+    const obtener = esVehiculo
       ? vehiculosService.obtenerHistorial(modalHistorial.dato.placa)
       : equiposService.obtenerHojaDeVida(modalHistorial.dato.id);
-    obtener
-      .then(setHistorialItems)
-      .catch(() => setHistorialItems([]))
+    const asignaciones = esVehiculo ? Promise.resolve(null) : equiposService.obtenerAsignaciones(modalHistorial.dato.id).catch(() => []);
+    Promise.all([obtener.catch(() => []), asignaciones])
+      .then(([items, asig]) => {
+        setHistorialItems(items);
+        setHistorialAsignaciones(asig);
+      })
       .finally(() => setCargandoHistorial(false));
   }, [modalHistorial.dato]);
 
@@ -264,7 +276,7 @@ export function useOperacionesManager() {
       try {
         const actualizado = await equiposService.devolverEquipo(eq.id);
         setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-        mostrarToast(`Equipo ${eq.identificador} devuelto al almacén`, { tipo: "success" });
+        mostrarToast(`Equipo ${eq.identificador} devuelto: ya no está asignado a ${eq.responsable}`, { tipo: "success" });
       } catch (err) {
         mostrarToast(err.message || "No se pudo devolver el equipo.", { tipo: "error" });
       }
@@ -288,33 +300,53 @@ export function useOperacionesManager() {
       try {
         const actualizado = await equiposService.cambiarEstadoEquipo(eq.id, nuevoEstado);
         setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-        mostrarToast("Estado actualizado", { tipo: "success" });
+        // Pasar a Disponible o Vencido libera la asignación.
+        mostrarToast(eq.responsable ? `Estado actualizado: ya no está asignado a ${eq.responsable}` : "Estado actualizado", { tipo: "success" });
       } catch (err) {
         mostrarToast(err.message || "No se pudo cambiar el estado del equipo.", { tipo: "error" });
       }
     });
   }
 
+  async function cargarDestinatarios() {
+    setCargandoDestinatarios(true);
+    setErrorDestinatarios(null);
+    try {
+      const datos = await equiposService.listarDestinatarios();
+      setDestinatarios(datos);
+      // Sin camiones pero con personal: empieza en "Persona".
+      if (datos.camiones.length === 0 && datos.personas.length > 0) setTipoDestino("persona");
+    } catch (err) {
+      setErrorDestinatarios(err);
+    } finally {
+      setCargandoDestinatarios(false);
+    }
+  }
+
+  // También para reasignar (el modal ve que el equipo ya tiene destinatario).
   function abrirAsignar(eq) {
     setErrorAccion("");
-    setVehiculoIdAsignar("");
+    setTipoDestino("camion");
+    setDestinoId("");
     setErrorAsignar(false);
     modalAsignar.abrir(eq);
+    cargarDestinatarios();
   }
 
   async function handleConfirmarAsignar() {
     setErrorAccion("");
-    if (!vehiculoIdAsignar) {
+    if (!destinoId) {
       setErrorAsignar(true);
       return;
     }
+    const reasignar = !!modalAsignar.dato.asignadoA;
     await acciones.ejecutar("modal", async () => {
       try {
-        const vehiculo = vehiculos.find((v) => String(v.id) === String(vehiculoIdAsignar));
-        const actualizado = await equiposService.asignarEquipo(modalAsignar.dato.id, vehiculo);
+        const destino = tipoDestino === "camion" ? { vehiculoId: Number(destinoId) } : { personalId: Number(destinoId) };
+        const actualizado = await equiposService.asignarEquipo(modalAsignar.dato.id, destino);
         setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
         modalAsignar.cerrar();
-        mostrarToast("Equipo asignado", { tipo: "success" });
+        mostrarToast(`Equipo ${reasignar ? "reasignado" : "asignado"} a ${actualizado.responsable}`, { tipo: "success" });
       } catch (err) {
         setErrorAccion(err.message || "No se pudo asignar el equipo.");
       }
@@ -510,14 +542,6 @@ export function useOperacionesManager() {
   const hayFiltrosEquipos = !!(filtroEmpresa || filtroCategoria || filtroEstadoEquipo || busqueda);
   const hayFiltrosVehiculos = !!(filtroEmpresa || filtroTipoUnidad || busqueda);
 
-  // Solo camiones registrados de la misma empresa dueña del equipo — así
-  // no se puede asignar, por ejemplo, un equipo de Electro a un camión
-  // que es de Corevex.
-  const vehiculosParaAsignar = useMemo(
-    () => (modalAsignar.dato ? vehiculos.filter((v) => v.empresaDueña === modalAsignar.dato.empresa) : []),
-    [modalAsignar.dato, vehiculos]
-  );
-
   // Agrupa los equipos por categoría (Escaleras, Guantes, Líneas de vida...)
   // en vez de mostrarlos todos mezclados en un solo grid. Usa el orden en
   // que llegaron las categorías para que las secciones salgan siempre
@@ -546,7 +570,7 @@ export function useOperacionesManager() {
     // Equipos
     cargandoEquipos, errorEquipos, recargarEquipos,
     equiposPorCategoria, hayFiltrosEquipos,
-    abrirInspeccion, handleDevolver, abrirBaja, handleCambiarEstado, abrirEditarFotos,
+    abrirInspeccion, handleDevolver, abrirReasignar: abrirAsignar, abrirBaja, handleCambiarEstado, abrirEditarFotos,
 
     // Vehículos
     cargandoVehiculos, errorVehiculos, recargarVehiculos,
@@ -560,7 +584,7 @@ export function useOperacionesManager() {
     estadoDocumento: (id) => (acciones.ocupado(`documento-${id}`) ? acciones.texto(`documento-${id}`, "Subiendo archivo…") : null),
 
     // Modal: historial
-    modalHistorial, cargandoHistorial, historialItems,
+    modalHistorial, cargandoHistorial, historialItems, historialAsignaciones,
 
     // Modal: nuevo equipo
     modalNuevo,
@@ -576,8 +600,9 @@ export function useOperacionesManager() {
     modalBaja, motivoBaja, setMotivoBaja: (v) => { setMotivoBaja(v); setErrorMotivo(false); }, errorMotivo, handleConfirmarBaja,
 
     // Modal: asignar
-    modalAsignar, vehiculosParaAsignar,
-    vehiculoIdAsignar, setVehiculoIdAsignar: (v) => { setVehiculoIdAsignar(v); setErrorAsignar(false); },
+    modalAsignar, destinatarios, cargandoDestinatarios, errorDestinatarios, cargarDestinatarios,
+    tipoDestino, setTipoDestino: (t) => { setTipoDestino(t); setDestinoId(""); setErrorAsignar(false); },
+    destinoId, setDestinoId: (v) => { setDestinoId(v); setErrorAsignar(false); },
     errorAsignar, handleConfirmarAsignar,
 
     // Modal: mantenimiento

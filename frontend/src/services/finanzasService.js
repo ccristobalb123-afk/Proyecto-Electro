@@ -23,8 +23,8 @@ export async function eliminarCategoriaGasto(nombre) {
   return apiClient.delete(`/categorias-gasto/${encodeURIComponent(nombre)}`);
 }
 
-export async function listarGastos({ empresa, q, signal } = {}) {
-  return apiClient.get("/gastos", { empresa, q }, { signal });
+export async function listarGastos({ empresa, q, tipo, signal } = {}) {
+  return apiClient.get("/gastos", { empresa, q, tipo }, { signal });
 }
 
 export async function crearGasto(datos) {

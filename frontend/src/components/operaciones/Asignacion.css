@@ -1,0 +1,205 @@
+/* ---- Modal "Asignar equipo": tipo de destinatario y buscador ---- */
+.asignar-actual {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--electro-tint);
+  color: var(--electro-dark);
+  font-size: 14px;
+}
+
+.destino-tipo {
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+  min-width: 0;
+}
+
+.destino-choice {
+  display: flex;
+  gap: 10px;
+}
+
+.destino-choice label {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.destino-choice input {
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+
+.destino-choice label.seleccionado {
+  border-color: var(--copper);
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.destino-otro {
+  margin-top: var(--space-2);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.selector-destino input {
+  width: 100%;
+}
+
+.selector-destino__lista {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-height: 290px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.selector-destino__lista button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.selector-destino__lista li:last-child button {
+  border-bottom: 0;
+}
+
+@media (hover: hover) {
+  .selector-destino__lista button:hover {
+    background: var(--copper-tint);
+  }
+}
+
+.selector-destino__titulo {
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.selector-destino__detalle {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.selector-destino__elegido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.selector-destino__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.selector-destino__elegido .btn-outline-sm {
+  min-height: 44px;
+}
+
+/* ---- Tarjeta: "Asignado a" con ícono de camión o de persona ---- */
+.equipo-card-asignado-valor.con-icono {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.equipo-card-asignado-valor.con-icono svg {
+  flex: none;
+}
+
+/* ---- Hoja de vida: historial de asignaciones ---- */
+.hv-seccion-titulo {
+  margin: 0 0 var(--space-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.asignaciones-historial {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.asignacion-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.asignacion-item > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--electro-dark);
+}
+
+.asignacion-item__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.asignacion-item__nombre {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.asignacion-item__fechas {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.asignacion-item__vigente {
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--success-tint);
+  color: var(--success-dark);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}

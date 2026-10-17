@@ -11,6 +11,7 @@ import ModalCategoriasGasto from "../components/finanzas/ModalCategoriasGasto";
 import ModalRegistrarPago from "../components/finanzas/ModalRegistrarPago";
 import "./Finanzas.css";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 // Si se llega con otros parámetros (?tab=…&q=…) estando ya en esta
 // página — por ejemplo, tocando un aviso en la campana —, se vuelve a
@@ -22,6 +23,7 @@ export default function FinanzasConEnlace() {
 
 function Finanzas() {
   const f = useFinanzasManager();
+  const { usuario } = useAuth();
 
   return (
     <AppShell
@@ -92,6 +94,14 @@ function Finanzas() {
             <option value="pagado">Pagado</option>
           </select>
         )}
+        {f.tab === "gastos" && (
+          <select value={f.filtroTipo} onChange={(e) => f.setFiltroTipo(e.target.value)} aria-label="Filtrar por tipo de comprobante">
+            <option value="">Boletas y facturas</option>
+            <option value="boleta">Boleta</option>
+            <option value="factura">Factura</option>
+            <option value="sin">Sin tipo (faltan datos)</option>
+          </select>
+        )}
       </div>
 
       <div id="panel-finanzas" role="tabpanel" aria-labelledby={`tab-${f.tab}`}>
@@ -131,11 +141,10 @@ function Finanzas() {
             error={f.error}
             onReintentar={f.reload}
             gastos={f.gastos}
+            hayFiltros={!!(f.busqueda || f.filtroEmpresa || f.filtroTipo)}
             onNuevo={f.abrirNuevo}
-            onSubirComprobante={f.marcarComprobanteSubido}
-            estadoComprobante={f.estadoComprobante}
             onEditar={f.abrirEditarGasto}
-            onEliminar={f.handleEliminarGasto}
+            onEliminar={usuario?.esSuperAdmin ? f.handleEliminarGasto : null}
           />
         )}
       </div>
@@ -171,6 +180,8 @@ function Finanzas() {
         onClose={f.cerrarModalNuevo}
         fGasto={f.fGasto}
         setFGasto={f.setFGasto}
+        onElegirArchivo={f.elegirArchivoGasto}
+        faltantes={f.faltantesGasto}
         onSubmit={f.handleGuardarGasto}
         editando={!!f.idEditando}
         categoriasGasto={f.categoriasGasto}

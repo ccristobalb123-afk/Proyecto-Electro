@@ -36,11 +36,12 @@ export const patchEstado = asyncHandler(async (req, res) => {
 
   let actualizado;
   if (estado === "asignado") {
-    actualizado = await equiposService.asignarEquipo(equipoId, req.body.vehiculoId, req.empresasPermitidas, req.usuario.id);
+    const { vehiculoId, personalId } = req.body;
+    actualizado = await equiposService.asignarEquipo(equipoId, { vehiculoId, personalId }, req.empresasPermitidas, req.usuario.id);
   } else if (estado === "mantenimiento") {
     actualizado = await equiposService.enviarAMantenimiento(equipoId, req.body.comentario, req.empresasPermitidas, req.usuario.id);
   } else {
-    actualizado = await equiposService.cambiarEstadoEquipo(equipoId, estado, req.empresasPermitidas);
+    actualizado = await equiposService.cambiarEstadoEquipo(equipoId, estado, req.empresasPermitidas, req.usuario.id);
   }
   res.json(actualizado);
 });
@@ -55,6 +56,17 @@ export const postInspeccion = asyncHandler(async (req, res) => {
   const equipoId = Number(req.params.id);
   const actualizado = await equiposService.registrarInspeccion(equipoId, req.body, req.empresasPermitidas, req.usuario.id);
   res.json(actualizado);
+});
+
+// Camiones y personal de TODAS las empresas, para el modal "Asignar equipo".
+export const getDestinatarios = asyncHandler(async (req, res) => {
+  res.json(await equiposService.listarDestinatarios());
+});
+
+export const getAsignaciones = asyncHandler(async (req, res) => {
+  const equipoId = Number(req.params.id);
+  if (!Number.isInteger(equipoId)) throw validacionFallida("Identificador de equipo inválido.");
+  res.json(await equiposService.listarAsignaciones(equipoId, req.empresasPermitidas));
 });
 
 export const getHistorial = asyncHandler(async (req, res) => {

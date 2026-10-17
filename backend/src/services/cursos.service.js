@@ -16,6 +16,7 @@ function serializar(curso) {
   const faltantes = curso.tipo === "CURSO" ? Object.entries(CAMPOS_CURSO).filter(([c]) => !curso[c]).map(([, etiqueta]) => etiqueta) : [];
   return {
     id: curso.id,
+    personalId: curso.personalId,
     codigoCurso: curso.codigoCurso,
     nombreCurso: curso.nombreCurso,
     faltantes,
@@ -46,13 +47,24 @@ function serializar(curso) {
 //   - empresa a la que el usuario no tiene acceso → 403
 //   - sin empresa enviada: si tiene contrato en UNA (accesible), esa;
 //     si tiene en varias, hay que elegir.
-async function resolverPersonalYEmpresa(dni, empresaSlug, empresasPermitidas) {
-  const personal = await buscarPersonalRegistrado(dni);
+// `quien`: { personalId } (desde la ficha de la persona: se usa ese id,
+// no se elige) o { dni } (desde "Nuevo registro" con el selector).
+async function resolverPersonalYEmpresa(quien, empresaSlug, empresasPermitidas) {
+  let personal;
+  if (quien.personalId) {
+    personal = await db.personal.findUnique({ where: { id: quien.personalId } });
+    if (!personal) throw new ApiError(404, "NO_ENCONTRADO", "Ese personal no existe.");
+  } else {
+    personal = await buscarPersonalRegistrado(quien.dni);
+  }
   const contratos = await db.contrato.findMany({ where: { personalId: personal.id }, include: { empresa: true } });
   const empresasContrato = [...new Map(contratos.map((c) => [c.empresa.slug, c.empresa])).values()];
 
   if (empresasContrato.length === 0) {
-    throw conflicto("Primero registra el contrato de este trabajador.", "SIN_CONTRATO");
+    throw conflicto(
+      `${personal.nombre} no tiene un contrato registrado, así que no se puede saber a qué empresa corresponde. Registra primero su contrato en la pestaña Contratos.`,
+      "SIN_CONTRATO"
+    );
   }
 
   if (empresaSlug) {
@@ -84,7 +96,16 @@ export async function listarCursos({ empresa, estado, q }, empresasPermitidas) {
   const cursos = await db.curso.findMany({
     where: {
       empresa: { slug: { in: empresasFiltro } },
-      ...(q ? { personal: { OR: [{ nombre: { contains: q, mode: "insensitive" } }, { dni: { contains: q } }] } } : {}),
+      // Por persona (nombre, DNI) o por curso (código, nombre del curso).
+      ...(q
+        ? {
+            OR: [
+              { personal: { OR: [{ nombre: { contains: q, mode: "insensitive" } }, { dni: { contains: q } }] } },
+              { codigoCurso: { contains: q, mode: "insensitive" } },
+              { nombreCurso: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     include: { personal: true, empresa: true },
     // Lo que vence primero, arriba.
@@ -142,7 +163,8 @@ async function verificarDuplicado({ personal, empresa, tipo, codigoCurso }, excl
 export async function crearCurso(datos, empresasPermitidas) {
   // A diferencia de Contratos, acá el trabajador YA debe existir —
   // este endpoint nunca da de alta a alguien nuevo.
-  const { personal, empresa } = await resolverPersonalYEmpresa(datos.dni, datos.empresa, empresasPermitidas);
+  if (!datos.personalId && !datos.dni) throw validacionFallida("Elige el personal al que corresponde el registro.");
+  const { personal, empresa } = await resolverPersonalYEmpresa(datos, datos.empresa, empresasPermitidas);
   const delTipo = datosDelTipo(datos);
   await verificarDuplicado({ personal, empresa, ...delTipo });
 
@@ -169,8 +191,13 @@ export async function crearCurso(datos, empresasPermitidas) {
 }
 
 export async function actualizarCurso(cursoId, datos, empresasPermitidas) {
-  await buscarCurso(cursoId, empresasPermitidas);
-  const { personal, empresa } = await resolverPersonalYEmpresa(datos.dni, datos.empresa, empresasPermitidas);
+  const actual = await buscarCurso(cursoId, empresasPermitidas);
+  // El personal de un registro no cambia al editarlo (se edita desde su
+  // ficha): se usa siempre el del registro.
+  if (datos.personalId && datos.personalId !== actual.personalId) {
+    throw validacionFallida("No se puede cambiar el personal de un registro. Elimínalo y regístralo en la ficha de la otra persona.");
+  }
+  const { personal, empresa } = await resolverPersonalYEmpresa({ personalId: actual.personalId }, datos.empresa, empresasPermitidas);
   const delTipo = datosDelTipo(datos);
   await verificarDuplicado({ personal, empresa, ...delTipo }, cursoId);
 

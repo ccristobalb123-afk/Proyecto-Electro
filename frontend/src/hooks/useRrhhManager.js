@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useModal } from "./useModal";
 import * as contratosService from "../services/contratosService";
@@ -49,6 +49,11 @@ function formCursoVacio() {
 const ordenarPorVencimiento = (lista) =>
   [...lista].sort((a, b) => a.fechaVencimiento.localeCompare(b.fechaVencimiento) || a.id - b.id);
 
+// Para buscar sin importar mayúsculas ni tildes ("José" = "jose").
+const normalizar = (t) => (t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const inicialesDe = (nombre) =>
+  nombre.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join("");
+
 // Toda la lógica de negocio de la página RRHH — antes vivía dentro de
 // Rrhh.jsx mezclada con el JSX. Ahora la página solo arma la vista con
 // lo que este hook le devuelve.
@@ -78,6 +83,14 @@ export function useRrhhManager() {
   const [fCurso, setFCurso] = useState(formCursoVacio());
   const [errorCurso, setErrorCurso] = useState("");
   const [archivoCursoSeleccionado, setArchivoCursoSeleccionado] = useState(null);
+  // Persona de la ficha desde la que se abrió el formulario (su personal
+  // queda fijo, sin selector). null = "Nuevo registro" general, con selector.
+  const [personaCurso, setPersonaCurso] = useState(null);
+  // "Curso X guardado…" tras "Guardar y agregar otro" (el formulario sigue abierto).
+  const [avisoGuardadoCurso, setAvisoGuardadoCurso] = useState("");
+  // Fichas que el usuario abrió o cerró a mano, para la búsqueda actual
+  // (al cambiar la búsqueda vuelven a abrirse solas las que coinciden).
+  const [aperturas, setAperturas] = useState({ q: "", porDni: {} });
 
   // Lista de personal ya registrado (deriva de los contratos reales) —
   // se usa para el selector de "Trabajador" en Cursos/EMO (con las
@@ -106,8 +119,68 @@ export function useRrhhManager() {
     reload,
   } = useAsyncList((signal) => {
     const params = { empresa: filtroEmpresa, estado: filtroEstado, q: busquedaDebounced, signal };
-    return tab === "contratos" ? contratosService.listarContratos(params) : rrhhService.listarCursos(params);
-  }, [tab, filtroEmpresa, filtroEstado, busquedaDebounced]);
+    // Cursos / EMO se agrupan por persona: se traen todos y los filtros se
+    // aplican sobre las personas (así el resumen de cada una está completo).
+    return tab === "contratos" ? contratosService.listarContratos(params) : rrhhService.listarCursos({ signal });
+  }, [tab, ...(tab === "contratos" ? [filtroEmpresa, filtroEstado, busquedaDebounced] : ["", "", ""])]);
+
+  // ---- Cursos / EMO agrupados por persona ----
+  // Todo el personal con contrato (aunque todavía no tenga cursos, para
+  // poder agregárselos desde su ficha) más quien tenga registros.
+  const gruposCursos = useMemo(() => {
+    if (tab !== "cursos") return [];
+    const porDni = new Map();
+    for (const t of trabajadoresRegistrados) {
+      porDni.set(t.dni, { personalId: t.id, dni: t.dni, nombre: t.nombre, empresasContrato: t.empresas, registros: [] });
+    }
+    for (const r of listaFiltrada) {
+      if (!porDni.has(r.dni)) porDni.set(r.dni, { personalId: r.personalId, dni: r.dni, nombre: r.trabajador, empresasContrato: [], registros: [] });
+      porDni.get(r.dni).registros.push(r);
+    }
+    const q = normalizar(busquedaDebounced.trim());
+    const grupos = [];
+    for (const base of porDni.values()) {
+      const registros = ordenarPorVencimiento(base.registros);
+      const g = {
+        ...base,
+        registros,
+        iniciales: inicialesDe(base.nombre),
+        empresas: [...new Set([...base.empresasContrato, ...registros.map((r) => r.empresa)])],
+        tieneContrato: base.empresasContrato.length > 0,
+      };
+      if (filtroEmpresa && !g.empresas.includes(filtroEmpresa)) continue;
+      if (filtroEstado && !registros.some((r) => r.estado === filtroEstado)) continue;
+      if (q) {
+        const enPersona = normalizar(g.nombre).includes(q) || g.dni.includes(q);
+        const enCurso = registros.some((r) => normalizar(r.codigoCurso).includes(q) || normalizar(r.nombreCurso).includes(q));
+        if (!enPersona && !enCurso) continue;
+      }
+      const cursos = registros.filter((r) => r.tipo === "Curso");
+      g.resumen = {
+        cursos: cursos.length,
+        vencidos: cursos.filter((r) => r.estado === "vencido").length,
+        porVencer: cursos.filter((r) => r.estado === "porvencer").length,
+        emo: registros.find((r) => r.tipo === "EMO")?.estado ?? null,
+      };
+      grupos.push(g);
+    }
+    // Primero quien tiene algo por vencer antes; sin registros, al final.
+    const proximo = (g) => g.registros[0]?.fechaVencimiento ?? "9999-12-31";
+    return grupos.sort((a, b) => proximo(a).localeCompare(proximo(b)) || a.nombre.localeCompare(b.nombre, "es"));
+  }, [tab, trabajadoresRegistrados, listaFiltrada, filtroEmpresa, filtroEstado, busquedaDebounced]);
+
+  // Abierta: lo que el usuario eligió para esta búsqueda o, si no tocó
+  // nada, abierta cuando hay una búsqueda (para ver las coincidencias).
+  const fichaAbierta = (dni) => {
+    const manual = aperturas.q === busquedaDebounced ? aperturas.porDni[dni] : undefined;
+    return manual ?? !!busquedaDebounced.trim();
+  };
+  function fijarFicha(dni, abierta) {
+    setAperturas((prev) => ({
+      q: busquedaDebounced,
+      porDni: { ...(prev.q === busquedaDebounced ? prev.porDni : {}), [dni]: abierta },
+    }));
+  }
 
   function cambiarTab(nuevoTab) {
     setTab(nuevoTab);
@@ -124,7 +197,26 @@ export function useRrhhManager() {
       setFCurso(formCursoVacio());
       setErrorCurso("");
       setArchivoCursoSeleccionado(null);
+      setPersonaCurso(null);
+      setAvisoGuardadoCurso("");
     }
+    setModalOpen(true);
+  }
+
+  // "Agregar curso" / "Registrar EMO" desde la ficha: la persona ya está
+  // elegida y no se puede cambiar; la empresa sale de su contrato.
+  function abrirCursoEnFicha(persona, tipo) {
+    setIdEditando(null);
+    setPersonaCurso(persona);
+    setFCurso({
+      ...formCursoVacio(),
+      tipo,
+      dni: persona.dni,
+      empresa: persona.empresasContrato.length === 1 ? persona.empresasContrato[0] : "",
+    });
+    setErrorCurso("");
+    setAvisoGuardadoCurso("");
+    setArchivoCursoSeleccionado(null);
     setModalOpen(true);
   }
 
@@ -159,6 +251,12 @@ export function useRrhhManager() {
       });
       setErrorCurso("");
       setArchivoCursoSeleccionado(null);
+      setAvisoGuardadoCurso("");
+      // Se edita desde la ficha: la persona del registro queda fija.
+      const grupo = gruposCursos.find((g) => g.dni === item.dni);
+      setPersonaCurso(
+        grupo || { personalId: item.personalId, dni: item.dni, nombre: item.trabajador, empresasContrato: trabajadoresRegistrados.find((t) => t.dni === item.dni)?.empresas || [] }
+      );
     }
     setModalOpen(true);
   }
@@ -199,6 +297,9 @@ export function useRrhhManager() {
 
   async function handleGuardarCurso(e) {
     e.preventDefault();
+    // "Guardar y agregar otro": guarda y deja el formulario abierto para el
+    // siguiente curso de la misma persona.
+    const otro = e.nativeEvent?.submitter?.value === "otro";
     if (!fCurso.dni || !fCurso.fechaInicio || !fCurso.fechaVencimiento) {
       setErrorCurso("Selecciona un trabajador, fecha de inicio y fecha de vencimiento.");
       return;
@@ -217,14 +318,18 @@ export function useRrhhManager() {
       return;
     }
     setErrorCurso("");
+    setAvisoGuardadoCurso("");
     await acciones.ejecutar("modal", async ({ subida, etapa }) => {
       try {
         // archivoNombre del formulario es solo para mostrar en el
         // dropzone — lo que se guarda es lo que devuelve la subida.
         // Sin empresa elegida, el backend usa la del contrato.
         // EMO no lleva código ni nombre de curso (el backend igual los ignora).
-        const { archivoNombre: _soloVista, empresa, codigoCurso, nombreCurso, ...base } = fCurso;
-        const resto = fCurso.tipo === "Curso" ? { ...base, codigoCurso, nombreCurso } : base;
+        // Quién: el id de la ficha, o el DNI del selector. Al editar, el
+        // backend usa siempre la persona del registro.
+        const { archivoNombre: _soloVista, empresa, codigoCurso, nombreCurso, dni, ...base } = fCurso;
+        const quien = idEditando ? {} : personaCurso ? { personalId: personaCurso.personalId } : { dni };
+        const resto = fCurso.tipo === "Curso" ? { ...base, ...quien, codigoCurso, nombreCurso } : { ...base, ...quien };
         const datosForm = empresa ? { ...resto, empresa } : resto;
         let datos = datosForm;
         if (archivoCursoSeleccionado) {
@@ -237,6 +342,14 @@ export function useRrhhManager() {
         // una renovación (fechas nuevas) cambia de lugar.
         const guardado = idEditando ? await rrhhService.actualizarCurso(idEditando, datos) : await rrhhService.crearCurso(datos);
         setLista((prev) => ordenarPorVencimiento([guardado, ...prev.filter((c) => c.id !== guardado.id)]));
+        // La ficha de esa persona queda abierta, con su resumen actualizado.
+        fijarFicha(guardado.dni, true);
+        if (otro) {
+          setFCurso((f) => ({ ...formCursoVacio(), tipo: f.tipo, dni: f.dni, empresa: f.empresa }));
+          setArchivoCursoSeleccionado(null);
+          setAvisoGuardadoCurso(`Curso ${guardado.codigoCurso} guardado. Agrega el siguiente curso de ${guardado.trabajador}.`);
+          return;
+        }
         setModalOpen(false);
         mostrarToast(`${fCurso.tipo} ${idEditando ? "actualizado" : "registrado"}`, { tipo: "success" });
       } catch (err) {
@@ -322,6 +435,8 @@ export function useRrhhManager() {
     fContrato, setFContrato, errorContrato, handleGuardarContrato, handleArchivoChange,
     fCurso, setFCurso, errorCurso, handleGuardarCurso, handleArchivoCursoChange,
     faltantesCurso: tab === "cursos" && idEditando ? listaFiltrada.find((c) => c.id === idEditando)?.faltantes || [] : [],
+    personaCurso, avisoGuardadoCurso, abrirCursoEnFicha,
+    gruposCursos, fichaAbierta, fijarFicha,
     trabajadoresRegistrados,
     handleAdjuntarArchivo,
     handleEliminar,

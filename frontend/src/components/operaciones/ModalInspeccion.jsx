@@ -67,13 +67,19 @@ export default function ModalInspeccion({ open, equipo, fInspeccion, setFInspecc
 
         {fInspeccion.resultado === "aprobado" ? (
           <div className="consecuencia aprobado">
-            <div className="consecuencia-title"><IconEye width={14} height={14} />El equipo queda Disponible</div>
+            <div className="consecuencia-title">
+              <IconEye width={14} height={14} />
+              {equipo?.responsable ? `Sigue asignado a ${equipo.responsable}` : "El equipo queda Disponible"}
+            </div>
             <p className="consecuencia-hint">Se actualiza la próxima inspección con esta fecha de vencimiento.</p>
           </div>
         ) : (
           <div className="consecuencia rechazado">
             <div className="consecuencia-title"><IconAlertCircle width={14} height={14} />El equipo pasa a Mantenimiento</div>
-            <p className="consecuencia-hint">No podrá asignarse hasta una nueva inspección con resultado Aprobado.</p>
+            <p className="consecuencia-hint">
+              {equipo?.responsable ? `Deja de estar asignado a ${equipo.responsable}. ` : ""}
+              No podrá asignarse hasta una nueva inspección con resultado Aprobado.
+            </p>
           </div>
         )}
 

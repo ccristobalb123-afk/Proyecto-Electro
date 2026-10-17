@@ -17,6 +17,7 @@ const router = Router();
 router.use(requireAuth, requireModulo("operaciones"));
 
 router.get("/", validarQuery(listarEquiposQuerySchema), equiposController.getEquipos);
+router.get("/destinatarios", equiposController.getDestinatarios);
 router.post("/", validar(crearEquipoSchema), equiposController.postEquipo);
 router.patch("/:id", validar(actualizarEquipoSchema), equiposController.patchEquipo);
 router.delete("/:id", equiposController.deleteEquipo);
@@ -25,5 +26,6 @@ router.patch("/:id/estado", validar(patchEstadoEquipoSchema), equiposController.
 router.patch("/:id/dar-de-baja", validar(darDeBajaSchema), equiposController.patchDarDeBaja);
 router.post("/:id/inspecciones", validar(registrarInspeccionSchema), equiposController.postInspeccion);
 router.get("/:id/historial", equiposController.getHistorial);
+router.get("/:id/asignaciones", equiposController.getAsignaciones);
 
 export default router;

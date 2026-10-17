@@ -6,7 +6,7 @@ import { borrarArchivoSiHuerfano } from "../lib/archivos.js";
 import { CLAVES_DOCUMENTO, infoDocumento, nombreDocumento, estadoDocumento } from "../lib/documentosVehiculo.js";
 
 const TIPO_A_ENUM = { Camioneta: "CAMIONETA", "Camión": "CAMION", Minivan: "MINIVAN", "Grúa": "GRUA", Auto: "AUTO" };
-const ENUM_A_TIPO = { CAMIONETA: "Camioneta", CAMION: "Camión", MINIVAN: "Minivan", GRUA: "Grúa", AUTO: "Auto" };
+export const ENUM_A_TIPO = { CAMIONETA: "Camioneta", CAMION: "Camión", MINIVAN: "Minivan", GRUA: "Grúa", AUTO: "Auto" };
 
 const INCLUDE = { empresaDuena: true, empresaUso: true, documentos: true };
 

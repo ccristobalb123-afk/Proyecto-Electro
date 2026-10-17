@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { createElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import * as facturasService from "../services/facturasService";
 import * as finanzasService from "../services/finanzasService";
@@ -10,7 +10,8 @@ import { useAsyncList } from "./useAsyncList";
 import { useAccion } from "./useAccion";
 import { useConfirm } from "../context/ConfirmContext";
 import { useToast } from "../context/ToastContext";
-import { soles } from "../components/finanzas/finanzasUtils";
+import { soles, rucValido } from "../components/finanzas/finanzasUtils";
+import DetalleEliminarGasto from "../components/finanzas/DetalleEliminarGasto";
 
 const FORM_FACTURA_VACIO = {
   empresa: "corevex", cliente: "", serie: "", numero: "", montoBase: "", igvIncluido: true,
@@ -25,7 +26,12 @@ const FORM_FACTURA_PAGAR_VACIO = {
 };
 
 function formGastoVacio(categoriasGasto) {
-  return { empresa: "corevex", categoria: categoriasGasto[0] || "", monto: "", fecha: "", proveedor: "", trabajador: "", descripcion: "" };
+  return {
+    empresa: "corevex", categoria: categoriasGasto[0] || "", monto: "", fecha: "", proveedor: "", trabajador: "", descripcion: "",
+    tipoComprobante: "", rucProveedor: "",
+    // Solo para mostrar en el formulario: el archivo elegido o el que ya tiene.
+    archivoNombre: "",
+  };
 }
 
 const IGV = 0.18;
@@ -53,6 +59,7 @@ export function useFinanzasManager() {
   const [tab, setTab] = useState(["facturasPagar", "gastos"].includes(tabInicial) ? tabInicial : "facturas"); // "facturas" | "facturasPagar" | "gastos"
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState(""); // Gastos: "" | "boleta" | "factura" | "sin"
   const [busqueda, setBusqueda] = useState(searchParams.get("q") || "");
   const busquedaDebounced = useDebounce(busqueda, 400);
 
@@ -124,11 +131,11 @@ export function useFinanzasManager() {
     error,
     reload,
   } = useAsyncList((signal) => {
-    const params = { empresa: filtroEmpresa, estado: filtroEstado, q: busquedaDebounced, signal };
+    const params = { empresa: filtroEmpresa, estado: filtroEstado, tipo: filtroTipo, q: busquedaDebounced, signal };
     if (tab === "facturas") return facturasService.listarFacturas(params);
     if (tab === "facturasPagar") return facturasService.listarFacturasPorPagar(params);
     return finanzasService.listarGastos(params);
-  }, [tab, filtroEmpresa, filtroEstado, busquedaDebounced]);
+  }, [tab, filtroEmpresa, filtroEstado, filtroTipo, busquedaDebounced]);
 
   const facturas = tab === "facturas" ? listaActual : [];
   const facturasPagar = tab === "facturasPagar" ? listaActual : [];
@@ -143,6 +150,10 @@ export function useFinanzasManager() {
   const [fFactura, setFFactura] = useState(FORM_FACTURA_VACIO);
   const [fFacturaPagar, setFFacturaPagar] = useState(FORM_FACTURA_PAGAR_VACIO);
   const [fGasto, setFGasto] = useState(formGastoVacio([]));
+  // Documento del gasto elegido en el formulario (se sube al guardar).
+  const [archivoGasto, setArchivoGasto] = useState(null);
+  // Lo que le faltaba al gasto que se está editando (gastos antiguos).
+  const [faltantesGasto, setFaltantesGasto] = useState([]);
 
   // Al cambiar de pestaña limpiamos la lista de inmediato: las 3 pestañas
   // comparten `listaActual` pero tienen formas de dato distintas (facturas
@@ -158,6 +169,7 @@ export function useFinanzasManager() {
     if (nuevoTab === tab) return;
     setTab(nuevoTab);
     setFiltroEstado("");
+    setFiltroTipo("");
     setBusqueda("");
     setListaActual([]);
   }
@@ -166,6 +178,8 @@ export function useFinanzasManager() {
     setFFactura(FORM_FACTURA_VACIO);
     setFFacturaPagar(FORM_FACTURA_PAGAR_VACIO);
     setFGasto(formGastoVacio(categoriasGasto));
+    setArchivoGasto(null);
+    setFaltantesGasto([]);
     setIdEditando(null);
     setErrorFormulario("");
     setModalNuevo(true);
@@ -314,24 +328,57 @@ export function useFinanzasManager() {
       proveedor: g.proveedor,
       trabajador: g.trabajador,
       descripcion: g.descripcion,
+      tipoComprobante: g.tipoComprobante || "",
+      rucProveedor: g.rucProveedor || "",
+      archivoNombre: g.archivo ? g.archivoNombre || "Comprobante adjunto" : "",
     });
+    setArchivoGasto(null);
+    setFaltantesGasto(g.faltantes || []);
     setIdEditando(g.id);
     setErrorFormulario("");
     setModalNuevo(true);
   }
 
+  function elegirArchivoGasto(archivo) {
+    setArchivoGasto(archivo);
+    setFGasto((f) => ({ ...f, archivoNombre: archivo.name }));
+    setErrorFormulario("");
+  }
+
+  // Mismas reglas que el backend, revisadas antes de subir nada.
+  function errorGasto() {
+    if (!fGasto.tipoComprobante) return "Elige el tipo de comprobante: Boleta o Factura.";
+    if (fGasto.tipoComprobante === "factura") {
+      if (!fGasto.rucProveedor) return "Ingresa el RUC del proveedor: es obligatorio en una factura.";
+      if (!rucValido(fGasto.rucProveedor)) return "El RUC del proveedor no es válido: debe tener 11 dígitos y empezar con 10, 15, 16, 17 o 20. Revisa que esté bien escrito.";
+    }
+    if (!archivoGasto && !fGasto.archivoNombre) return "Adjunta la foto o PDF del comprobante: es obligatorio.";
+    return "";
+  }
+
   async function handleGuardarGasto(e) {
     e.preventDefault();
-    setErrorFormulario("");
-    await acciones.ejecutar("modal", async () => {
+    const error = errorGasto();
+    setErrorFormulario(error);
+    if (error) return;
+    await acciones.ejecutar("modal", async ({ subida, etapa }) => {
       try {
+        // archivoNombre del formulario es solo para mostrar.
+        const { archivoNombre: _soloVista, ...base } = fGasto;
+        let datos = base;
+        if (archivoGasto) {
+          const { url, nombre } = await subirArchivo(archivoGasto, subida);
+          etapa(idEditando ? "Guardando…" : "Registrando…");
+          datos = { ...base, archivoNombre: nombre, archivoUrl: url };
+        }
         if (idEditando) {
-          const actualizado = await finanzasService.actualizarGasto(idEditando, fGasto);
+          const actualizado = await finanzasService.actualizarGasto(idEditando, datos);
           setListaActual((prev) => prev.map((g) => (g.id === actualizado.id ? actualizado : g)));
         } else {
-          const nuevo = await finanzasService.crearGasto(fGasto);
+          const nuevo = await finanzasService.crearGasto(datos);
           setListaActual((prev) => [nuevo, ...prev]);
         }
+        setArchivoGasto(null);
         cerrarModalNuevo();
         mostrarToast(idEditando ? "Gasto actualizado" : "Gasto registrado", { tipo: "success" });
       } catch (err) {
@@ -342,17 +389,9 @@ export function useFinanzasManager() {
 
 
   async function handleEliminarGasto(g) {
-    // Regla del negocio: un gasto con su comprobante adjunto no se borra
-    // (es el respaldo contable). El backend también lo rechaza.
-    if (g.archivo) {
-      return alertar({
-        titulo: "No se puede eliminar este gasto",
-        mensaje: `El gasto de ${g.categoria} por ${soles(g.monto)} ya tiene su comprobante adjunto, que es el respaldo contable del egreso. Si el monto o la categoría están mal, corrígelos con "Editar".`,
-      });
-    }
     const ok = await confirmar({
-      titulo: `¿Eliminar el gasto de ${g.categoria}?`,
-      mensaje: `Se eliminará el gasto de ${soles(g.monto)} de forma permanente. Esta acción no se puede deshacer.`,
+      titulo: "¿Eliminar este gasto?",
+      mensaje: createElement(DetalleEliminarGasto, { gasto: g }),
       tipo: "peligro",
       textoConfirmar: "Eliminar gasto",
       textoCargando: "Eliminando…",
@@ -433,6 +472,7 @@ export function useFinanzasManager() {
     tab, cambiarTab, tituloNuevo,
     filtroEmpresa, setFiltroEmpresa,
     filtroEstado, setFiltroEstado,
+    filtroTipo, setFiltroTipo,
     busqueda, setBusqueda,
     cargando, error, reload,
     facturas, facturasPagar, gastos,
@@ -444,7 +484,7 @@ export function useFinanzasManager() {
     estadoComprobante: (id) => (acciones.ocupado(`comprobante-${id}`) ? acciones.texto(`comprobante-${id}`, "Subiendo archivo…") : null),
     fFactura, setFFactura, abrirEditarFactura, handleGuardarFactura, handleAnularFactura, errorFormulario,
     fFacturaPagar, setFFacturaPagar, abrirEditarFacturaPagar, handleGuardarFacturaPagar, handleAnularFacturaPagar,
-    fGasto, setFGasto, abrirEditarGasto, handleGuardarGasto, handleEliminarGasto, categoriasGasto,
+    fGasto, setFGasto, archivoGasto, elegirArchivoGasto, faltantesGasto, abrirEditarGasto, handleGuardarGasto, handleEliminarGasto, categoriasGasto,
     catalogoDetraccion,
     nuevaCategoriaGasto, setNuevaCategoriaGasto,
     nombreNuevaCategoriaGasto, setNombreNuevaCategoriaGasto,

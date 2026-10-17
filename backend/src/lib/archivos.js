@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { db } from "./db.js";
+import { validacionFallida } from "./errors.js";
 
 // Un mismo archivoUrl puede estar referenciado por exactamente 1 de
 // estos 6 lugares — se buscan todos en paralelo y se devuelve el
@@ -50,4 +51,16 @@ export async function borrarArchivoSiHuerfano(archivoUrl) {
   } catch (err) {
     if (err.code !== "ENOENT") console.error("No se pudo borrar el archivo", nombre, err.message);
   }
+}
+
+// Antes de guardar un registro con un archivo ya subido por
+// /api/uploads: la URL tiene que ser de ahí, el archivo tiene que
+// existir (pasó la validación de tipo, tamaño y contenido al subirse) y
+// no puede estar usado por otro registro. Evita guardar un "documento"
+// que en realidad no existe o que es de otro registro.
+export async function verificarArchivoSubido(archivoUrl) {
+  const nombre = /^\/api\/uploads\/([\w.-]+)$/.exec(archivoUrl || "")?.[1];
+  const existe = nombre && !nombre.includes("..") && (await fs.stat(path.join(CARPETA_UPLOADS, nombre)).then((s) => s.isFile(), () => false));
+  if (!existe) throw validacionFallida("El documento adjunto no se encontró en el servidor. Vuelve a adjuntarlo.");
+  if ((await empresasDelArchivo(archivoUrl)) !== null) throw validacionFallida("Ese documento ya pertenece a otro registro. Adjunta el archivo de este comprobante.");
 }

@@ -4,6 +4,7 @@ import { IconPlus } from "../components/icons/Icons";
 import { useRrhhManager, ESTADO_LABEL_RRHH as ESTADO_LABEL } from "../hooks/useRrhhManager";
 import { BotonVerArchivo } from "../components/shared/VisorArchivo";
 import TablaRrhh from "../components/rrhh/TablaRrhh";
+import CursosPorPersona from "../components/rrhh/CursosPorPersona";
 import ModalNuevoContrato from "../components/rrhh/ModalNuevoContrato";
 import ModalNuevoCurso from "../components/rrhh/ModalNuevoCurso";
 import "./Rrhh.css";
@@ -55,11 +56,11 @@ function Rrhh() {
 
       <div className="filters">
         <div className="search">
-          <label htmlFor="buscar-rrhh" className="sr-only">Buscar trabajador</label>
+          <label htmlFor="buscar-rrhh" className="sr-only">{r.tab === "cursos" ? "Buscar trabajador o curso" : "Buscar trabajador"}</label>
           <input
             id="buscar-rrhh"
             type="search"
-            placeholder="Buscar trabajador..."
+            placeholder={r.tab === "cursos" ? "Buscar trabajador, código o curso..." : "Buscar trabajador..."}
             value={r.busqueda}
             onChange={(e) => r.setBusqueda(e.target.value)}
           />
@@ -80,6 +81,25 @@ function Rrhh() {
       </div>
 
       <div id="panel-rrhh" role="tabpanel" aria-labelledby={r.tab === "contratos" ? "tab-contratos" : "tab-cursos"}>
+        {r.tab === "cursos" ? (
+          <CursosPorPersona
+            cargando={r.cargando}
+            error={r.error}
+            onReintentar={r.reload}
+            grupos={r.gruposCursos}
+            hayFiltrosActivos={r.hayFiltrosActivos}
+            estadoLabel={ESTADO_LABEL}
+            fichaAbierta={r.fichaAbierta}
+            fijarFicha={r.fijarFicha}
+            onNuevo={r.openModal}
+            onAgregar={r.abrirCursoEnFicha}
+            onEditar={r.abrirEditar}
+            onVerDetalle={r.modalDetalle.abrir}
+            onEliminar={r.handleEliminar}
+            onAdjuntarArchivo={r.handleAdjuntarArchivo}
+            estadoAdjunto={r.estadoAdjunto}
+          />
+        ) : (
         <TablaRrhh
           cargando={r.cargando}
           error={r.error}
@@ -95,6 +115,7 @@ function Rrhh() {
           onAdjuntarArchivo={r.handleAdjuntarArchivo}
           estadoAdjunto={r.estadoAdjunto}
         />
+        )}
       </div>
 
       <ModalNuevoContrato
@@ -121,6 +142,8 @@ function Rrhh() {
         trabajadoresRegistrados={r.trabajadoresRegistrados}
         editando={!!r.idEditando}
         faltantes={r.faltantesCurso}
+        persona={r.personaCurso}
+        aviso={r.avisoGuardadoCurso}
         guardando={r.guardando}
         textoGuardando={r.textoGuardando}
       />

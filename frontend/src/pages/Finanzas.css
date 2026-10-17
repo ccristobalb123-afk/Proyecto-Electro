@@ -239,3 +239,143 @@
   cursor: progress;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- Gastos: tipo de comprobante y documento ---------- */
+
+.fin-card-comprobante {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.fin-tag-tipo {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 9px;
+  border-radius: 6px;
+  border: 1px solid currentColor;
+}
+
+.fin-tag-tipo--boleta {
+  color: var(--gray-dark);
+  background: var(--gray-tint);
+}
+
+.fin-tag-tipo--factura {
+  color: var(--copper-dark);
+  background: var(--copper-tint);
+}
+
+.fin-tag-tipo--sin {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.fin-faltan-chip {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--volt-dark);
+  background: var(--volt-tint);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.fin-card-ruc {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.fin-card-sin-documento {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.fin-faltantes {
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0 0 16px;
+}
+
+/* Boleta / Factura caben lado a lado aun en 360px (.igv-choice pasa a
+   columna en pantallas chicas). */
+.igv-choice.tipo-comprobante-choice {
+  flex-direction: row;
+}
+
+.gasto-documento {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gasto-documento.has-file {
+  border-style: solid;
+  border-color: var(--success);
+  background: var(--success-tint);
+}
+
+.gasto-documento__estado {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.gasto-documento.has-file .gasto-documento__estado {
+  color: var(--success-dark);
+}
+
+.gasto-documento__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gasto-documento__botones label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  flex: 1 1 140px;
+}
+
+/* La cámara solo tiene sentido en celulares y tablets. */
+.gasto-documento__botones .gasto-documento__camara {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .gasto-documento__botones .gasto-documento__camara {
+    display: inline-flex;
+  }
+}
+
+.modal-cuerpo:disabled .gasto-documento label {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Diálogo "¿Eliminar este gasto?": qué gasto es, antes del aviso. */
+.confirm-gasto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--gray-tint);
+  color: var(--text);
+  text-align: left;
+}

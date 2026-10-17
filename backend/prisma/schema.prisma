@@ -176,15 +176,17 @@ model Sesion {
 // una consulta real en vez de un DISTINCT sobre texto libre, y evita
 // que un typo cree "otra persona" sin querer.
 model Personal {
-  id        Int        @id @default(autoincrement())
+  id                 Int                @id @default(autoincrement())
   // La identidad real de la persona — antes se buscaba y se distinguía
   // solo por el nombre, lo que rompe apenas hay 2 personas con el mismo
   // nombre (o el mismo nombre escrito distinto). El DNI no cambia.
-  dni       String     @unique
-  nombre    String
-  creadoEn  DateTime   @default(now()) @map("creado_en")
-  contratos Contrato[]
-  cursos    Curso[]
+  dni                String             @unique
+  nombre             String
+  creadoEn           DateTime           @default(now()) @map("creado_en")
+  contratos          Contrato[]
+  cursos             Curso[]
+  equipos            Equipo[]
+  asignacionesEquipo AsignacionEquipo[]
 
   @@map("personal")
 }
@@ -302,12 +304,17 @@ model Equipo {
   empresa     Empresa         @relation(fields: [empresaId], references: [id])
   estado      EstadoEquipo    @default(DISPONIBLE)
 
-  // Solo se puede asignar a un camión REGISTRADO (nunca a una persona
-  // ni a texto libre) — ver ModalAsignarEquipo en el frontend. El
-  // texto "Camión ABC-123" que se muestra en la tarjeta se arma al
-  // vuelo a partir de vehiculo.placa, no se guarda por separado.
+  // Destinatario actual: un camión registrado O una persona del
+  // personal (nunca los dos, nunca texto libre), de cualquier empresa.
+  // Reglas (las valida equipos.service.js y, además, dos CHECK en la
+  // base): ASIGNADO siempre tiene destinatario y cualquier otro estado
+  // no tiene ninguno. El texto "Camión ABC-123" o el nombre se arma al
+  // leer. Lo que tuvo antes queda en AsignacionEquipo.
   vehiculoId Int?      @map("vehiculo_id")
   vehiculo   Vehiculo? @relation(fields: [vehiculoId], references: [id])
+  // Restrict: no se puede borrar a una persona que tiene equipos.
+  personalId Int?      @map("personal_id")
+  personal   Personal? @relation(fields: [personalId], references: [id], onDelete: Restrict)
 
   camposValores              Json      @default("{}") @map("campos_valores")
   fotos                      Json      @default("[]") // hasta 2 URLs/base64
@@ -320,7 +327,8 @@ model Equipo {
   diasAnticipacionInspeccion Int       @default(15) @map("dias_anticipacion_inspeccion")
   creadoEn                   DateTime  @default(now()) @map("creado_en")
 
-  historial HistorialEquipo[]
+  historial    HistorialEquipo[]
+  asignaciones AsignacionEquipo[]
 
   // Datos por tipo de equipo (ver src/lib/tiposEquipo.js). Aceptan NULL:
   // un tipo que no pide el campo lo deja vacío, y los equipos anteriores
@@ -357,6 +365,35 @@ model HistorialEquipo {
   @@map("historial_equipo")
 }
 
+enum TipoDestinatario {
+  CAMION
+  PERSONA
+}
+
+// Historial de asignaciones: quién tuvo el equipo, desde cuándo y hasta
+// cuándo. Una fila por asignación; "hasta" queda vacío mientras sigue
+// asignado (a lo más una abierta por equipo: la cierra el backend antes
+// de abrir otra). El nombre o la placa se copian al asignar, así el
+// historial se sigue leyendo aunque después se borre el camión.
+model AsignacionEquipo {
+  id           Int              @id @default(autoincrement())
+  equipoId     Int              @map("equipo_id")
+  equipo       Equipo           @relation(fields: [equipoId], references: [id], onDelete: Cascade)
+  tipo         TipoDestinatario
+  vehiculoId   Int?             @map("vehiculo_id")
+  vehiculo     Vehiculo?        @relation(fields: [vehiculoId], references: [id], onDelete: SetNull)
+  personalId   Int?             @map("personal_id")
+  personal     Personal?        @relation(fields: [personalId], references: [id], onDelete: SetNull)
+  destinatario String // "ARE-793" o el nombre de la persona, al momento de asignar
+  desde        DateTime         @default(now())
+  hasta        DateTime?
+  // Por qué terminó: "Devuelto", "Reasignado", "Enviado a mantenimiento"…
+  motivoFin    String?          @map("motivo_fin")
+
+  @@index([equipoId])
+  @@map("asignaciones_equipo")
+}
+
 enum TipoUnidad {
   CAMIONETA
   CAMION
@@ -381,9 +418,10 @@ model Vehiculo {
   cuadrilla String?
   creadoEn  DateTime @default(now()) @map("creado_en")
 
-  documentos DocumentoVehiculo[]
-  historial  HistorialVehiculo[]
-  equipos    Equipo[]
+  documentos         DocumentoVehiculo[]
+  historial          HistorialVehiculo[]
+  equipos            Equipo[]
+  asignacionesEquipo AsignacionEquipo[]
 
   @@map("vehiculos")
 }
@@ -575,11 +613,21 @@ model Gasto {
   proveedor     String?
   trabajador    String?
   descripcion   String?
+  // Boleta o Factura (obligatorio desde oct 2026). Los gastos anteriores
+  // quedan en NULL y se piden al editarlos, igual que su documento.
+  tipoComprobante TipoComprobante? @map("tipo_comprobante")
+  // Solo con Factura (la base lo exige): 11 dígitos.
+  rucProveedor  String?        @map("ruc_proveedor") @db.VarChar(11)
   archivoNombre String?        @map("archivo_nombre")
   archivoUrl    String?        @map("archivo_url")
   creadoEn      DateTime       @default(now()) @map("creado_en")
 
   @@map("gastos")
+}
+
+enum TipoComprobante {
+  BOLETA
+  FACTURA
 }
 
 // ============================================================

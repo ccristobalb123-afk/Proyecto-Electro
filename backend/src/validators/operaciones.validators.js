@@ -54,10 +54,14 @@ export const cambiarEstadoSchema = z.object({
   estado: z.enum(["disponible", "asignado", "mantenimiento", "vencido", "debaja"]),
 });
 
-export const asignarEquipoSchema = z.object({
-  estado: z.literal("asignado"),
-  vehiculoId: z.number().int(),
-});
+// Un solo destinatario: un camión (vehiculoId) O una persona (personalId).
+export const asignarEquipoSchema = z
+  .object({
+    estado: z.literal("asignado"),
+    vehiculoId: z.number().int().positive().optional(),
+    personalId: z.number().int().positive().optional(),
+  })
+  .refine((b) => !b.vehiculoId !== !b.personalId, "Elige un camión o una persona (solo uno).");
 
 export const mantenimientoEquipoSchema = z.object({
   estado: z.literal("mantenimiento"),

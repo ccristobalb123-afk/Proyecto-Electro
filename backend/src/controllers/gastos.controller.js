@@ -32,7 +32,7 @@ export const patchGasto = asyncHandler(async (req, res) => {
 });
 
 export const deleteGasto = asyncHandler(async (req, res) => {
-  res.json(await gastosService.eliminarGasto(Number(req.params.id), req.empresasPermitidas));
+  res.json(await gastosService.eliminarGasto(Number(req.params.id), req.empresasPermitidas, req.usuario));
 });
 
 export const postComprobante = asyncHandler(async (req, res) => {

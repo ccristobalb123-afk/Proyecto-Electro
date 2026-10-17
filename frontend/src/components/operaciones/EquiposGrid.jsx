@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IconEye, IconTrash, IconCamera } from "../icons/Icons";
+import { IconEye, IconTrash, IconCamera, IconTruck, IconUser } from "../icons/Icons";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
@@ -8,6 +8,7 @@ import Lightbox from "../shared/Lightbox";
 
 import { ESTADOS_EQUIPO as ESTADOS } from "../../services/equiposService";
 import { CAMPOS_EQUIPO } from "./camposEquipo";
+import "./Asignacion.css";
 
 // Datos de la tarjeta según el tipo (las fechas de inspección van aparte,
 // y el campo que identifica al equipo ya está en la cabecera).
@@ -29,6 +30,7 @@ export default function EquiposGrid({
   onNuevo,
   onInspeccionar,
   onDevolver,
+  onReasignar,
   onVerHistorial,
   onDarBaja,
   onCambiarEstado,
@@ -110,7 +112,14 @@ export default function EquiposGrid({
                     {eq.responsable && (
                       <div className="equipo-card-asignado">
                         <span className="equipo-card-label">Asignado a</span>
-                        <span className="equipo-card-asignado-valor">👤 {eq.responsable}</span>
+                        <span className="equipo-card-asignado-valor con-icono">
+                          {eq.asignadoA?.tipo === "persona" ? (
+                            <IconUser width={15} height={15} aria-label="Persona" aria-hidden="false" role="img" />
+                          ) : (
+                            <IconTruck width={15} height={15} aria-label="Camión" aria-hidden="false" role="img" />
+                          )}
+                          {eq.responsable}
+                        </span>
                       </div>
                     )}
 
@@ -166,9 +175,14 @@ export default function EquiposGrid({
                         Checklist pre-uso
                       </button>
                       {eq.estado === "asignado" && (
-                        <button className="btn-outline-sm" type="button" onClick={() => onDevolver(eq)}>
-                          Devolver
-                        </button>
+                        <>
+                          <button className="btn-outline-sm" type="button" onClick={() => onDevolver(eq)}>
+                            Devolver
+                          </button>
+                          <button className="btn-outline-sm" type="button" onClick={() => onReasignar(eq)}>
+                            Reasignar
+                          </button>
+                        </>
                       )}
                       <button className="icon-btn" type="button" title="Ver hoja de vida" onClick={() => onVerHistorial(eq)}>
                         <IconEye />

@@ -5,7 +5,7 @@ import { validacionFallida, ApiError } from "../lib/errors.js";
 // El modal de Cursos/EMO la usa para no volver a pedir la empresa.
 function serializar(p, empresasPermitidas) {
   const empresas = [...new Set(p.contratos.map((c) => c.empresa.slug))].filter((e) => empresasPermitidas.includes(e));
-  return { dni: p.dni, nombre: p.nombre, empresas };
+  return { id: p.id, dni: p.dni, nombre: p.nombre, empresas };
 }
 
 // Usado SOLO por Contratos — es el único lugar del sistema donde se

@@ -19,6 +19,7 @@ export default function ModalMantenimiento({ open, equipo, comentario, setComent
         <p className="danger-hint">
           Este comentario queda guardado en la hoja de vida del equipo, para que quien lo reciba
           en mantenimiento sepa exactamente qué revisar.
+          {equipo?.responsable && ` El equipo deja de estar asignado a ${equipo.responsable}.`}
         </p>
       </div>
 

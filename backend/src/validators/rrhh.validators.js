@@ -37,7 +37,10 @@ export const adjuntarArchivoSchema = z.object({
 
 export const crearCursoSchema = z
   .object({
-    dni: dniSchema,
+    // Quién: personalId desde la ficha de la persona, o dni desde el
+    // selector de "Nuevo registro". Al editar no hace falta ninguno.
+    personalId: z.number().int().positive().optional(),
+    dni: dniSchema.optional(),
     // Opcional: si el trabajador tiene contrato en una sola empresa, el
     // backend la asigna. Solo hace falta cuando tiene contrato en varias.
     empresa: z.enum(["corevex", "electro"]).optional(),

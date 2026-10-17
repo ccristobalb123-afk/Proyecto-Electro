@@ -44,10 +44,21 @@ export async function cambiarEstadoEquipo(equipoId, estado) {
   return apiClient.patch(`/equipos/${equipoId}/estado`, { estado });
 }
 
-// Asigna el equipo a un camión ya registrado (no a un texto libre ni a
-// una persona) — el vehículo viene de vehiculosService.listarVehiculos().
-export async function asignarEquipo(equipoId, vehiculo) {
-  return apiClient.patch(`/equipos/${equipoId}/estado`, { estado: "asignado", vehiculoId: vehiculo.id });
+// Asigna (o reasigna) el equipo a UN destinatario de cualquier empresa:
+// { vehiculoId } para un camión o { personalId } para una persona.
+export async function asignarEquipo(equipoId, destino) {
+  return apiClient.patch(`/equipos/${equipoId}/estado`, { estado: "asignado", ...destino });
+}
+
+// { camiones: [{ id, placa, tipoUnidad, cuadrilla, empresa }], personas: [{ id, nombre, dni, empresas }] }
+// de todas las empresas, para el modal "Asignar equipo".
+export async function listarDestinatarios() {
+  return apiClient.get("/equipos/destinatarios");
+}
+
+// Quién tuvo el equipo, desde y hasta cuándo (la más reciente primero).
+export async function obtenerAsignaciones(equipoId) {
+  return apiClient.get(`/equipos/${equipoId}/asignaciones`);
 }
 
 // Envía el equipo a mantenimiento, exigiendo un comentario de qué tiene.
@@ -55,6 +66,7 @@ export async function enviarAMantenimiento(equipoId, comentario) {
   return apiClient.patch(`/equipos/${equipoId}/estado`, { estado: "mantenimiento", comentario });
 }
 
+// Devolver = pasar a Disponible: el backend cierra la asignación.
 export async function devolverEquipo(equipoId) {
   return apiClient.patch(`/equipos/${equipoId}/estado`, { estado: "disponible" });
 }
