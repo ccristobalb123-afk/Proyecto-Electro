@@ -40,8 +40,10 @@ export async function eliminarEquipo(equipoId) {
   return apiClient.delete(`/equipos/${equipoId}`);
 }
 
-export async function cambiarEstadoEquipo(equipoId, estado) {
-  return apiClient.patch(`/equipos/${equipoId}/estado`, { estado });
+// fechas: { fechaInspeccion, fechaVencimiento } — solo para dejar
+// Disponible un equipo vencido (se renuevan sus fechas).
+export async function cambiarEstadoEquipo(equipoId, estado, fechas = {}) {
+  return apiClient.patch(`/equipos/${equipoId}/estado`, { estado, ...fechas });
 }
 
 // Asigna (o reasigna) el equipo a UN destinatario de cualquier empresa:
@@ -67,8 +69,9 @@ export async function enviarAMantenimiento(equipoId, comentario) {
 }
 
 // Devolver = pasar a Disponible: el backend cierra la asignación.
+// Queda Disponible, o se sigue viendo Vencido si su fecha ya pasó (hay que renovar sus fechas).
 export async function devolverEquipo(equipoId) {
-  return apiClient.patch(`/equipos/${equipoId}/estado`, { estado: "disponible" });
+  return apiClient.post(`/equipos/${equipoId}/devolver`);
 }
 
 export async function darDeBajaEquipo(equipoId, motivo) {

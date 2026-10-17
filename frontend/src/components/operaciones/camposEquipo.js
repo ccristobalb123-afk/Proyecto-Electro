@@ -31,3 +31,11 @@ export function valoresParaEnviar(valores, campos) {
   for (const campo of campos) datos[campo] = valores[campo];
   return datos;
 }
+
+/** Mismas reglas que el backend: vencimiento no antes de la inspección, ni ya vencido. */
+export function errorFechasRenovacion({ fechaInspeccion, fechaVencimiento }) {
+  if (!fechaInspeccion || !fechaVencimiento) return "Ingresa la fecha de inspección y la de vencimiento.";
+  if (fechaVencimiento < fechaInspeccion) return "La fecha de vencimiento no puede ser anterior a la fecha de inspección.";
+  if (fechaVencimiento < hoyEnPeru()) return "La fecha de vencimiento ya pasó: el equipo seguiría vencido. Ingresa una fecha de hoy en adelante.";
+  return "";
+}

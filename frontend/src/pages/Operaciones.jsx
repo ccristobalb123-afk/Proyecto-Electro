@@ -11,6 +11,7 @@ import ModalNuevoVehiculo from "../components/operaciones/ModalNuevoVehiculo";
 import ModalEditarVehiculo from "../components/operaciones/ModalEditarVehiculo";
 import ModalHistorialOperaciones from "../components/operaciones/ModalHistorialOperaciones";
 import ModalInspeccion from "../components/operaciones/ModalInspeccion";
+import ModalRenovarFechas from "../components/operaciones/ModalRenovarFechas";
 import ModalBaja from "../components/operaciones/ModalBaja";
 import ModalAsignarEquipo from "../components/operaciones/ModalAsignarEquipo";
 import ModalMantenimiento from "../components/operaciones/ModalMantenimiento";
@@ -125,6 +126,7 @@ function Operaciones() {
             onNuevo={o.openNuevo}
             onInspeccionar={o.abrirInspeccion}
             onDevolver={o.handleDevolver}
+            onRenovar={o.abrirRenovar}
             onReasignar={o.abrirReasignar}
             onVerHistorial={o.modalHistorial.abrir}
             onDarBaja={o.abrirBaja}
@@ -218,6 +220,18 @@ function Operaciones() {
         onSubmit={o.handleGuardarInspeccion}
         guardando={o.guardando}
         errorServidor={o.errorAccion}
+      />
+
+      <ModalRenovarFechas
+        open={o.modalRenovar.abierto}
+        equipo={o.modalRenovar.dato?.equipo}
+        devuelto={o.modalRenovar.dato?.devuelto}
+        fechas={o.fRenovar}
+        setFechas={o.setFRenovar}
+        onClose={o.modalRenovar.cerrar}
+        onSubmit={o.handleGuardarRenovacion}
+        guardando={o.guardando}
+        error={o.errorAccion}
       />
 
       <ModalBaja

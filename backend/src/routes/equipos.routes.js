@@ -23,6 +23,7 @@ router.patch("/:id", validar(actualizarEquipoSchema), equiposController.patchEqu
 router.delete("/:id", equiposController.deleteEquipo);
 router.patch("/:id/fotos", validar(actualizarFotosSchema), equiposController.patchFotos);
 router.patch("/:id/estado", validar(patchEstadoEquipoSchema), equiposController.patchEstado);
+router.post("/:id/devolver", equiposController.postDevolver);
 router.patch("/:id/dar-de-baja", validar(darDeBajaSchema), equiposController.patchDarDeBaja);
 router.post("/:id/inspecciones", validar(registrarInspeccionSchema), equiposController.postInspeccion);
 router.get("/:id/historial", equiposController.getHistorial);

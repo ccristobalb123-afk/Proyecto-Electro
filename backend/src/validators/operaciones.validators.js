@@ -52,6 +52,11 @@ export const actualizarFotosSchema = z.object({
 
 export const cambiarEstadoSchema = z.object({
   estado: z.enum(["disponible", "asignado", "mantenimiento", "vencido", "debaja"]),
+  // "vencido" llega hasta el servicio solo para rechazarlo con un mensaje
+  // claro: se asigna automáticamente por fecha, no a mano.
+  // Solo para pasar a Disponible un equipo vencido: sus fechas nuevas.
+  fechaInspeccion: z.string().trim().max(10).optional(),
+  fechaVencimiento: z.string().trim().max(10).optional(),
 });
 
 // Un solo destinatario: un camión (vehiculoId) O una persona (personalId).

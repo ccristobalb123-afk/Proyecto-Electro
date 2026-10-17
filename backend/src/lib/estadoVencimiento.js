@@ -33,11 +33,16 @@ export function diasHasta(fecha) {
   return Math.round((utcDeFechaDia(fecha) - utcDeHoy()) / MS_POR_DIA);
 }
 
+/** Vencido = su fecha ya pasó (el mismo día del vencimiento todavía vale). */
+export function vencidoPorFecha(fecha) {
+  return !!fecha && diasHasta(fecha) < 0;
+}
+
 export function calcularEstado(fechaVencimiento, diasAnticipacion, estadoManual) {
   if (estadoManual) return estadoManual.toLowerCase(); // "RENOVADO" -> "renovado"
 
   const dias = diasHasta(fechaVencimiento);
-  if (dias < 0) return "vencido";
+  if (vencidoPorFecha(fechaVencimiento)) return "vencido";
   if (dias <= diasAnticipacion) return "porvencer";
   return "vigente";
 }

@@ -321,3 +321,25 @@
   color: var(--volt-dark);
   font-weight: 600;
 }
+
+/* Vencido (pasó su fecha): no se puede usar hasta renovar sus fechas. */
+.equipo-vencido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--space-3);
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  margin: 0 0 var(--space-3);
+}
+
+.equipo-vencido .link-button {
+  margin-top: 0;
+  font-size: var(--fs-sm);
+  color: var(--danger-dark);
+  font-weight: 600;
+}

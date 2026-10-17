@@ -9,7 +9,7 @@ import { useAccion } from "./useAccion";
 import { useModal } from "./useModal";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
-import { valoresEquipoVacios, valoresParaEnviar } from "../components/operaciones/camposEquipo";
+import { valoresEquipoVacios, valoresParaEnviar, errorFechasRenovacion, hoyEnPeru } from "../components/operaciones/camposEquipo";
 
 // Sin tipo preelegido: al elegirlo aparecen solo sus campos.
 function formEquipoVacio() {
@@ -72,6 +72,9 @@ export function useOperacionesManager() {
   const modalDocs = useModal(); // vehiculo seleccionado
   const modalEditarEquipo = useModal(); // equipo seleccionado
   const modalEditarVehiculo = useModal(); // vehiculo seleccionado
+  // Renovar fechas de un equipo vencido: { equipo, devuelto }.
+  const modalRenovar = useModal();
+  const [fRenovar, setFRenovar] = useState({ fechaInspeccion: "", fechaVencimiento: "" });
 
   const [fEquipo, setFEquipo] = useState(formEquipoVacio());
   const [fEquipoEditar, setFEquipoEditar] = useState({ categoria: "", valores: valoresEquipoVacios(), camposValores: {} });
@@ -236,6 +239,20 @@ export function useOperacionesManager() {
   async function handleGuardarInspeccion(e) {
     e.preventDefault();
     setErrorAccion("");
+    // Aprobado deja el equipo en uso: no con un vencimiento que ya pasó.
+    const { fechaInspeccion, fechaVencimiento, resultado } = fInspeccion;
+    if (!fechaInspeccion || !fechaVencimiento) {
+      setErrorAccion("Ingresa la fecha de inspección y la de vencimiento.");
+      return;
+    }
+    if (fechaVencimiento < fechaInspeccion) {
+      setErrorAccion("La fecha de vencimiento no puede ser anterior a la fecha de inspección.");
+      return;
+    }
+    if (resultado === "aprobado" && fechaVencimiento < hoyEnPeru()) {
+      setErrorAccion("La fecha de vencimiento ya pasó: con el checklist aprobado el equipo seguiría vencido. Ingresa una fecha de vencimiento de hoy en adelante.");
+      return;
+    }
     await acciones.ejecutar("modal", async () => {
       try {
         // El backend hace esto como una sola operación atómica: registra la
@@ -271,12 +288,43 @@ export function useOperacionesManager() {
     });
   }
 
+  // Renovar fechas: la única forma de sacar un equipo de Vencido.
+  function abrirRenovar(eq, { devuelto = false } = {}) {
+    setErrorAccion("");
+    setFRenovar({ fechaInspeccion: hoyEnPeru(), fechaVencimiento: "" });
+    modalRenovar.abrir({ equipo: eq, devuelto });
+  }
+
+  async function handleGuardarRenovacion(e) {
+    e.preventDefault();
+    const error = errorFechasRenovacion(fRenovar);
+    setErrorAccion(error);
+    if (error) return;
+    const eq = modalRenovar.dato.equipo;
+    await acciones.ejecutar("modal", async () => {
+      try {
+        const actualizado = await equiposService.cambiarEstadoEquipo(eq.id, "disponible", fRenovar);
+        setEquipos((prev) => prev.map((x) => (x.id === actualizado.id ? actualizado : x)));
+        modalRenovar.cerrar();
+        mostrarToast(`Fechas renovadas: ${eq.identificador} está Disponible${eq.responsable ? ` y ya no está asignado a ${eq.responsable}` : ""}`, { tipo: "success" });
+      } catch (err) {
+        setErrorAccion(err.message || "No se pudieron renovar las fechas.");
+      }
+    });
+  }
+
   async function handleDevolver(eq) {
     await acciones.ejecutar(`equipo-${eq.id}`, async () => {
       try {
         const actualizado = await equiposService.devolverEquipo(eq.id);
         setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-        mostrarToast(`Equipo ${eq.identificador} devuelto: ya no está asignado a ${eq.responsable}`, { tipo: "success" });
+        if (actualizado.estado === "vencido") {
+          // Devuelto, pero sigue Vencido: se ofrece renovar sus fechas.
+          mostrarToast(`Equipo ${eq.identificador} devuelto: ya no está asignado a ${eq.responsable}. Sigue Vencido.`, { tipo: "success" });
+          abrirRenovar(actualizado, { devuelto: true });
+        } else {
+          mostrarToast(`Equipo ${eq.identificador} devuelto: ya no está asignado a ${eq.responsable}`, { tipo: "success" });
+        }
       } catch (err) {
         mostrarToast(err.message || "No se pudo devolver el equipo.", { tipo: "error" });
       }
@@ -296,14 +344,23 @@ export function useOperacionesManager() {
       abrirMantenimiento(eq);
       return;
     }
+    // Vencido no se elige a mano (depende de la fecha).
+    if (!nuevoEstado || nuevoEstado === "vencido") return;
+    // Vencido → Disponible: solo renovando sus fechas.
+    if (nuevoEstado === "disponible" && eq.estado === "vencido") {
+      abrirRenovar(eq);
+      return;
+    }
     await acciones.ejecutar(`equipo-${eq.id}`, async () => {
       try {
         const actualizado = await equiposService.cambiarEstadoEquipo(eq.id, nuevoEstado);
         setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
-        // Pasar a Disponible o Vencido libera la asignación.
+        // Pasar a Disponible libera la asignación.
         mostrarToast(eq.responsable ? `Estado actualizado: ya no está asignado a ${eq.responsable}` : "Estado actualizado", { tipo: "success" });
       } catch (err) {
-        mostrarToast(err.message || "No se pudo cambiar el estado del equipo.", { tipo: "error" });
+        // La lista estaba desactualizada (venció mientras se miraba): se renueva.
+        if (err.code === "EQUIPO_VENCIDO" && nuevoEstado === "disponible") abrirRenovar({ ...eq, estado: "vencido" });
+        else mostrarToast(err.message || "No se pudo cambiar el estado del equipo.", { tipo: "error" });
       }
     });
   }
@@ -570,7 +627,7 @@ export function useOperacionesManager() {
     // Equipos
     cargandoEquipos, errorEquipos, recargarEquipos,
     equiposPorCategoria, hayFiltrosEquipos,
-    abrirInspeccion, handleDevolver, abrirReasignar: abrirAsignar, abrirBaja, handleCambiarEstado, abrirEditarFotos,
+    abrirInspeccion, handleDevolver, abrirRenovar, abrirReasignar: abrirAsignar, abrirBaja, handleCambiarEstado, abrirEditarFotos,
 
     // Vehículos
     cargandoVehiculos, errorVehiculos, recargarVehiculos,
@@ -595,6 +652,9 @@ export function useOperacionesManager() {
 
     // Modal: inspección
     modalInspeccion, fInspeccion, setFInspeccion, handleGuardarInspeccion,
+
+    // Modal: renovar fechas (equipo vencido)
+    modalRenovar, fRenovar, setFRenovar: (v) => { setFRenovar(v); setErrorAccion(""); }, handleGuardarRenovacion,
 
     // Modal: dar de baja
     modalBaja, motivoBaja, setMotivoBaja: (v) => { setMotivoBaja(v); setErrorMotivo(false); }, errorMotivo, handleConfirmarBaja,

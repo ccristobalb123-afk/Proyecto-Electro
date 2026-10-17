@@ -71,7 +71,11 @@ export default function ModalInspeccion({ open, equipo, fInspeccion, setFInspecc
               <IconEye width={14} height={14} />
               {equipo?.responsable ? `Sigue asignado a ${equipo.responsable}` : "El equipo queda Disponible"}
             </div>
-            <p className="consecuencia-hint">Se actualiza la próxima inspección con esta fecha de vencimiento.</p>
+            <p className="consecuencia-hint">
+              {equipo?.estado === "vencido"
+                ? "El equipo está vencido: se renuevan sus fechas, y la de vencimiento tiene que ser de hoy en adelante."
+                : "Se actualiza la próxima inspección con esta fecha de vencimiento."}
+            </p>
           </div>
         ) : (
           <div className="consecuencia rechazado">

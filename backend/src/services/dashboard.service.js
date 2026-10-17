@@ -1,7 +1,7 @@
 import { db } from "../lib/db.js";
 import { totalPagado } from "../lib/estadoPago.js";
 import { diasHasta } from "../lib/estadoVencimiento.js";
-import { identificadorEquipo } from "./equipos.service.js";
+import { identificadorEquipo, estadoEfectivo } from "./equipos.service.js";
 import { listarAvisos } from "./alertas.service.js";
 
 
@@ -27,7 +27,11 @@ export async function obtenerKpis(empresasPermitidas, usuario) {
   const [contratos, totalEquipos, disponibles, facturas, avisos] = await Promise.all([
     db.contrato.findMany({ where: { estadoManual: null, ...filtroEmpresa } }),
     db.equipo.count({ where: { estado: { not: "DEBAJA" }, ...filtroEmpresa } }),
-    db.equipo.count({ where: { estado: "DISPONIBLE", ...filtroEmpresa } }),
+    // Disponibles de verdad: sin los que tienen la fecha de vencimiento
+    // pasada (se ven como Vencido en todo el sistema).
+    db.equipo
+      .findMany({ where: { estado: { in: ["DISPONIBLE", "VENCIDO"] }, ...filtroEmpresa }, select: { estado: true, proximaInspeccion: true } })
+      .then((lista) => lista.filter((e) => estadoEfectivo(e) === "DISPONIBLE").length),
     db.factura.findMany({ where: { anulada: false, ...filtroEmpresa }, include: { pagos: true } }),
     listarAvisos(usuario, empresasPermitidas),
   ]);

@@ -41,9 +41,15 @@ export const patchEstado = asyncHandler(async (req, res) => {
   } else if (estado === "mantenimiento") {
     actualizado = await equiposService.enviarAMantenimiento(equipoId, req.body.comentario, req.empresasPermitidas, req.usuario.id);
   } else {
-    actualizado = await equiposService.cambiarEstadoEquipo(equipoId, estado, req.empresasPermitidas, req.usuario.id);
+    const { fechaInspeccion, fechaVencimiento } = req.body;
+    actualizado = await equiposService.cambiarEstadoEquipo(equipoId, estado, req.empresasPermitidas, req.usuario.id, { fechaInspeccion, fechaVencimiento });
   }
   res.json(actualizado);
+});
+
+export const postDevolver = asyncHandler(async (req, res) => {
+  const equipoId = Number(req.params.id);
+  res.json(await equiposService.devolverEquipo(equipoId, req.empresasPermitidas, req.usuario.id));
 });
 
 export const patchDarDeBaja = asyncHandler(async (req, res) => {

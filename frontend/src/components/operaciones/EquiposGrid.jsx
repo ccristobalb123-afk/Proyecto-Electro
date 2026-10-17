@@ -30,6 +30,7 @@ export default function EquiposGrid({
   onNuevo,
   onInspeccionar,
   onDevolver,
+  onRenovar,
   onReasignar,
   onVerHistorial,
   onDarBaja,
@@ -123,6 +124,21 @@ export default function EquiposGrid({
                       </div>
                     )}
 
+                    {/* Vencido (pasó su fecha): bloqueado hasta renovar. */}
+                    {eq.estado === "vencido" && (
+                      <div className="equipo-vencido" role="status">
+                        <span>
+                          {eq.proxInspeccion ? `Venció el ${eq.proxInspeccion}. ` : ""}
+                          {eq.responsable
+                            ? `Sigue asignado a ${eq.responsable}, pero no se puede usar: devuélvelo o renueva sus fechas.`
+                            : "No se puede asignar ni usar hasta renovar sus fechas."}
+                        </span>
+                        <button className="link-button" type="button" onClick={() => onRenovar(eq)}>
+                          Renovar fechas
+                        </button>
+                      </div>
+                    )}
+
                     {eq.estado === "mantenimiento" && eq.comentarioMantenimiento && (
                       <div className="equipo-card-asignado advertencia">
                         <span className="equipo-card-label">Qué tiene</span>
@@ -174,15 +190,16 @@ export default function EquiposGrid({
                       <button className="btn-outline-sm" type="button" onClick={() => onInspeccionar(eq)}>
                         Checklist pre-uso
                       </button>
+                      {/* Devolver también si venció estando asignado; reasignar no. */}
+                      {eq.asignadoA && (
+                        <button className="btn-outline-sm" type="button" onClick={() => onDevolver(eq)}>
+                          Devolver
+                        </button>
+                      )}
                       {eq.estado === "asignado" && (
-                        <>
-                          <button className="btn-outline-sm" type="button" onClick={() => onDevolver(eq)}>
-                            Devolver
-                          </button>
-                          <button className="btn-outline-sm" type="button" onClick={() => onReasignar(eq)}>
-                            Reasignar
-                          </button>
-                        </>
+                        <button className="btn-outline-sm" type="button" onClick={() => onReasignar(eq)}>
+                          Reasignar
+                        </button>
                       )}
                       <button className="icon-btn" type="button" title="Ver hoja de vida" onClick={() => onVerHistorial(eq)}>
                         <IconEye />
@@ -201,15 +218,19 @@ export default function EquiposGrid({
                     <label className="equipo-card-select">
                       <span>Cambiar estado</span>
                       <select value={eq.estado} onChange={(e) => onCambiarEstado(eq, e.target.value)}>
-                        {Object.entries(ESTADOS).map(([valor, label]) => (
-                          <option
-                            key={valor}
-                            value={valor}
-                            disabled={valor === "asignado" && (eq.estado === "vencido" || eq.estado === "debaja")}
-                          >
-                            {label}
-                          </option>
-                        ))}
+                        {/* Vencido no se elige: depende de la fecha. Solo aparece
+                            (sin poder elegirse) para mostrar el estado actual. */}
+                        {Object.entries(ESTADOS)
+                          .filter(([valor]) => valor !== "vencido" || eq.estado === "vencido")
+                          .map(([valor, label]) => (
+                            <option
+                              key={valor}
+                              value={valor}
+                              disabled={valor === "vencido" || (valor === "asignado" && (eq.estado === "vencido" || eq.estado === "debaja"))}
+                            >
+                              {valor === "disponible" && eq.estado === "vencido" ? "Disponible (renovar fechas)" : label}
+                            </option>
+                          ))}
                       </select>
                     </label>
                     </fieldset>

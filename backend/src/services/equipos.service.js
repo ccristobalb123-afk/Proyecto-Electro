@@ -1,5 +1,5 @@
 import { db } from "../lib/db.js";
-import { formatearFecha, formatearFechaDia } from "../lib/estadoVencimiento.js";
+import { formatearFecha, formatearFechaDia, vencidoPorFecha } from "../lib/estadoVencimiento.js";
 import { ApiError, validacionFallida, conflicto } from "../lib/errors.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 import { camposDelTipo, ETIQUETAS_CAMPO, nombreCategoria, tipoPorNombre, ORDEN_TIPOS, TIPOS_EQUIPO } from "../lib/tiposEquipo.js";
@@ -43,6 +43,35 @@ function textoDestinatario(equipo) {
   return null;
 }
 
+// ---- Vencido ----
+// Vencido NO se elige a mano: depende solo de la fecha de vencimiento.
+// Un equipo está vencido si esa fecha ya pasó (la misma regla que los
+// avisos); se calcula al leer y deja de estarlo solo al renovar sus
+// fechas. De baja no cuenta (ya no se usa). Mientras esté vencido no se puede
+// asignar, reasignar ni dejar Disponible sin renovar sus fechas.
+// Si vence estando asignado, sigue asignado (físicamente lo tiene esa
+// persona o camión) pero se muestra Vencido y bloqueado hasta que se
+// devuelva o se renueven sus fechas.
+export const MENSAJE_VENCIDO = "Este equipo está vencido. Actualiza sus fechas para volver a usarlo.";
+export const MENSAJE_VENCIDO_MANUAL = "El estado Vencido se asigna automáticamente según la fecha de vencimiento.";
+
+export function estaVencido(equipo) {
+  return equipo.estado !== "DEBAJA" && vencidoPorFecha(equipo.proximaInspeccion);
+}
+
+/**
+ * Estado que se muestra y con el que se filtra: Vencido (por fecha) gana
+ * a Disponible, Asignado y Mantenimiento. El valor VENCIDO guardado (de
+ * cuando se podía marcar a mano; ya no se escribe) no cuenta: sin la
+ * fecha pasada se ve Disponible.
+ */
+export function estadoEfectivo(equipo) {
+  if (estaVencido(equipo)) return "VENCIDO";
+  return equipo.estado === "VENCIDO" ? "DISPONIBLE" : equipo.estado;
+}
+
+const errorVencido = () => conflicto(MENSAJE_VENCIDO, "EQUIPO_VENCIDO");
+
 /** Lo que se muestra para identificar al equipo: su Código o, si no tiene, su Serial. */
 export function identificadorEquipo(equipo) {
   return equipo.codigo || equipo.serial || `Equipo #${equipo.id}`;
@@ -65,7 +94,9 @@ function serializar(equipo) {
       : equipo.personal
         ? { tipo: "persona", id: equipo.personal.id, nombre: equipo.personal.nombre, dni: equipo.personal.dni }
         : null,
-    estado: equipo.estado.toLowerCase(),
+    estado: estadoEfectivo(equipo).toLowerCase(),
+    // Vencido por fecha (puede seguir asignado).
+    ...(estaVencido(equipo) ? { vencidoPorFecha: true } : {}),
     marca: equipo.marca,
     serial: equipo.serial,
     pasos: equipo.pasos,
@@ -191,7 +222,6 @@ export async function listarEquipos({ empresa, categoria, estado, q }, empresasP
     where: {
       empresa: { slug: { in: empresasFiltro } },
       ...(categoria ? { categoria: tipoPorNombre(categoria) ? { tipo: tipoPorNombre(categoria) } : { nombre: categoria } } : {}),
-      ...(estado ? { estado: estado.toUpperCase() } : {}),
       ...(q
         ? {
             OR: [
@@ -213,7 +243,9 @@ export async function listarEquipos({ empresa, categoria, estado, q }, empresasP
     include: INCLUDE,
     orderBy: { creadoEn: "desc" },
   });
-  return equipos.map(serializar);
+  // El estado se filtra con el efectivo (un Disponible con la fecha
+  // pasada aparece en "Vencido", no en "Disponible").
+  return equipos.filter((e) => !estado || estadoEfectivo(e) === estado.toUpperCase()).map(serializar);
 }
 
 export async function crearEquipo(body, empresasPermitidas, usuarioId) {
@@ -295,7 +327,12 @@ export async function actualizarEquipo(equipoId, body, empresasPermitidas, usuar
       data: { ...data, categoriaId: categoriaRow.id, ...(dias !== undefined ? { diasAnticipacionInspeccion: dias } : {}) },
       include: INCLUDE,
     });
-    await tx.historialEquipo.create({ data: { equipoId, titulo: "Datos actualizados", usuarioId } });
+    const fechasCambiaron =
+      "proximaInspeccion" in data && (isoDia(data.proximaInspeccion) !== isoDia(equipo.proximaInspeccion) || isoDia(data.ultimaInspeccion) !== isoDia(equipo.ultimaInspeccion));
+    const titulo = fechasCambiaron
+      ? `Datos actualizados — inspección ${formatearFechaDia(data.ultimaInspeccion)}, vence ${formatearFechaDia(data.proximaInspeccion)}`
+      : "Datos actualizados";
+    await tx.historialEquipo.create({ data: { equipoId, titulo, usuarioId } });
     return act;
   });
 
@@ -344,9 +381,26 @@ async function cerrarAsignacion(tx, equipo, motivo) {
 const SIN_DESTINATARIO = { vehiculoId: null, personalId: null };
 const seLibero = (tenia) => (tenia ? ` — se liberó de ${tenia}` : "");
 
-// Disponible y Vencido. Asignar, mantenimiento y baja tienen su propio
-// flujo porque piden datos que acá no llegan.
-export async function cambiarEstadoEquipo(equipoId, estado, empresasPermitidas, usuarioId) {
+// Fechas nuevas para sacar a un equipo de Vencido: las mismas reglas que
+// al registrarlo (el vencimiento no antes de la inspección) y además que
+// no queden vencidas según la regla de estaVencido().
+function fechasDeRenovacion({ fechaInspeccion, fechaVencimiento }) {
+  if (!fechaValida(fechaInspeccion || "")) throw validacionFallida("Fecha de inspección: fecha inválida.");
+  if (!fechaValida(fechaVencimiento || "")) throw validacionFallida("Fecha de vencimiento: fecha inválida.");
+  if (fechaVencimiento < fechaInspeccion) throw validacionFallida("La fecha de vencimiento no puede ser anterior a la fecha de inspección.");
+  const vence = new Date(fechaVencimiento);
+  if (vencidoPorFecha(vence)) throw validacionFallida("La fecha de vencimiento ya pasó: el equipo seguiría vencido. Ingresa una fecha de hoy en adelante.");
+  return { ultimaInspeccion: new Date(fechaInspeccion), proximaInspeccion: vence };
+}
+
+const textoRenovacion = (f) => `Fechas renovadas — inspección ${formatearFechaDia(f.ultimaInspeccion)}, vence ${formatearFechaDia(f.proximaInspeccion)}`;
+
+// Solo Disponible (Vencido no se elige a mano). Asignar, mantenimiento
+// y baja tienen su propio flujo porque piden datos que acá no llegan. Un
+// equipo vencido solo pasa a Disponible si llegan fechas nuevas válidas
+// (se renuevan acá).
+export async function cambiarEstadoEquipo(equipoId, estado, empresasPermitidas, usuarioId, fechas = {}) {
+  if (estado === "vencido") throw validacionFallida(MENSAJE_VENCIDO_MANUAL);
   if (estado === "asignado") {
     throw validacionFallida("Para asignar un equipo hay que elegir un camión o una persona.");
   }
@@ -356,25 +410,52 @@ export async function cambiarEstadoEquipo(equipoId, estado, empresasPermitidas, 
   if (estado === "debaja") {
     throw validacionFallida("Para dar de baja un equipo hay que indicar el motivo.");
   }
+  if (estado !== "disponible") throw validacionFallida("Estado inválido.");
+  const renovar = fechas.fechaInspeccion || fechas.fechaVencimiento ? fechasDeRenovacion(fechas) : null;
 
   await buscarEquipo(equipoId, empresasPermitidas);
   const actualizado = await db.$transaction(async (tx) => {
     const equipo = await bloquearEquipo(tx, equipoId);
-    const nuevo = estado.toUpperCase();
+    // También si viene de Baja o Mantenimiento con la fecha pasada: quedaría vencido.
+    if (vencidoPorFecha(equipo.proximaInspeccion) && !renovar) throw errorVencido();
     const asignado = equipo.vehiculoId || equipo.personalId;
-    if (equipo.estado === nuevo && !asignado) return equipo;
+    if (equipo.estado === "DISPONIBLE" && !asignado && !renovar) return equipo;
 
-    const tenia = await cerrarAsignacion(tx, equipo, nuevo === "DISPONIBLE" ? "Devuelto" : "Marcado como vencido");
+    const tenia = await cerrarAsignacion(tx, equipo, "Devuelto");
     const act = await tx.equipo.update({
       where: { id: equipoId },
-      data: { estado: nuevo, ...SIN_DESTINATARIO },
+      data: { estado: "DISPONIBLE", ...SIN_DESTINATARIO, ...(renovar || {}) },
       include: INCLUDE,
     });
-    const titulo =
-      nuevo === "DISPONIBLE"
-        ? tenia ? `Devuelto — lo tenía ${tenia}` : "Estado cambiado a Disponible"
-        : `Marcado como vencido${seLibero(tenia)}`;
-    await tx.historialEquipo.create({ data: { equipoId, titulo, tono: nuevo === "VENCIDO" ? "danger" : null, usuarioId } });
+    const titulo = renovar
+      ? `${textoRenovacion(renovar)} — pasa a Disponible${seLibero(tenia)}`
+      : tenia ? `Devuelto — lo tenía ${tenia}` : "Estado cambiado a Disponible";
+    await tx.historialEquipo.create({ data: { equipoId, titulo, tono: renovar ? "success" : null, usuarioId } });
+    return act;
+  });
+  return serializar(actualizado);
+}
+
+/**
+ * Devolver: el equipo deja de estar asignado y se guarda Disponible; si
+ * su fecha ya pasó se sigue viendo Vencido (hay que renovar sus fechas
+ * para volver a usarlo).
+ */
+export async function devolverEquipo(equipoId, empresasPermitidas, usuarioId) {
+  await buscarEquipo(equipoId, empresasPermitidas);
+  const actualizado = await db.$transaction(async (tx) => {
+    const equipo = await bloquearEquipo(tx, equipoId);
+    if (!equipo.vehiculoId && !equipo.personalId) throw conflicto("El equipo no está asignado a nadie.", "NO_ASIGNADO");
+    const vencido = estaVencido(equipo);
+    const tenia = await cerrarAsignacion(tx, equipo, "Devuelto");
+    const act = await tx.equipo.update({
+      where: { id: equipoId },
+      data: { estado: "DISPONIBLE", ...SIN_DESTINATARIO },
+      include: INCLUDE,
+    });
+    await tx.historialEquipo.create({
+      data: { equipoId, titulo: `Devuelto — lo tenía ${tenia}${vencido ? " (queda Vencido: hay que renovar sus fechas)" : ""}`, tono: vencido ? "danger" : null, usuarioId },
+    });
     return act;
   });
   return serializar(actualizado);
@@ -404,9 +485,8 @@ export async function asignarEquipo(equipoId, { vehiculoId, personalId }, empres
 
   const actualizado = await db.$transaction(async (tx) => {
     const equipo = await bloquearEquipo(tx, equipoId);
-    if (equipo.estado === "VENCIDO" || equipo.estado === "DEBAJA") {
-      throw validacionFallida("Un equipo vencido o de baja no se puede asignar.");
-    }
+    if (equipo.estado === "DEBAJA") throw validacionFallida("Un equipo de baja no se puede asignar.");
+    if (estaVencido(equipo)) throw errorVencido();
     const mismo = destino.vehiculoId ? equipo.vehiculoId === destino.vehiculoId : equipo.personalId === destino.personalId;
     if (mismo) throw conflicto(`El equipo ya está asignado a ${destino.texto}.`, "YA_ASIGNADO");
 
@@ -518,6 +598,11 @@ export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fec
     throw validacionFallida("La fecha de vencimiento no puede ser anterior a la fecha de inspección.");
   }
   const aprobado = resultado === "aprobado";
+  // Aprobado deja el equipo en uso (Disponible o asignado): no con una
+  // fecha de vencimiento que ya pasó.
+  if (aprobado && vencidoPorFecha(new Date(fechaVencimiento.slice(0, 10)))) {
+    throw conflicto("La fecha de vencimiento ya pasó: con el checklist aprobado el equipo seguiría vencido. Ingresa una fecha de vencimiento de hoy en adelante.", "EQUIPO_VENCIDO");
+  }
   const etiquetaResultado = { aprobado: "Aprobado", observado: "Observado", rechazado: "Rechazado" }[resultado];
 
   const actualizado = await db.$transaction(async (tx) => {
@@ -525,6 +610,7 @@ export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fec
     // Aprobado: si estaba asignado, sigue asignado al mismo destinatario.
     // Observado o rechazado: pasa a mantenimiento y se libera.
     const sigueAsignado = aprobado && equipo.estado === "ASIGNADO";
+    const estabaVencido = estaVencido(equipo);
     const tenia = aprobado ? null : await cerrarAsignacion(tx, equipo, `Inspección ${etiquetaResultado.toLowerCase()}`);
     const act = await tx.equipo.update({
       where: { id: equipoId },
@@ -542,7 +628,7 @@ export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fec
     await tx.historialEquipo.create({
       data: {
         equipoId,
-        titulo: `Inspección ${tipo === "interna" ? "interna" : "externa"} — ${etiquetaResultado}${seLibero(tenia)}`,
+        titulo: `Inspección ${tipo === "interna" ? "interna" : "externa"} — ${etiquetaResultado}${aprobado && estabaVencido ? ` (fechas renovadas, vence ${formatearFechaDia(new Date(fechaVencimiento.slice(0, 10)))})` : ""}${seLibero(tenia)}`,
         tono: aprobado ? "success" : "volt",
         usuarioId,
       },
