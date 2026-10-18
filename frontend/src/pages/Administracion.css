@@ -329,3 +329,33 @@
   color: var(--muted);
   margin: 6px 0 0;
 }
+
+@media (max-width: 640px) {
+  /* Usuario y correo completos: con "…" no se podía leer a quién
+     pertenece la cuenta. Para que tengan todo el ancho, "SuperAdmin"
+     baja debajo del nombre, alineado con él (avatar 38px + 10px). */
+  .usuario-card-top {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+  }
+
+  .usuario-card-info {
+    flex-basis: calc(100% - 48px);
+  }
+
+  .usuario-card-top .rol-badge {
+    margin-left: 48px;
+  }
+
+  .usuario-card-correo {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* Ventanas con acceso: en 2 columnas parejas en vez de filas de
+     distinto largo (Dashboard · RRHH / Operaciones · Finanzas / …). */
+  .modulos-check {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

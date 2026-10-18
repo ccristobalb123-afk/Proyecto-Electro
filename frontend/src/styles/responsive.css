@@ -34,8 +34,12 @@
 
 /* ---------- Celular ---------- */
 @media (max-width: 640px) {
+  /* 2 columnas: de a una por fila eran 4 tarjetas altas antes de llegar
+     a los vencimientos. La tarjeta se compacta en Dashboard.css. */
   .main .kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
   }
 
   .main .vehiculos-grid {
@@ -57,10 +61,12 @@
     display: none;
   }
 
+  /* 12px por lado: con 16px "Gastos" quedaba cortado en el borde a
+     360px; así las 3 pestañas de Finanzas entran sin desplazar. */
   .main .tabs button {
     flex: 1 0 auto;
     white-space: nowrap;
-    padding-inline: var(--space-4);
+    padding-inline: var(--space-3);
   }
 
   /* Red de seguridad: si algún contenido se pasa de ancho, que no
@@ -81,6 +87,26 @@
     font-size: 14.5px;
   }
 
+  /* Botones al pie de las tarjetas (facturas, gastos, equipos,
+     usuarios): al pasar a una segunda fila quedaban amontonados a la
+     izquierda con un hueco a la derecha. Se estiran para llenar cada
+     fila; los de solo ícono conservan su ancho. */
+  .main :is(.fin-card-footer, .usuario-card-footer, .equipo-card-actions) > .btn-outline-sm {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  /* Encabezado de la tarjeta de Finanzas: el monto o el estado a la
+     derecha dejaba el título en una columna de ~110px ("zz_Combustible
+     y / peajes de / carretera"). Si el título no tiene al menos 180px,
+     el monto baja a su propia línea. */
+  .main .fin-card-header {
+    flex-wrap: wrap;
+  }
+
+  .main .fin-card-header > div:first-child {
+    flex: 1 1 180px;
+  }
 }
 
 /* Tabla de RRHH -> tarjetas: una tabla de 6-7 columnas con scroll
@@ -245,12 +271,30 @@
     min-height: 44px;
   }
 
-  /* iOS Safari amplía la página al enfocar un campo con menos de 16px y
-     rompe el layout. !important porque los campos del proyecto fijan su
-     tamaño con selectores de alta especificidad (.form-field input:not(...)). */
+  /* Un solo tamaño para todos los campos (buscadores, selects, campos de
+     los modales y listas de sugerencias), parecido al texto de las
+     tarjetas: con 16px se veían más grandes que el resto. !important
+     porque los campos fijan su tamaño con selectores de alta
+     especificidad (.form-field input:not(...)). */
   html input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
   html select,
-  html textarea {
-    font-size: 16px !important;
+  html textarea,
+  html .selector-personal__lista button,
+  html .selector-destino__lista button {
+    font-size: var(--fs-control-tactil) !important;
   }
+}
+
+/* Solo iOS y iPadOS (clase puesta por utils/plataforma.js): Safari
+   amplía la página al enfocar un campo con menos de 16px. Así se evita
+   sin bloquear el zoom con maximum-scale ni user-scalable=no. Fuera de
+   la media query para cubrir también el iPad con trackpad (pointer: fine). */
+html.es-ios {
+  --fs-control-tactil: 16px;
+}
+
+html.es-ios input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+html.es-ios select,
+html.es-ios textarea {
+  font-size: 16px !important;
 }

@@ -92,6 +92,12 @@
   --fs-lg: 16px;
   --fs-xl: 19px;
   --fs-2xl: 26px;
+  /* Letra de buscadores, selects y campos en pantallas táctiles (ver
+     responsive.css): la del texto base, como en escritorio (con 15px se
+     veían más grandes que el texto de las tarjetas, de 12 a 13.5px). En
+     iOS sube a 16px (html.es-ios): con menos, Safari amplía la página al
+     tocar el campo. */
+  --fs-control-tactil: var(--fs-base);
 
   --fw-regular: 400;
   --fw-medium: 500;

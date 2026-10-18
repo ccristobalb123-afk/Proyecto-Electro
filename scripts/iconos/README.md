@@ -34,7 +34,9 @@ la imagen, así que en los íconos termina en un corte recto.
 | `favicon-32.png`, `favicon-48.png` | 32 y 48 | Pestaña del navegador (`frontend/index.html`) | Logo sobre transparente |
 
 Colores relacionados: `frontend/public/manifest.webmanifest`
-(`theme_color` #2f2479 = índigo del logo, `background_color` #ffffff) y
+(`theme_color` #243447 = `--ink`, el mismo de la franja del login y del
+menú lateral, para que la barra del sistema se una con ella;
+`background_color` #ffffff) y
 `<meta name="theme-color">` en `frontend/index.html`.
 
 Para revisar un ícono maskable: https://maskable.app/editor

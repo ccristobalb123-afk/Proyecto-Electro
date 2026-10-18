@@ -315,12 +315,68 @@ a.row-item .row-sub {
 }
 
 @media (max-width: 640px) {
+  /* 300px: con 220px la leyenda (4 series, una por fila en un celular)
+     no entraba y Chart.js cortaba la última ("ElectroSAC — Gastado"). */
   .panel-chart {
-    height: 220px;
+    height: 300px;
   }
 
   .panel-head {
     padding: var(--space-3) var(--space-4);
+  }
+
+  /* Tarjetas de resumen en 2 columnas (responsive.css): más compactas,
+     con el ícono al lado del número en vez de encima. */
+  .kpi-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .kpi-top {
+    margin-bottom: 0;
+  }
+
+  .kpi-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .kpi-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .kpi-num {
+    font-size: var(--fs-xl);
+    margin-bottom: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .kpi-label {
+    grid-column: 1 / -1;
+    margin-top: var(--space-1);
+    line-height: 1.35;
+  }
+
+  /* Vencimientos: la etiqueta ("Vencido, hace 100 días") baja debajo del
+     texto, alineada con él, para que título y detalle usen todo el ancho
+     (al lado dejaba una columna de ~60px a 360px). */
+  .row-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .row-main {
+    flex-basis: calc(100% - 44px);
+  }
+
+  .row-item .etiqueta-urgencia {
+    margin-left: 44px; /* ícono de 32px + separación de 12px */
   }
 }
 
