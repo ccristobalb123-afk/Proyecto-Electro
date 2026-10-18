@@ -352,6 +352,17 @@
     overflow-wrap: anywhere;
   }
 
+  /* "Acceso a": empresas y ventanas se leían como dos bloques (16px entre
+     ellas: el gap de 8px más el margin-top de 8px de las ventanas) contra
+     6px entre líneas de ventanas. Todo queda a 6px. */
+  .usuario-card-body {
+    gap: 6px;
+  }
+
+  .usuario-card-modulos {
+    margin-top: 0;
+  }
+
   /* Ventanas con acceso: en 2 columnas parejas en vez de filas de
      distinto largo (Dashboard · RRHH / Operaciones · Finanzas / …). */
   .modulos-check {

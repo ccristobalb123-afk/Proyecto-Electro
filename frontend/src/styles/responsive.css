@@ -87,13 +87,43 @@
     font-size: 14.5px;
   }
 
-  /* Botones al pie de las tarjetas (facturas, gastos, equipos,
-     usuarios): al pasar a una segunda fila quedaban amontonados a la
-     izquierda con un hueco a la derecha. Se estiran para llenar cada
-     fila; los de solo ícono conservan su ancho. */
-  .main :is(.fin-card-footer, .usuario-card-footer, .equipo-card-actions) > .btn-outline-sm {
-    flex: 1 1 auto;
+  /* Acciones de las tarjetas (facturas, facturas por pagar, gastos,
+     equipos, vehículos y usuarios): una cuadrícula de 2 columnas iguales
+     en la que todos los botones, también los de solo ícono, miden lo
+     mismo. Si hay un número impar, el primero ocupa la fila entera. Así
+     nunca quedan huecos ni bordes desalineados, sea cual sea la
+     combinación de botones (cambia según permisos y estado). */
+  .main :is(.fin-card-footer, .usuario-card-footer, .equipo-card-actions, .vehiculo-card-top-actions) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .main :is(.fin-card-footer, .usuario-card-footer, .equipo-card-actions, .vehiculo-card-top-actions) > * {
+    width: 100%;
+    min-width: 0;
+    min-height: var(--control-height-lg);
+    margin: 0;
     justify-content: center;
+    text-align: center;
+  }
+
+  .main :is(.fin-card-footer, .usuario-card-footer, .equipo-card-actions, .vehiculo-card-top-actions) > :first-child:nth-last-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* "Tu cuenta" (texto, no botón) centrado en su celda */
+  .main .usuario-card-footer > .usuario-tu-tag {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Enlaces que abren un archivo (nombre del documento, comprobante):
+     subrayado continuo de enlace en vez del punteado, que en celular no
+     se leía como algo tocable. */
+  .main :is(.vehiculo-doc-nombre--link, .fin-card-archivo--link),
+  .modal-electro .docs-row-sub--link {
+    text-decoration-style: solid;
   }
 
   /* Encabezado de la tarjeta de Finanzas: el monto o el estado a la
