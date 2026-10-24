@@ -5,14 +5,15 @@ const MAX_OPCIONES = 8;
 
 /**
  * Elegir un camión o una persona escribiendo para filtrar (sin
- * distinguir tildes). `opciones`: [{ id, titulo, detalle, busqueda }],
+ * distinguir tildes). `opciones`: [{ id, titulo, detalle, busqueda, bloqueo }],
  * donde `busqueda` es el texto extra por el que también se encuentra
- * (DNI, empresa…). Ya elegido, queda fijo con "Cambiar".
+ * (DNI, empresa…) y `bloqueo`, si viene, el motivo por el que no se puede
+ * elegir (se muestra, deshabilitada). Ya elegido, queda fijo con "Cambiar".
  */
 export default function SelectorDestinatario({ opciones, value, onChange, etiqueta, placeholder, sinCoincidencias }) {
   const [texto, setTexto] = useState("");
   const listaId = useId();
-  const elegido = opciones.find((o) => String(o.id) === String(value));
+  const elegido = opciones.find((o) => String(o.id) === String(value) && !o.bloqueo);
 
   if (elegido) {
     return (
@@ -49,10 +50,16 @@ export default function SelectorDestinatario({ opciones, value, onChange, etique
       {coincidencias.length > 0 && (
         <ul className="selector-destino__lista" id={listaId} role="listbox" aria-label={etiqueta}>
           {coincidencias.slice(0, MAX_OPCIONES).map((o) => (
-            <li key={o.id} role="option" aria-selected="false">
-              <button type="button" onClick={() => onChange(String(o.id))}>
+            <li key={o.id} role="option" aria-selected="false" aria-disabled={o.bloqueo ? "true" : undefined}>
+              <button
+                type="button"
+                className={o.bloqueo ? "selector-destino__opcion--bloqueada" : undefined}
+                disabled={!!o.bloqueo}
+                onClick={() => onChange(String(o.id))}
+              >
                 <span className="selector-destino__titulo">{o.titulo}</span>
                 <span className="selector-destino__detalle">{o.detalle}</span>
+                {o.bloqueo && <span className="selector-destino__bloqueo">{o.bloqueo}</span>}
               </button>
             </li>
           ))}

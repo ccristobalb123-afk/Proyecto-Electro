@@ -8,7 +8,8 @@ import CamposEquipo from "./CamposEquipo";
 // como antes, con su código y sus campos libres.
 export default function ModalEditarEquipo({ open, onClose, equipo, fEquipo, setFEquipo, tipos, onSubmit, error, guardando, textoGuardando }) {
   const tipo = tipos.find((t) => t.nombre === fEquipo.categoria);
-  const opciones = tipos.filter((t) => !t.antigua || t.nombre === equipo?.categoria);
+  // Su tipo actual (aunque esté desactivado) y los que admiten equipos nuevos.
+  const opciones = tipos.filter((t) => (t.activo && !t.antigua) || t.nombre === equipo?.categoria);
 
   return (
     <Modal open={open} ocupado={guardando} title="Editar equipo" subtitle={equipo?.identificador} onClose={onClose}>

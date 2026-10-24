@@ -7,13 +7,15 @@ import SelectorDestinatario from "./SelectorDestinatario";
 import "./Asignacion.css";
 
 // Opciones del selector: camiones por placa y personas por nombre o DNI,
-// con la empresa como dato (no limita nada).
+// con la empresa como dato (no limita nada). Las que ya tienen un equipo
+// de este tipo llegan con `bloqueo` (el motivo) y no se pueden elegir.
 function opcionesCamion(camiones) {
   return camiones.map((c) => ({
     id: c.id,
     titulo: c.placa,
     detalle: [c.tipoUnidad, c.empresaUso ? `${c.empresa} (en uso por ${c.empresaUso})` : c.empresa, c.cuadrilla].filter(Boolean).join(" · "),
     busqueda: `${c.empresa} ${c.cuadrilla || ""}`,
+    bloqueo: c.bloqueo,
   }));
 }
 
@@ -23,26 +25,26 @@ function opcionesPersona(personas) {
     titulo: p.nombre,
     detalle: `DNI ${p.dni} · ${p.empresas.length ? p.empresas.join(", ") : "Sin contrato"}`,
     busqueda: p.dni,
+    bloqueo: p.bloqueo,
   }));
 }
 
 /**
- * Asignar (o reasignar) un equipo a un camión O a una persona, de
- * cualquier empresa. Primero se elige el tipo de destinatario y luego se
- * busca. Si el equipo ya está asignado, no se ofrece a quien ya lo tiene.
+ * Asignar (o reasignar) un equipo. A quién se asigna lo decide su tipo
+ * (solo camiones o solo personas, de cualquier empresa): el modal solo
+ * ofrece destinatarios de ese tipo. Si el equipo ya está asignado, no se
+ * ofrece a quien ya lo tiene. El backend vuelve a validar todo.
  */
 export default function ModalAsignarEquipo({
   open, equipo, destinatarios, cargando, errorCarga, onReintentar,
-  tipo, setTipo, destinoId, setDestinoId, error, onClose, onConfirmar, guardando, errorServidor,
+  destinoId, setDestinoId, error, onClose, onConfirmar, guardando, errorServidor,
 }) {
-  const actual = equipo?.asignadoA;
-  const reasignar = !!actual;
-  const camiones = (destinatarios?.camiones || []).filter((c) => !(actual?.tipo === "camion" && actual.id === c.id));
-  const personas = (destinatarios?.personas || []).filter((p) => !(actual?.tipo === "persona" && actual.id === p.id));
-  const lista = tipo === "camion" ? camiones : personas;
-  const otroTipo = tipo === "camion" ? "persona" : "camion";
-  const hayOtro = (otroTipo === "camion" ? camiones : personas).length > 0;
+  const reasignar = !!equipo?.asignadoA;
+  const aCamion = destinatarios?.destino === "camion";
+  const lista = (aCamion ? destinatarios?.camiones : destinatarios?.personas)?.filter((d) => !d.actual) || [];
+  const elegibles = lista.filter((d) => !d.bloqueo);
   const listo = !cargando && !errorCarga && destinatarios;
+  const Icono = aCamion ? IconTruck : IconUser;
 
   return (
     <Modal
@@ -58,59 +60,51 @@ export default function ModalAsignarEquipo({
         </p>
       )}
 
-      {cargando && <Loading texto="Cargando camiones y personal…" />}
+      {cargando && <Loading texto="Cargando destinatarios…" />}
       {errorCarga && <EstadoError error={errorCarga} onReintentar={onReintentar} />}
 
       {listo && (
         <>
-          <fieldset className="form-field destino-tipo">
-            <legend className="form-field-heading">¿A quién se asigna?</legend>
-            <div className="destino-choice">
-              <label className={tipo === "camion" ? "seleccionado" : ""}>
-                <input type="radio" name="destino-tipo" checked={tipo === "camion"} onChange={() => setTipo("camion")} />
-                <IconTruck width={18} height={18} />
-                Camión
-              </label>
-              <label className={tipo === "persona" ? "seleccionado" : ""}>
-                <input type="radio" name="destino-tipo" checked={tipo === "persona"} onChange={() => setTipo("persona")} />
-                <IconUser width={18} height={18} />
-                Persona
-              </label>
-            </div>
-          </fieldset>
+          <p className="destino-fijo">
+            <Icono width={18} height={18} />
+            <span>
+              Los equipos de tipo <b>{destinatarios.tipoEquipo}</b> se asignan solo a {aCamion ? "camiones" : "personas"}
+              {destinatarios.variasPorDestinatario ? " (puede tener varios)" : ", uno por " + (aCamion ? "camión" : "persona")}.
+            </span>
+          </p>
 
-          {lista.length === 0 ? (
+          {elegibles.length === 0 && (
             <div className="danger-box advertencia" role="status">
               <div className="danger-title">
                 <IconAlertCircle width={14} height={14} />
-                {tipo === "camion"
-                  ? reasignar && actual.tipo === "camion" ? "No hay otro camión registrado" : "No hay camiones registrados"
-                  : reasignar && actual.tipo === "persona" ? "No hay otra persona registrada" : "No hay personal registrado"}
+                {lista.length > 0
+                  ? `${aCamion ? "Todos los camiones ya tienen" : "Todas las personas ya tienen"} un equipo de este tipo`
+                  : aCamion
+                    ? reasignar ? "No hay otro camión registrado" : "No hay camiones registrados"
+                    : reasignar ? "No hay otra persona registrada" : "No hay personal registrado"}
               </div>
               <p className="danger-hint">
-                {tipo === "camion"
-                  ? "Los camiones se registran en la pestaña Vehículos."
-                  : "El personal se registra con su contrato en RR. HH."}
+                {lista.length > 0
+                  ? "Devuelve o reasigna uno de esos equipos para liberar a alguien."
+                  : aCamion
+                    ? "Los camiones se registran en la pestaña Vehículos."
+                    : "El personal se registra con su contrato en RR. HH."}
               </p>
-              {hayOtro && (
-                <button type="button" className="btn-outline-sm destino-otro" onClick={() => setTipo(otroTipo)}>
-                  {otroTipo === "camion" ? <IconTruck width={16} height={16} /> : <IconUser width={16} height={16} />}
-                  Asignar a {otroTipo === "camion" ? "un camión" : "una persona"}
-                </button>
-              )}
             </div>
-          ) : (
+          )}
+
+          {/* También cuando todos están ocupados: se ve quién tiene qué. */}
+          {lista.length > 0 && (
             <div className="form-field">
               <SelectorDestinatario
-                key={tipo}
-                opciones={tipo === "camion" ? opcionesCamion(camiones) : opcionesPersona(personas)}
+                opciones={aCamion ? opcionesCamion(lista) : opcionesPersona(lista)}
                 value={destinoId}
                 onChange={setDestinoId}
-                etiqueta={tipo === "camion" ? "Buscar camión por placa" : "Buscar persona por nombre o DNI"}
-                placeholder={tipo === "camion" ? "Escribe la placa…" : "Escribe el nombre o DNI…"}
-                sinCoincidencias={tipo === "camion" ? "No hay camiones que coincidan con" : "No hay personas que coincidan con"}
+                etiqueta={aCamion ? "Buscar camión por placa" : "Buscar persona por nombre o DNI"}
+                placeholder={aCamion ? "Escribe la placa…" : "Escribe el nombre o DNI…"}
+                sinCoincidencias={aCamion ? "No hay camiones que coincidan con" : "No hay personas que coincidan con"}
               />
-              {error && <p className="field-error">Elige {tipo === "camion" ? "un camión" : "una persona"} antes de continuar.</p>}
+              {error && <p className="field-error">Elige {aCamion ? "un camión" : "una persona"} antes de continuar.</p>}
             </div>
           )}
         </>
@@ -118,7 +112,7 @@ export default function ModalAsignarEquipo({
 
       {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
       <ModalActions onCancel={onClose}>
-        {listo && lista.length > 0 && (
+        {listo && elegibles.length > 0 && (
           <BotonCarga cargando={guardando} textoCargando={reasignar ? "Reasignando…" : "Asignando…"} onClick={onConfirmar}>
             {reasignar ? "Reasignar" : "Asignar"}
           </BotonCarga>

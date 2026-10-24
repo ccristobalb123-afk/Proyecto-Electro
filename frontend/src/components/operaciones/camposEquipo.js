@@ -32,10 +32,15 @@ export function valoresParaEnviar(valores, campos) {
   return datos;
 }
 
-/** Mismas reglas que el backend: vencimiento no antes de la inspección, ni ya vencido. */
-export function errorFechasRenovacion({ fechaInspeccion, fechaVencimiento }) {
-  if (!fechaInspeccion || !fechaVencimiento) return "Ingresa la fecha de inspección y la de vencimiento.";
-  if (fechaVencimiento < fechaInspeccion) return "La fecha de vencimiento no puede ser anterior a la fecha de inspección.";
-  if (fechaVencimiento < hoyEnPeru()) return "La fecha de vencimiento ya pasó: el equipo seguiría vencido. Ingresa una fecha de hoy en adelante.";
-  return "";
+// ---- Fotos del equipo: siempre 2 (ver FotosEquipo.jsx) ----
+// Valor de una foto que se mantiene (la que ya tiene el equipo en esa
+// posición). El backend entiende lo mismo ("actual").
+export const MANTENER = "actual";
+
+/** Valor inicial: mantener las fotos que tiene; las que faltan, vacías. */
+export function fotosIniciales(actuales = []) {
+  return [0, 1].map((i) => (actuales?.[i] ? MANTENER : null));
 }
+
+/** Cuántas de las 2 fotos faltan. */
+export const fotosQueFaltan = (valor) => valor.filter((v) => !v).length;

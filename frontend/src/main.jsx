@@ -8,6 +8,7 @@ import "./styles/motion.css";
 import "./styles/buttons.css";
 import "./styles/badges.css";
 import "./styles/filters.css";
+import "./styles/fichas.css";
 import "./styles/responsive.css";
 import App from "./App.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";

@@ -188,7 +188,7 @@ export default function EquiposGrid({
                     <fieldset className="bloque-deshabilitable" disabled={equipoOcupado?.(eq.id)}>
                     <div className="equipo-card-actions">
                       <button className="btn-outline-sm" type="button" onClick={() => onInspeccionar(eq)}>
-                        Checklist pre-uso
+                        Actualizar inspección
                       </button>
                       {/* Devolver también si venció estando asignado; reasignar no. */}
                       {eq.asignadoA && (

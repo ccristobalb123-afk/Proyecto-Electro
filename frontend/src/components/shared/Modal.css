@@ -386,6 +386,44 @@ fieldset.form-field {
   margin-top: 2px;
 }
 
+/* Fotos de una inspección o cambio de fotos (hoja de vida del equipo) */
+.tl-fotos {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tl-fotos__titulo {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.tl-fotos__lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tl-foto {
+  width: 64px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--paper);
+  cursor: zoom-in;
+}
+
+.tl-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .saldo-summary {
   background: var(--paper);
   border-radius: var(--radius);
@@ -459,62 +497,104 @@ fieldset.form-field {
   overflow: hidden;
 }
 
-.foto-equipo-reemplazar {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-}
-
-.foto-equipo-reemplazar img {
+.foto-equipo__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.foto-equipo-reemplazar-hint {
-  position: absolute;
-  inset: 0;
+/* Cada foto: "Foto 1 · Actual/Nueva/Falta", la imagen y sus botones. */
+.foto-equipo {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: rgba(15, 19, 24, 0.55);
-  color: var(--on-accent);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  gap: 6px;
+  min-width: 0;
 }
 
-@media (hover: hover) {
-  .foto-equipo-reemplazar:hover .foto-equipo-reemplazar-hint {
-    opacity: 1;
-  }
-}
-
-.foto-equipo-quitar {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(15, 19, 24, 0.6);
-  color: var(--on-accent);
+.foto-equipo__cabecera {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
 }
 
-@media (hover: hover) {
-  .foto-equipo-quitar:hover {
-    background: rgba(15, 19, 24, 0.8);
+.foto-equipo__chip {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.foto-equipo__chip--actual {
+  background: var(--gray-tint);
+  color: var(--gray-dark);
+}
+
+.foto-equipo__chip--nueva {
+  background: var(--success-tint);
+  color: var(--success-dark);
+}
+
+.foto-equipo__chip--falta {
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+}
+
+/* Botones apilados: en 360px cada columna mide ~140px. */
+.foto-equipo__botones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* "label.btn-outline-sm" para ganarle a ".form-field label { display:
+   block }" (dentro de un formulario el ícono quedaba pegado y el texto
+   partido en dos líneas). */
+.foto-equipo__botones label.btn-outline-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-inline: 8px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.foto-equipo__mantener {
+  align-self: center;
+  font-size: var(--fs-sm);
+}
+
+/* La cámara solo tiene sentido en celulares y tablets (como en Gastos).
+   Con el contenedor delante para ganarle a .btn-outline-sm sin depender
+   del orden en que se cargan los CSS. */
+.foto-equipo__botones label.foto-equipo__camara {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .foto-equipo__botones label.foto-equipo__camara {
+    display: inline-flex;
   }
+}
+
+/* Falta la foto: borde rojo y texto (no solo color). No es un botón:
+   se agrega con "Tomar foto" o "Elegir archivo". */
+.foto-equipo-vacio.foto-equipo-vacio--falta,
+.foto-equipo-vacio.foto-equipo-procesando {
+  cursor: default;
+}
+
+.foto-equipo-vacio.foto-equipo-vacio--falta {
+  border-color: var(--danger);
+  color: var(--danger-dark);
 }
 
 /* "label." para ganarle a ".form-field label { display: block }",
@@ -539,7 +619,7 @@ label.foto-equipo-vacio {
 }
 
 @media (hover: hover) {
-  .foto-equipo-vacio:hover {
+  label.foto-equipo-vacio:hover {
     border-color: var(--copper);
     color: var(--copper-dark);
   }

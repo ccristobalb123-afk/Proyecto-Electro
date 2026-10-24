@@ -271,15 +271,34 @@ model Curso {
 // el frontend, pero ahora persistido: "Nueva categoría" desde el modal
 // de Nuevo equipo pasa a ser un INSERT real acá, no una mutación en
 // memoria que se pierde al reiniciar el servidor.
+// Tipo de equipo con sus reglas, configurables desde Operaciones >
+// Equipos > "Tipos de equipo" (ver categoriasEquipo.service.js). El
+// nombre es único también sin distinguir mayúsculas (índice sobre
+// lower(nombre) en la migración 20261020100000_reglas_tipos_equipo).
 model CategoriaEquipo {
   id      Int      @id @default(autoincrement())
   nombre  String   @unique
-  // Clave fija del tipo (ESCALERA_EMBONABLE, ARNES…): de ella salen los
-  // campos obligatorios de cada equipo (ver src/lib/tiposEquipo.js).
-  // Null = categoría antigua sin reglas: no se ofrece para equipos nuevos.
+  // Clave de los 9 tipos iniciales (ESCALERA_EMBONABLE, ARNES…). Solo
+  // queda como referencia: los tipos creados desde la app no la tienen.
   tipo    String?  @unique
-  // Campos libres de la versión anterior (ya no se usan en los 9 tipos).
+  // Campos libres de la versión anterior (solo categorías heredadas).
   campos  Json // [{ nombre, placeholder }]
+
+  // A quién se asigna: SOLO camiones o SOLO personas.
+  destino               TipoDestinatario
+  // false: un solo equipo de este tipo por persona o camión.
+  variasPorDestinatario Boolean          @default(false) @map("varias_por_destinatario")
+  // Datos que se piden al registrar un equipo (codigo, marca, pasos,
+  // serial, talla, lote, fechaFabricacion), todos obligatorios; las
+  // fechas de inspección y vencimiento se piden siempre. Debe incluir
+  // codigo o serial (CHECK en la base). Vacío = categoría heredada sin
+  // reglas ("Estrobo Largo"): no se ofrece para equipos nuevos.
+  camposRequeridos      String[]         @default([]) @map("campos_requeridos")
+  // Desactivado: no se registran equipos nuevos; los existentes siguen.
+  activo                Boolean          @default(true)
+  // Posición en listas y formularios (los 9 iniciales primero).
+  orden                 Int              @default(0)
+
   equipos Equipo[]
 
   @@map("categorias_equipo")
@@ -329,6 +348,8 @@ model Equipo {
 
   historial    HistorialEquipo[]
   asignaciones AsignacionEquipo[]
+  // Cada foto que tuvo el equipo, guardada una sola vez (ver FotoEquipo).
+  fotosGuardadas FotoEquipo[]
 
   // Datos por tipo de equipo (ver src/lib/tiposEquipo.js). Aceptan NULL:
   // un tipo que no pide el campo lo deja vacío, y los equipos anteriores
@@ -360,9 +381,31 @@ model HistorialEquipo {
   usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
   titulo    String
   tono      String? // "success" | "volt" | "danger" | null — mismo valor que espera la UI
+  // Solo inspecciones y cambios de fotos (los registros anteriores no lo
+  // tienen; su título sigue diciendo si fue interna o externa):
+  // { tipoInspeccion: "interna", resultado, fotos: [idFoto, idFoto],
+  //   reemplazadas: [idFoto…] } — ids de FotoEquipo.
+  datos     Json?
   creadoEn  DateTime @default(now()) @map("creado_en")
 
   @@map("historial_equipo")
+}
+
+// Fotos de un equipo para su historial: cada imagen distinta se guarda
+// UNA vez (por su hash), y el historial la referencia por id. Así una
+// foto reemplazada no se pierde (sigue ligada a las inspecciones en que
+// se usó) y mantener las fotos en cada inspección no duplica datos. Las
+// fotos actuales siguen además en Equipo.fotos (las que muestra la tarjeta).
+model FotoEquipo {
+  id       Int      @id @default(autoincrement())
+  equipoId Int      @map("equipo_id")
+  equipo   Equipo   @relation(fields: [equipoId], references: [id], onDelete: Cascade)
+  hash     String // sha256 del data URL
+  data     String // "data:image/jpeg;base64,…"
+  creadoEn DateTime @default(now()) @map("creado_en")
+
+  @@unique([equipoId, hash])
+  @@map("fotos_equipo")
 }
 
 enum TipoDestinatario {

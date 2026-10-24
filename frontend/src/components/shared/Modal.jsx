@@ -254,7 +254,25 @@ export function CampoMontoConIgv({ montoBase, igvIncluido, onChange }) {
 
 // Historial tipo línea de tiempo — reutilizado en "Hoja de vida" de
 // equipos/vehículos y en historiales de pago (Finanzas).
-export function Timeline({ items }) {
+// Miniaturas que se amplían con `onVerFoto` (quien la usa muestra el
+// Lightbox). Se cargan recién al verse. Las usan la hoja de vida del
+// equipo y la pestaña Asignaciones.
+export function MiniaturasFotos({ titulo, fotos, onVerFoto }) {
+  return (
+    <div className="tl-fotos">
+      <span className="tl-fotos__titulo">{titulo}</span>
+      <div className="tl-fotos__lista">
+        {fotos.map((url, i) => (
+          <button key={url} type="button" className="tl-foto" onClick={() => onVerFoto(url)} aria-label={`${titulo}: ampliar foto ${i + 1}`}>
+            <img src={url} alt="" loading="lazy" decoding="async" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function Timeline({ items, onVerFoto }) {
   if (!items || items.length === 0) {
     return <p className="modal-mensaje-vacio">Aún no hay historial.</p>;
   }
@@ -269,6 +287,10 @@ export function Timeline({ items }) {
               {item.fecha}
               {item.actor ? ` — ${item.actor}` : ""}
             </div>
+            {onVerFoto && item.fotos?.length > 0 && <MiniaturasFotos titulo="Fotos" fotos={item.fotos} onVerFoto={onVerFoto} />}
+            {onVerFoto && item.fotosReemplazadas?.length > 0 && (
+              <MiniaturasFotos titulo={item.fotosReemplazadas.length === 1 ? "Foto reemplazada" : "Fotos reemplazadas"} fotos={item.fotosReemplazadas} onVerFoto={onVerFoto} />
+            )}
           </div>
         </div>
       ))}

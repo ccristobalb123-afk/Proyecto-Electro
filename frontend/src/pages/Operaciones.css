@@ -399,3 +399,217 @@ tbody tr:last-child td {
   flex: 1;
 }
 
+
+/* ===== Tipos de equipo (modal "Tipos de equipo") ===== */
+.tipos-equipo__barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.tipos-equipo__barra .campo-ayuda {
+  margin: 0;
+}
+
+.tipos-equipo {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-3);
+}
+
+.tipo-equipo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+/* Desactivado o heredado: fondo gris y nombre atenuado (con su etiqueta). */
+.tipo-equipo--inactivo {
+  background: var(--gray-tint);
+}
+
+.tipo-equipo--inactivo .tipo-equipo__nombre {
+  color: var(--muted);
+}
+
+.tipo-equipo__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+}
+
+.tipo-equipo__nombre {
+  font-weight: 600;
+  font-size: var(--fs-md);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.tipo-equipo__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tipo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.tipo-chip--destino {
+  background: var(--electro-tint);
+  color: var(--electro-dark);
+}
+
+.tipo-chip--apagado {
+  background: var(--card);
+  color: var(--gray-dark);
+  border: 1px dashed var(--border-control);
+}
+
+.tipo-equipo__datos,
+.tipo-equipo__conteo {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.tipo-equipo__conteo {
+  font-variant-numeric: tabular-nums;
+}
+
+.tipo-equipo__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.tipo-equipo__acciones .btn-outline-sm {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+/* Casillas del formulario de tipo ("label." le gana a .form-field label). */
+label.tipo-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+}
+
+label.tipo-check input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+
+label.tipo-check small {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.tipo-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: var(--space-2);
+}
+
+label.tipo-check--caja {
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+}
+
+label.tipo-check--caja.seleccionado {
+  border-color: var(--copper);
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+label.tipo-check--fija {
+  background: var(--gray-tint);
+  color: var(--muted);
+  cursor: default;
+}
+
+/* ===== Pestaña Asignaciones ===== */
+.asignacion-equipo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.asignacion-equipo__tipo {
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.asignacion-equipo__id {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.asignacion-equipo__id b {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Vencido: borde y franja roja a la izquierda, y "Venció …" en rojo. */
+.registro-ficha--vencido {
+  border-color: var(--danger);
+  box-shadow: inset 3px 0 0 var(--danger);
+}
+
+.asignacion-equipo__lote {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.asignacion-equipo__vencio {
+  font-weight: 600;
+  color: var(--danger-dark);
+}
+
+.filtros-asignaciones__tipos {
+  flex: none;
+}
+
+.equipos-barra {
+  display: flex;
+  justify-content: flex-end;
+  margin: -6px 0 14px;
+}

@@ -127,7 +127,7 @@ async function main() {
 
   // ---- Operaciones: Categorías + Equipos + Vehículos de ejemplo ----
   // Los 9 tipos de equipo los crea la migración 20261016000000_tipos_equipo
-  // (ver src/lib/tiposEquipo.js); acá solo se buscan por su tipo.
+  // (sus reglas vienen de la migración 20261020100000_reglas_tipos_equipo); acá solo se buscan por su tipo.
   const hayEquipos = await db.equipo.count();
   if (hayEquipos === 0) {
     const porTipo = Object.fromEntries((await db.categoriaEquipo.findMany({ where: { tipo: { not: null } } })).map((c) => [c.tipo, c]));

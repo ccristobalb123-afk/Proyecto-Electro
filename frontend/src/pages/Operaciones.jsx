@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AppShell } from "../components/layout/AppShell";
 import { IconPlus } from "../components/icons/Icons";
 import { ESTADOS_EQUIPO } from "../services/equiposService";
@@ -11,12 +12,13 @@ import ModalNuevoVehiculo from "../components/operaciones/ModalNuevoVehiculo";
 import ModalEditarVehiculo from "../components/operaciones/ModalEditarVehiculo";
 import ModalHistorialOperaciones from "../components/operaciones/ModalHistorialOperaciones";
 import ModalInspeccion from "../components/operaciones/ModalInspeccion";
-import ModalRenovarFechas from "../components/operaciones/ModalRenovarFechas";
 import ModalBaja from "../components/operaciones/ModalBaja";
 import ModalAsignarEquipo from "../components/operaciones/ModalAsignarEquipo";
 import ModalMantenimiento from "../components/operaciones/ModalMantenimiento";
 import ModalEditarFotosEquipo from "../components/operaciones/ModalEditarFotosEquipo";
 import ModalDocumentos from "../components/operaciones/ModalDocumentos";
+import ModalTiposEquipo from "../components/operaciones/ModalTiposEquipo";
+import AsignacionesPanel from "../components/operaciones/AsignacionesPanel";
 import "./Operaciones.css";
 import "../components/operaciones/EquiposCards.css";
 import "../components/operaciones/VehiculosCards.css";
@@ -32,18 +34,22 @@ export default function OperacionesConEnlace() {
 
 function Operaciones() {
   const o = useOperacionesManager();
+  const [tiposAbierto, setTiposAbierto] = useState(false);
+  const panelLabel = { equipos: "tab-equipos", vehiculos: "tab-vehiculos", asignaciones: "tab-asignaciones" }[o.tab];
 
   return (
     <AppShell
       title="Operaciones"
       topbarExtra={
-        <button className="btn-primary" onClick={o.openNuevo} type="button">
-          <IconPlus width={15} height={15} />
-          <span className="topbar-accion-texto">{o.tab === "equipos" ? "Nuevo equipo" : "Nuevo vehículo"}</span>
-        </button>
+        o.tab !== "asignaciones" && (
+          <button className="btn-primary" onClick={o.openNuevo} type="button">
+            <IconPlus width={15} height={15} />
+            <span className="topbar-accion-texto">{o.tab === "equipos" ? "Nuevo equipo" : "Nuevo vehículo"}</span>
+          </button>
+        )
       }
     >
-      <div className="tabs" role="tablist" aria-label="Equipos o vehículos">
+      <div className="tabs" role="tablist" aria-label="Equipos, vehículos o asignaciones">
         <button
           id="tab-equipos"
           role="tab"
@@ -64,26 +70,45 @@ function Operaciones() {
         >
           Vehículos
         </button>
+        <button
+          id="tab-asignaciones"
+          role="tab"
+          aria-selected={o.tab === "asignaciones"}
+          aria-controls="panel-operaciones"
+          className={o.tab === "asignaciones" ? "active" : ""}
+          onClick={() => o.cambiarTab("asignaciones")}
+        >
+          Asignaciones
+        </button>
       </div>
 
       <div className="filters">
         <div className="search">
           <label htmlFor="buscar-operaciones" className="sr-only">
-            {o.tab === "equipos" ? "Buscar código, serial, marca o tipo" : "Buscar placa"}
+            {{ equipos: "Buscar código, serial, tipo, placa o persona", vehiculos: "Buscar placa", asignaciones: "Buscar persona o placa" }[o.tab]}
           </label>
           <input
             id="buscar-operaciones"
             type="search"
-            placeholder={o.tab === "equipos" ? "Buscar código, serial, tipo, placa o persona..." : "Buscar placa..."}
+            placeholder={{ equipos: "Buscar código, serial, tipo, placa o persona...", vehiculos: "Buscar placa...", asignaciones: "Buscar persona, DNI o placa..." }[o.tab]}
             value={o.busqueda}
             onChange={(e) => o.setBusqueda(e.target.value)}
           />
         </div>
-        <select value={o.filtroEmpresa} onChange={(e) => o.setFiltroEmpresa(e.target.value)} aria-label="Filtrar por empresa">
-          <option value="">Todas las empresas</option>
-          <option value="corevex">CorevexSAC</option>
-          <option value="electro">ElectroSAC</option>
-        </select>
+        {o.tab !== "asignaciones" && (
+          <select value={o.filtroEmpresa} onChange={(e) => o.setFiltroEmpresa(e.target.value)} aria-label="Filtrar por empresa">
+            <option value="">Todas las empresas</option>
+            <option value="corevex">CorevexSAC</option>
+            <option value="electro">ElectroSAC</option>
+          </select>
+        )}
+        {o.tab === "asignaciones" && (
+          <select value={o.filtroDestinatario} onChange={(e) => o.setFiltroDestinatario(e.target.value)} aria-label="Mostrar personas, camiones o todos">
+            <option value="">Personas y camiones</option>
+            <option value="persona">Solo personas</option>
+            <option value="camion">Solo camiones</option>
+          </select>
+        )}
         {o.tab === "equipos" && (
           <select value={o.filtroCategoria} onChange={(e) => o.setFiltroCategoria(e.target.value)} aria-label="Filtrar por tipo de equipo">
             <option value="">Todos los tipos</option>
@@ -110,12 +135,24 @@ function Operaciones() {
         )}
       </div>
 
-      <div
-        id="panel-operaciones"
-        role="tabpanel"
-        aria-labelledby={o.tab === "equipos" ? "tab-equipos" : "tab-vehiculos"}
-      >
-        {o.tab === "equipos" ? (
+      {o.tab === "equipos" && (
+        <div className="equipos-barra">
+          <button className="btn-outline-sm" type="button" onClick={() => setTiposAbierto(true)}>
+            Tipos de equipo
+          </button>
+        </div>
+      )}
+
+      <div id="panel-operaciones" role="tabpanel" aria-labelledby={panelLabel}>
+        {o.tab === "asignaciones" ? (
+          <AsignacionesPanel
+            cargando={o.cargandoAsignaciones}
+            error={o.errorAsignaciones}
+            onReintentar={o.recargarAsignaciones}
+            grupos={o.asignacionesFiltradas}
+            hayFiltrosActivos={o.hayFiltrosAsignaciones}
+          />
+        ) : o.tab === "equipos" ? (
           <EquiposGrid
             cargando={o.cargandoEquipos}
             error={o.errorEquipos}
@@ -158,7 +195,7 @@ function Operaciones() {
         fEquipo={o.fEquipo}
         setFEquipo={o.setFEquipo}
         onSubmit={o.handleGuardarEquipo}
-        tipos={o.tipos.filter((t) => !t.antigua)}
+        tipos={o.tipos.filter((t) => t.activo && !t.antigua)}
         error={o.errorEquipo}
         guardando={o.guardando}
         textoGuardando={o.textoGuardando("Registrando…")}
@@ -214,24 +251,13 @@ function Operaciones() {
       <ModalInspeccion
         open={o.modalInspeccion.abierto}
         equipo={o.modalInspeccion.dato}
+        contexto={o.contextoInspeccion}
         fInspeccion={o.fInspeccion}
         setFInspeccion={o.setFInspeccion}
         onClose={o.modalInspeccion.cerrar}
         onSubmit={o.handleGuardarInspeccion}
         guardando={o.guardando}
         errorServidor={o.errorAccion}
-      />
-
-      <ModalRenovarFechas
-        open={o.modalRenovar.abierto}
-        equipo={o.modalRenovar.dato?.equipo}
-        devuelto={o.modalRenovar.dato?.devuelto}
-        fechas={o.fRenovar}
-        setFechas={o.setFRenovar}
-        onClose={o.modalRenovar.cerrar}
-        onSubmit={o.handleGuardarRenovacion}
-        guardando={o.guardando}
-        error={o.errorAccion}
       />
 
       <ModalBaja
@@ -253,8 +279,6 @@ function Operaciones() {
         cargando={o.cargandoDestinatarios}
         errorCarga={o.errorDestinatarios}
         onReintentar={o.cargarDestinatarios}
-        tipo={o.tipoDestino}
-        setTipo={o.setTipoDestino}
         destinoId={o.destinoId}
         setDestinoId={o.setDestinoId}
         error={o.errorAsignar}
@@ -286,6 +310,17 @@ function Operaciones() {
         guardando={o.guardando}
         errorServidor={o.errorAccion}
       />
+
+      {tiposAbierto && (
+        <ModalTiposEquipo
+          open
+          onClose={() => setTiposAbierto(false)}
+          onCambio={() => {
+            o.recargarTipos();
+            o.recargarEquipos();
+          }}
+        />
+      )}
 
       <ModalDocumentos
         open={o.modalDocs.abierto}

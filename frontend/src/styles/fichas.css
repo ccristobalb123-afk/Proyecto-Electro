@@ -1,0 +1,227 @@
+/* ============================================================
+   Fichas desplegables por persona o camión — compartidas por
+   RRHH > Cursos / EMO y Operaciones > Asignaciones. Cada fila es un
+   bloque que se abre al tocarlo y muestra sus registros adentro.
+   (Movido sin cambios desde pages/Rrhh.css.)
+   ============================================================ */
+
+.personas-cursos,
+.registros-ficha {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.personas-cursos {
+  gap: 10px;
+}
+
+/* Cada persona es un bloque: borde más oscuro que el fondo y sombra suave. */
+.persona-cursos {
+  --borde-persona: color-mix(in srgb, var(--border-control) 45%, var(--border));
+  background: var(--card);
+  border: 1px solid var(--borde-persona);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm), 0 2px 6px rgba(16, 24, 40, 0.06);
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Ficha abierta: acento de color a la izquierda y borde más marcado. */
+.persona-cursos--abierta {
+  border-color: var(--copper);
+  box-shadow: inset 4px 0 0 var(--copper), var(--shadow-sm), 0 4px 12px rgba(16, 24, 40, 0.08);
+}
+
+/* Toda la fila responde al toque (más de 44px de alto) */
+.persona-cursos__cabecera {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  min-height: 56px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-lg);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.persona-cursos__cabecera:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: -2px;
+}
+
+.persona-cursos__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.persona-cursos__nombre {
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.persona-cursos__empresas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.persona-cursos__resumen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.persona-cursos__emo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.resumen-chip {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.resumen-chip--vencido {
+  color: var(--danger-dark);
+  background: var(--danger-tint);
+}
+
+.resumen-chip--porvencer {
+  color: var(--volt-dark);
+  background: var(--volt-tint);
+}
+
+/* El chevron se ve como un botón (toda la fila es el botón real). */
+.persona-cursos__flecha {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--borde-persona);
+  border-radius: var(--radius);
+  background: var(--gray-tint);
+  color: var(--text);
+}
+
+.persona-cursos__flecha svg {
+  transform: rotate(-90deg);
+  transition: transform var(--transition-fast);
+}
+
+.persona-cursos--abierta .persona-cursos__flecha {
+  border-color: var(--copper);
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.persona-cursos--abierta .persona-cursos__flecha svg {
+  transform: rotate(90deg);
+}
+
+@media (hover: hover) {
+  .persona-cursos__cabecera:hover .persona-cursos__flecha {
+    border-color: var(--copper);
+    color: var(--copper-dark);
+  }
+}
+
+/* Detalle: fondo gris muy claro con su propio borde, separado de la fila. */
+.persona-cursos__ficha {
+  margin: 0 12px 12px;
+  border: 1px solid var(--borde-persona);
+  border-radius: var(--radius);
+  background: var(--gray-tint);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.persona-cursos__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.persona-cursos__acciones :is(.btn-primary, .btn-outline-sm) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 13.5px;
+}
+
+.persona-cursos__vacio {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.registros-ficha {
+  gap: 8px;
+}
+
+.registro-ficha {
+  background: var(--card);
+  border: 1px solid var(--borde-persona);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* El registro que coincide con la búsqueda (código, curso o "EMO"). */
+.registro-ficha--coincide {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 2px var(--copper-tint);
+  background: color-mix(in srgb, var(--copper-tint) 35%, var(--card));
+}
+
+.registro-ficha__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px 10px;
+}
+
+.registro-ficha__fechas {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.registro-ficha__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+

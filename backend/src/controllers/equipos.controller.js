@@ -13,8 +13,23 @@ export const postEquipo = asyncHandler(async (req, res) => {
 
 export const patchFotos = asyncHandler(async (req, res) => {
   const equipoId = Number(req.params.id);
-  const actualizado = await equiposService.actualizarFotosEquipo(equipoId, req.body.fotos, req.empresasPermitidas);
+  const actualizado = await equiposService.actualizarFotosEquipo(equipoId, req.body.fotos, req.empresasPermitidas, req.usuario.id);
   res.json(actualizado);
+});
+
+export const getFotoActual = asyncHandler(async (req, res) => {
+  const { mime, buffer, inmutable } = await equiposService.obtenerFotoActual(Number(req.params.id), Number(req.params.posicion), String(req.query.v || ""), req.empresasPermitidas);
+  // Con la versión vigente en la URL, la foto no cambia: caché de un año.
+  // Sin ella (o con una vieja), se vuelve a validar cada vez.
+  res.set({ "Content-Type": mime, "Cache-Control": inmutable ? "private, max-age=31536000, immutable" : "private, no-cache" });
+  res.send(buffer);
+});
+
+export const getFoto = asyncHandler(async (req, res) => {
+  const { mime, buffer } = await equiposService.obtenerFotoEquipo(Number(req.params.id), Number(req.params.fotoId), req.empresasPermitidas);
+  // Una foto guardada nunca cambia (otra foto = otro id).
+  res.set({ "Content-Type": mime, "Cache-Control": "private, max-age=31536000, immutable" });
+  res.send(buffer);
 });
 
 export const patchEquipo = asyncHandler(async (req, res) => {
@@ -66,7 +81,11 @@ export const postInspeccion = asyncHandler(async (req, res) => {
 
 // Camiones y personal de TODAS las empresas, para el modal "Asignar equipo".
 export const getDestinatarios = asyncHandler(async (req, res) => {
-  res.json(await equiposService.listarDestinatarios());
+  res.json(await equiposService.listarDestinatarios(Number(req.params.id), req.empresasPermitidas));
+});
+
+export const getAsignacionesActuales = asyncHandler(async (req, res) => {
+  res.json(await equiposService.listarAsignacionesActuales(req.empresasPermitidas));
 });
 
 export const getAsignaciones = asyncHandler(async (req, res) => {

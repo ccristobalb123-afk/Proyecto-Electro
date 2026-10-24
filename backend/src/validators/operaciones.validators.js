@@ -3,6 +3,27 @@ import { CLAVES_DOCUMENTO } from "../lib/documentosVehiculo.js";
 
 const empresaSchema = z.enum(["corevex", "electro"]);
 
+// ---- Tipos de equipo ----
+// Formato y largo; las reglas (nombre único, Código o Serial, cambios
+// que dejarían datos inconsistentes) las valida categoriasEquipo.service.js.
+const camposTipoSchema = z.array(z.enum(["codigo", "marca", "pasos", "serial", "talla", "lote", "fechaFabricacion"])).max(7);
+
+export const crearTipoEquipoSchema = z.object({
+  nombre: z.string().trim().min(1, "Escribe el nombre del tipo.").max(60, "El nombre del tipo puede tener hasta 60 caracteres."),
+  destino: z.enum(["camion", "persona"], { message: "Elige a quién se asigna: Camión o Persona." }),
+  variasPorDestinatario: z.boolean().optional(),
+  camposRequeridos: camposTipoSchema,
+});
+
+// Todo opcional: solo se cambia lo que llega.
+export const actualizarTipoEquipoSchema = z.object({
+  nombre: z.string().trim().min(1, "Escribe el nombre del tipo.").max(60, "El nombre del tipo puede tener hasta 60 caracteres.").optional(),
+  destino: z.enum(["camion", "persona"], { message: "Elige a quién se asigna: Camión o Persona." }).optional(),
+  variasPorDestinatario: z.boolean().optional(),
+  camposRequeridos: camposTipoSchema.optional(),
+  activo: z.boolean().optional(),
+});
+
 // ---- Equipos ----
 export const listarEquiposQuerySchema = z.object({
   empresa: empresaSchema.optional(),
@@ -13,7 +34,7 @@ export const listarEquiposQuerySchema = z.object({
 
 // Campos por tipo de equipo: todos opcionales ACÁ. Cuáles son
 // obligatorios y cuáles se ignoran lo decide el servicio según el tipo
-// (src/lib/tiposEquipo.js). Acá solo se limita el formato y el largo.
+// (campos_requeridos del tipo, en la base). Acá solo se limita el formato y el largo.
 const textoCorto = (max) => z.union([z.string().trim().max(max, `Máximo ${max} caracteres.`), z.null()]).optional();
 const camposPorTipo = {
   codigo: textoCorto(40),
@@ -32,7 +53,8 @@ export const crearEquipoSchema = z.object({
   categoria: z.string().min(1, "Selecciona el tipo de equipo."),
   empresa: empresaSchema,
   ...camposPorTipo,
-  fotos: z.array(z.string().nullable()).max(2, "Máximo 2 fotos.").optional(),
+  // Exactamente 2 (el servicio valida además formato y tamaño).
+  fotos: z.array(z.string().nullable(), { message: "Agrega las 2 fotos del equipo." }).length(2, "Agrega las 2 fotos del equipo."),
 });
 
 // Editar NO incluye "empresa" a propósito — cambiarle de empresa a un
@@ -46,8 +68,13 @@ export const actualizarEquipoSchema = z.object({
   camposValores: z.record(z.string(), z.string()).optional(),
 });
 
+// Cada una: "actual" (mantener la que tiene) o una foto nueva. Siempre 2.
+const dosFotosSchema = z
+  .array(z.string().nullable(), { message: "El equipo debe quedar con exactamente 2 fotos." })
+  .length(2, "El equipo debe quedar con exactamente 2 fotos.");
+
 export const actualizarFotosSchema = z.object({
-  fotos: z.array(z.string().nullable()).max(2, "Máximo 2 fotos."),
+  fotos: dosFotosSchema,
 });
 
 export const cambiarEstadoSchema = z.object({
@@ -87,7 +114,11 @@ export const patchEstadoEquipoSchema = z.union([
 ]);
 
 export const registrarInspeccionSchema = z.object({
-  tipo: z.enum(["interna", "externa"]),
+  // Opcional: si no llega, "interna" (las externas ya no se registran).
+  tipo: z.enum(["interna", "externa"]).optional(),
+  fotos: dosFotosSchema,
+  // Al aprobar, liberar la asignación (se llegó eligiendo "Disponible").
+  dejarDisponible: z.boolean().optional(),
   fechaInspeccion: z.string().refine((v) => !isNaN(Date.parse(v)), "Fecha inválida."),
   fechaVencimiento: z.string().refine((v) => !isNaN(Date.parse(v)), "Fecha inválida."),
   // Días antes de la próxima inspección para avisar. Si no llega, el

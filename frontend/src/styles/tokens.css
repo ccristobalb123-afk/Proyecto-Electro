@@ -22,6 +22,15 @@
   /* Borde de campos de formulario: ≥3:1 sobre --card (3.68) y --paper (3.16),
      criterio WCAG 1.4.11. --border queda para separadores y tarjetas. */
   --border-control: #7b8698;
+  /* Borde de las tarjetas de Operaciones (Equipos y Vehículos): el
+     color de los campos, más grueso para separarlas del fondo. Cambiar
+     acá cambia ambas. --borde-tarjeta-extra es lo que crece respecto de
+     un borde de 1 px; las tarjetas lo descuentan de su relleno lateral
+     para no perder ancho útil. */
+  --borde-tarjeta-ancho: 2px;
+  --borde-tarjeta-color: var(--border-control);
+  --borde-tarjeta: var(--borde-tarjeta-ancho) solid var(--borde-tarjeta-color);
+  --borde-tarjeta-extra: calc(var(--borde-tarjeta-ancho) - 1px);
 
   /* "Principal" (acento dominante de la app: botones, focos, hovers).
      Se mantiene el nombre --copper por compatibilidad con ~90 usos en

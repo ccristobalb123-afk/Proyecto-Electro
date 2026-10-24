@@ -2,8 +2,9 @@ import { db } from "../lib/db.js";
 import { formatearFecha, formatearFechaDia, vencidoPorFecha } from "../lib/estadoVencimiento.js";
 import { ApiError, validacionFallida, conflicto } from "../lib/errors.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
-import { camposDelTipo, ETIQUETAS_CAMPO, nombreCategoria, tipoPorNombre, ORDEN_TIPOS, TIPOS_EQUIPO } from "../lib/tiposEquipo.js";
+import { camposDelTipo, ETIQUETAS_CAMPO, admiteRegistro, campoIdentificador, destinoApi, normalizarTexto } from "../lib/tiposEquipo.js";
 import { ENUM_A_TIPO } from "./vehiculos.service.js";
+import { fotosDeRegistro, resolverFotos, guardarFotos, textoFotosCambiadas, decodificarFoto, versionFoto } from "../lib/fotosEquipo.js";
 
 const INCLUDE = { categoria: true, empresa: true, vehiculo: true, personal: true };
 
@@ -16,8 +17,8 @@ export function hoyEnPeru() {
 }
 
 // Valor de un campo tal como está guardado (las fechas de inspección viven
-// en ultima_inspeccion / proxima_inspeccion, las mismas que actualiza el
-// checklist pre-uso y de las que salen los avisos).
+// en ultima_inspeccion / proxima_inspeccion, las mismas que actualiza
+// "Actualizar inspección" y de las que salen los avisos).
 function valorGuardado(equipo, campo) {
   if (campo === "fechaInspeccion") return equipo.ultimaInspeccion;
   if (campo === "fechaVencimiento") return equipo.proximaInspeccion;
@@ -78,14 +79,15 @@ export function identificadorEquipo(equipo) {
 }
 
 function serializar(equipo) {
-  const tipo = equipo.categoria.tipo;
-  const campos = camposDelTipo(tipo);
+  const campos = camposDelTipo(equipo.categoria);
   return {
     id: equipo.id,
     identificador: identificadorEquipo(equipo),
     codigo: equipo.codigo,
-    categoria: nombreCategoria(equipo.categoria),
-    tipo,
+    categoria: equipo.categoria.nombre,
+    tipo: equipo.categoria.tipo,
+    // A quién se asigna su tipo: "camion" | "persona".
+    destinoTipo: destinoApi(equipo.categoria),
     empresa: equipo.empresa.slug,
     // A quién está asignado: un camión o una persona (nunca los dos).
     responsable: textoDestinatario(equipo),
@@ -120,10 +122,9 @@ function serializar(equipo) {
   };
 }
 
-/** Categoría por su nombre visible (el de la tabla) o, si es antigua, por su nombre en la base. */
-async function buscarCategoria(nombre) {
-  const tipo = tipoPorNombre(nombre);
-  return tipo ? db.categoriaEquipo.findUnique({ where: { tipo } }) : db.categoriaEquipo.findUnique({ where: { nombre } });
+/** Tipo de equipo por su nombre (sin distinguir mayúsculas: es único así). */
+function buscarCategoria(nombre) {
+  return db.categoriaEquipo.findFirst({ where: { nombre: { equals: String(nombre || "").trim(), mode: "insensitive" } } });
 }
 
 // ---- Datos según el tipo ----
@@ -135,7 +136,7 @@ const fechaValida = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(v)
  * (aunque lleguen en el pedido). Lanza 400 con un mensaje claro.
  */
 function datosSegunTipo(categoriaRow, body) {
-  const campos = camposDelTipo(categoriaRow.tipo);
+  const campos = camposDelTipo(categoriaRow);
   const data = { codigo: null, marca: null, serial: null, pasos: null, talla: null, lote: null, fechaFabricacion: null };
   const faltan = [];
   const texto = (v) => (typeof v === "string" ? v.trim() : v == null ? "" : String(v).trim());
@@ -181,6 +182,13 @@ function datosSegunTipo(categoriaRow, body) {
   };
 }
 
+const errorTipoNoAdmite = (categoria) =>
+  validacionFallida(
+    categoria.activo
+      ? "Elige uno de los tipos de equipo de la lista."
+      : `El tipo ${categoria.nombre} está desactivado: no se registran equipos nuevos de este tipo.`
+  );
+
 // Código y Serial no se repiten dentro del mismo tipo (se guardan en
 // mayúsculas, así "abc-1" y "ABC-1" chocan igual).
 async function verificarUnicos(categoriaRow, data, excluirId = null) {
@@ -190,7 +198,7 @@ async function verificarUnicos(categoriaRow, data, excluirId = null) {
       where: { categoriaId: categoriaRow.id, [campo]: { equals: data[campo], mode: "insensitive" }, ...(excluirId ? { NOT: { id: excluirId } } : {}) },
     });
     if (otro) {
-      const nombreTipo = nombreCategoria(categoriaRow);
+      const nombreTipo = categoriaRow.nombre;
       throw new ApiError(409, campo === "codigo" ? "CODIGO_DUPLICADO" : "SERIAL_DUPLICADO",
         `Ya hay un equipo de tipo ${nombreTipo} con el ${campo === "codigo" ? "código" : "serial"} ${data[campo]}.`);
     }
@@ -218,10 +226,15 @@ async function buscarEquipo(equipoId, empresasPermitidas) {
 
 export async function listarEquipos({ empresa, categoria, estado, q }, empresasPermitidas) {
   const empresasFiltro = empresasParaFiltro(empresa, empresasPermitidas);
+  // Tipos cuyo nombre contiene lo buscado, sin distinguir mayúsculas ni
+  // tildes ("secuencimetro" encuentra "Secuencímetro").
+  const tiposBuscados = q
+    ? (await db.categoriaEquipo.findMany({ select: { id: true, nombre: true } })).filter((c) => normalizarTexto(c.nombre).includes(normalizarTexto(q))).map((c) => c.id)
+    : [];
   const equipos = await db.equipo.findMany({
     where: {
       empresa: { slug: { in: empresasFiltro } },
-      ...(categoria ? { categoria: tipoPorNombre(categoria) ? { tipo: tipoPorNombre(categoria) } : { nombre: categoria } } : {}),
+      ...(categoria ? { categoria: { nombre: { equals: categoria, mode: "insensitive" } } } : {}),
       ...(q
         ? {
             OR: [
@@ -233,9 +246,7 @@ export async function listarEquipos({ empresa, categoria, estado, q }, empresasP
               { vehiculo: { placa: { contains: q, mode: "insensitive" } } },
               { personal: { nombre: { contains: q, mode: "insensitive" } } },
               { personal: { dni: { contains: q } } },
-              { categoria: { nombre: { contains: q, mode: "insensitive" } } },
-              // También por el nombre de la tabla ("Secuencímetro", con tilde).
-              { categoria: { tipo: { in: ORDEN_TIPOS.filter((t) => TIPOS_EQUIPO[t].nombre.toLocaleLowerCase("es").includes(q.toLocaleLowerCase("es"))) } } },
+              { categoriaId: { in: tiposBuscados } },
             ],
           }
         : {}),
@@ -254,14 +265,16 @@ export async function crearEquipo(body, empresasPermitidas, usuarioId) {
 
   const categoriaRow = await buscarCategoria(categoria);
   if (!categoriaRow) throw validacionFallida("El tipo de equipo indicado no existe.");
-  // Solo los 9 tipos con reglas: las categorías antiguas sin tipo se
+  // Los tipos desactivados y las categorías heredadas sin reglas se
   // conservan para sus equipos, pero no se usan para registrar nuevos.
-  if (!camposDelTipo(categoriaRow.tipo)) throw validacionFallida("Elige uno de los tipos de equipo de la lista.");
+  if (!admiteRegistro(categoriaRow)) throw errorTipoNoAdmite(categoriaRow);
 
   const empresaRow = await db.empresa.findUnique({ where: { slug: empresa } });
   if (!empresaRow) throw validacionFallida("Empresa inválida.");
 
   const data = datosSegunTipo(categoriaRow, body);
+  // Siempre 2 fotos (antes se aceptaba registrar sin fotos).
+  const fotosNuevas = fotosDeRegistro(fotos);
   await verificarUnicos(categoriaRow, data);
   const dias = diasAnticipacionValidos(body.diasAnticipacion);
 
@@ -275,24 +288,38 @@ export async function crearEquipo(body, empresasPermitidas, usuarioId) {
         categoriaId: categoriaRow.id,
         empresaId: empresaRow.id,
         camposValores: {},
-        fotos: (fotos || []).filter(Boolean),
+        fotos: fotosNuevas,
         ...(dias !== undefined ? { diasAnticipacionInspeccion: dias } : {}),
       },
       include: INCLUDE,
     });
-    await tx.historialEquipo.create({ data: { equipoId: creado.id, titulo: "Registrado en el sistema", usuarioId } });
+    const idsFotos = await guardarFotos(tx, creado.id, fotosNuevas);
+    await tx.historialEquipo.create({ data: { equipoId: creado.id, titulo: "Registrado en el sistema", usuarioId, datos: { fotos: idsFotos } } });
     return creado;
   });
 
   return serializar(nuevo);
 }
 
-export async function actualizarFotosEquipo(equipoId, fotos, empresasPermitidas) {
+/**
+ * "Editar fotos": cada una de las 2 se mantiene ("actual") o se cambia, y
+ * el equipo queda siempre con exactamente 2. Las reemplazadas no se
+ * borran: quedan en el historial como "Fotos actualizadas", que no es una
+ * inspección (no cambia fechas, resultado ni estado).
+ */
+export async function actualizarFotosEquipo(equipoId, fotosEntrada, empresasPermitidas, usuarioId) {
   await buscarEquipo(equipoId, empresasPermitidas);
-  const actualizado = await db.equipo.update({
-    where: { id: equipoId },
-    data: { fotos: (fotos || []).filter(Boolean) },
-    include: INCLUDE,
+  const actualizado = await db.$transaction(async (tx) => {
+    const equipo = await bloquearEquipo(tx, equipoId);
+    const { fotos, reemplazadas, cambiadas } = resolverFotos(fotosEntrada, equipo.fotos);
+    if (!cambiadas.length) return equipo;
+    const idsFotos = await guardarFotos(tx, equipoId, fotos);
+    const idsReemplazadas = await guardarFotos(tx, equipoId, reemplazadas);
+    const act = await tx.equipo.update({ where: { id: equipoId }, data: { fotos }, include: INCLUDE });
+    await tx.historialEquipo.create({
+      data: { equipoId, titulo: `Fotos actualizadas — ${textoFotosCambiadas(cambiadas)}`, usuarioId, datos: { fotos: idsFotos, reemplazadas: idsReemplazadas } },
+    });
+    return act;
   });
   return serializar(actualizado);
 }
@@ -307,10 +334,12 @@ export async function actualizarEquipo(equipoId, body, empresasPermitidas, usuar
   const categoriaRow = await buscarCategoria(body.categoria);
   if (!categoriaRow) throw validacionFallida("El tipo de equipo indicado no existe.");
   const esLaMisma = categoriaRow.id === equipo.categoriaId;
-  if (!camposDelTipo(categoriaRow.tipo) && !esLaMisma) throw validacionFallida("Elige uno de los tipos de equipo de la lista.");
+  // Se puede seguir editando un equipo de un tipo desactivado o heredado,
+  // pero no pasarlo a uno de esos.
+  if (!esLaMisma && !admiteRegistro(categoriaRow)) throw errorTipoNoAdmite(categoriaRow);
 
   let data;
-  if (camposDelTipo(categoriaRow.tipo)) {
+  if (camposDelTipo(categoriaRow)) {
     data = datosSegunTipo(categoriaRow, body);
   } else {
     // Categoría antigua: como antes (código obligatorio + campos libres).
@@ -322,6 +351,13 @@ export async function actualizarEquipo(equipoId, body, empresasPermitidas, usuar
   const dias = diasAnticipacionValidos(body.diasAnticipacion);
 
   const actualizado = await db.$transaction(async (tx) => {
+    // Cambiar de tipo un equipo asignado: el destinatario actual tiene que
+    // cumplir las reglas del tipo nuevo (destino y cantidad).
+    if (!esLaMisma) {
+      const enUso = await bloquearEquipo(tx, equipoId);
+      const destino = destinoDeEquipo(enUso);
+      if (destino) await verificarReglasDestino(tx, enUso, categoriaRow.id, destino, empresasPermitidas);
+    }
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: { ...data, categoriaId: categoriaRow.id, ...(dias !== undefined ? { diasAnticipacionInspeccion: dias } : {}) },
@@ -381,24 +417,10 @@ async function cerrarAsignacion(tx, equipo, motivo) {
 const SIN_DESTINATARIO = { vehiculoId: null, personalId: null };
 const seLibero = (tenia) => (tenia ? ` — se liberó de ${tenia}` : "");
 
-// Fechas nuevas para sacar a un equipo de Vencido: las mismas reglas que
-// al registrarlo (el vencimiento no antes de la inspección) y además que
-// no queden vencidas según la regla de estaVencido().
-function fechasDeRenovacion({ fechaInspeccion, fechaVencimiento }) {
-  if (!fechaValida(fechaInspeccion || "")) throw validacionFallida("Fecha de inspección: fecha inválida.");
-  if (!fechaValida(fechaVencimiento || "")) throw validacionFallida("Fecha de vencimiento: fecha inválida.");
-  if (fechaVencimiento < fechaInspeccion) throw validacionFallida("La fecha de vencimiento no puede ser anterior a la fecha de inspección.");
-  const vence = new Date(fechaVencimiento);
-  if (vencidoPorFecha(vence)) throw validacionFallida("La fecha de vencimiento ya pasó: el equipo seguiría vencido. Ingresa una fecha de hoy en adelante.");
-  return { ultimaInspeccion: new Date(fechaInspeccion), proximaInspeccion: vence };
-}
-
-const textoRenovacion = (f) => `Fechas renovadas — inspección ${formatearFechaDia(f.ultimaInspeccion)}, vence ${formatearFechaDia(f.proximaInspeccion)}`;
-
 // Solo Disponible (Vencido no se elige a mano). Asignar, mantenimiento
 // y baja tienen su propio flujo porque piden datos que acá no llegan. Un
-// equipo vencido solo pasa a Disponible si llegan fechas nuevas válidas
-// (se renuevan acá).
+// equipo vencido NO pasa a Disponible por acá: hay que renovar sus fechas
+// con "Actualizar inspección" (que también pide las 2 fotos).
 export async function cambiarEstadoEquipo(equipoId, estado, empresasPermitidas, usuarioId, fechas = {}) {
   if (estado === "vencido") throw validacionFallida(MENSAJE_VENCIDO_MANUAL);
   if (estado === "asignado") {
@@ -411,26 +433,25 @@ export async function cambiarEstadoEquipo(equipoId, estado, empresasPermitidas, 
     throw validacionFallida("Para dar de baja un equipo hay que indicar el motivo.");
   }
   if (estado !== "disponible") throw validacionFallida("Estado inválido.");
-  const renovar = fechas.fechaInspeccion || fechas.fechaVencimiento ? fechasDeRenovacion(fechas) : null;
+  if (fechas.fechaInspeccion || fechas.fechaVencimiento) {
+    throw validacionFallida("Para renovar las fechas usa \"Actualizar inspección\" en la tarjeta del equipo.");
+  }
 
   await buscarEquipo(equipoId, empresasPermitidas);
   const actualizado = await db.$transaction(async (tx) => {
     const equipo = await bloquearEquipo(tx, equipoId);
     // También si viene de Baja o Mantenimiento con la fecha pasada: quedaría vencido.
-    if (vencidoPorFecha(equipo.proximaInspeccion) && !renovar) throw errorVencido();
+    if (vencidoPorFecha(equipo.proximaInspeccion)) throw errorVencido();
     const asignado = equipo.vehiculoId || equipo.personalId;
-    if (equipo.estado === "DISPONIBLE" && !asignado && !renovar) return equipo;
+    if (equipo.estado === "DISPONIBLE" && !asignado) return equipo;
 
     const tenia = await cerrarAsignacion(tx, equipo, "Devuelto");
     const act = await tx.equipo.update({
       where: { id: equipoId },
-      data: { estado: "DISPONIBLE", ...SIN_DESTINATARIO, ...(renovar || {}) },
+      data: { estado: "DISPONIBLE", ...SIN_DESTINATARIO },
       include: INCLUDE,
     });
-    const titulo = renovar
-      ? `${textoRenovacion(renovar)} — pasa a Disponible${seLibero(tenia)}`
-      : tenia ? `Devuelto — lo tenía ${tenia}` : "Estado cambiado a Disponible";
-    await tx.historialEquipo.create({ data: { equipoId, titulo, tono: renovar ? "success" : null, usuarioId } });
+    await tx.historialEquipo.create({ data: { equipoId, titulo: tenia ? `Devuelto — lo tenía ${tenia}` : "Estado cambiado a Disponible", usuarioId } });
     return act;
   });
   return serializar(actualizado);
@@ -461,10 +482,61 @@ export async function devolverEquipo(equipoId, empresasPermitidas, usuarioId) {
   return serializar(actualizado);
 }
 
+// ---- Reglas de destino por tipo ----
+// Cada tipo se asigna SOLO a camiones o SOLO a personas y, salvo que
+// permita varias unidades (Escalera Embonable), cada persona o camión
+// tiene a lo sumo un equipo de ese tipo (ver categoriasEquipo.service.js).
+
+const textoDestinoTipo = (destino) => (destino === "CAMION" ? "camiones" : "personas");
+
+// Destinatario actual del equipo, o null si no está asignado.
+function destinoDeEquipo(equipo) {
+  if (equipo.vehiculoId) return { tipo: "CAMION", vehiculoId: equipo.vehiculoId, personalId: null, sujeto: `El camión ${equipo.vehiculo.placa}` };
+  if (equipo.personalId) return { tipo: "PERSONA", vehiculoId: null, personalId: equipo.personalId, sujeto: equipo.personal.nombre };
+  return null;
+}
+
+// "un equipo de tipo Arnés (serial ARN-001)". Si el que ya tiene es de
+// una empresa que este usuario no ve, no se muestra su código.
+function equipoQueYaTiene(categoria, otro, empresasPermitidas) {
+  const visible = !empresasPermitidas || empresasPermitidas.includes(otro.empresa.slug);
+  const campo = campoIdentificador(categoria) === "codigo" && otro.codigo ? "código" : "serial";
+  return `un equipo de tipo ${categoria.nombre}${visible ? ` (${campo} ${identificadorEquipo(otro)})` : " de otra empresa"}`;
+}
+
+const mensajeYaTiene = (destino, categoria, otro, empresasPermitidas) =>
+  `${destino.sujeto} ya tiene asignado ${equipoQueYaTiene(categoria, otro, empresasPermitidas)}. Devuélvelo o reasígnalo antes de asignar otro.`;
+
 /**
- * Asigna el equipo a UN destinatario: { vehiculoId } o { personalId }.
- * Si ya estaba asignado a otro, es una reasignación: se cierra la
- * anterior y se abre la nueva en la misma transacción.
+ * Dentro de una transacción, con el equipo ya bloqueado: el tipo
+ * `categoriaId` admite a `destino`. Bloqueos (siempre en este orden:
+ * equipo → tipo → destinatario), para que doble clic o dos pedidos a la
+ * vez nunca dejen dos del mismo tipo en la misma persona o camión:
+ *   - el tipo con FOR SHARE: un cambio de sus reglas a la vez espera;
+ *   - el destinatario con FOR UPDATE: dos asignaciones a la misma persona
+ *     o camión se hacen una detrás de la otra, y la segunda ve la primera.
+ */
+async function verificarReglasDestino(tx, equipo, categoriaId, destino, empresasPermitidas) {
+  await tx.$queryRaw`SELECT id FROM categorias_equipo WHERE id = ${categoriaId} FOR SHARE`;
+  const categoria = await tx.categoriaEquipo.findUnique({ where: { id: categoriaId } });
+  if (categoria.destino !== destino.tipo) {
+    throw new ApiError(400, "DESTINO_INCORRECTO", `Los equipos de tipo ${categoria.nombre} solo se asignan a ${textoDestinoTipo(categoria.destino)}.`);
+  }
+  if (categoria.variasPorDestinatario) return;
+  if (destino.vehiculoId) await tx.$queryRaw`SELECT id FROM vehiculos WHERE id = ${destino.vehiculoId} FOR UPDATE`;
+  else await tx.$queryRaw`SELECT id FROM personal WHERE id = ${destino.personalId} FOR UPDATE`;
+  const otro = await tx.equipo.findFirst({
+    where: { categoriaId, id: { not: equipo.id }, ...(destino.vehiculoId ? { vehiculoId: destino.vehiculoId } : { personalId: destino.personalId }) },
+    include: { empresa: true },
+  });
+  if (otro) throw conflicto(mensajeYaTiene(destino, categoria, otro, empresasPermitidas), "YA_TIENE_TIPO");
+}
+
+/**
+ * Asigna el equipo a UN destinatario: { vehiculoId } o { personalId },
+ * del tipo que admite su tipo de equipo. Si ya estaba asignado a otro, es
+ * una reasignación: se cierra la anterior y se abre la nueva en la misma
+ * transacción. El equipo que se reasigna no cuenta como duplicado.
  */
 export async function asignarEquipo(equipoId, { vehiculoId, personalId }, empresasPermitidas, usuarioId) {
   if (!vehiculoId === !personalId) throw validacionFallida("Elige un camión o una persona (solo uno).");
@@ -476,11 +548,11 @@ export async function asignarEquipo(equipoId, { vehiculoId, personalId }, empres
   if (vehiculoId) {
     const vehiculo = await db.vehiculo.findUnique({ where: { id: vehiculoId } });
     if (!vehiculo) throw new ApiError(404, "NO_ENCONTRADO", "El camión indicado no existe.");
-    destino = { tipo: "CAMION", vehiculoId: vehiculo.id, personalId: null, nombre: vehiculo.placa, texto: `Camión ${vehiculo.placa}` };
+    destino = { tipo: "CAMION", vehiculoId: vehiculo.id, personalId: null, nombre: vehiculo.placa, texto: `Camión ${vehiculo.placa}`, sujeto: `El camión ${vehiculo.placa}` };
   } else {
     const persona = await db.personal.findUnique({ where: { id: personalId } });
     if (!persona) throw new ApiError(404, "NO_ENCONTRADO", "La persona indicada no existe.");
-    destino = { tipo: "PERSONA", vehiculoId: null, personalId: persona.id, nombre: persona.nombre, texto: persona.nombre };
+    destino = { tipo: "PERSONA", vehiculoId: null, personalId: persona.id, nombre: persona.nombre, texto: persona.nombre, sujeto: persona.nombre };
   }
 
   const actualizado = await db.$transaction(async (tx) => {
@@ -489,6 +561,7 @@ export async function asignarEquipo(equipoId, { vehiculoId, personalId }, empres
     if (estaVencido(equipo)) throw errorVencido();
     const mismo = destino.vehiculoId ? equipo.vehiculoId === destino.vehiculoId : equipo.personalId === destino.personalId;
     if (mismo) throw conflicto(`El equipo ya está asignado a ${destino.texto}.`, "YA_ASIGNADO");
+    await verificarReglasDestino(tx, equipo, equipo.categoriaId, destino, empresasPermitidas);
 
     const tenia = await cerrarAsignacion(tx, equipo, "Reasignado");
     await tx.asignacionEquipo.create({
@@ -509,31 +582,100 @@ export async function asignarEquipo(equipoId, { vehiculoId, personalId }, empres
 }
 
 /**
- * Para el modal "Asignar equipo": TODOS los camiones y TODO el personal,
- * de todas las empresas (la empresa va solo como dato). Datos mínimos:
- * placa y tipo; nombre, DNI y empresas según sus contratos.
+ * Para el modal "Asignar equipo": solo los destinatarios que admite el
+ * tipo del equipo (todos los camiones o todo el personal, de todas las
+ * empresas; la empresa va solo como dato). Los que ya tienen un equipo de
+ * ese tipo (si el tipo no permite varias unidades) llegan con `bloqueo`:
+ * el motivo por el que no se pueden elegir. Quien ya tiene ESTE equipo
+ * llega con `actual: true`.
  */
-export async function listarDestinatarios() {
-  const [vehiculos, personal] = await Promise.all([
-    db.vehiculo.findMany({ include: { empresaDuena: true, empresaUso: true }, orderBy: { placa: "asc" } }),
-    db.personal.findMany({ include: { contratos: { include: { empresa: true } } }, orderBy: { nombre: "asc" } }),
-  ]);
+export async function listarDestinatarios(equipoId, empresasPermitidas) {
+  const equipo = await buscarEquipo(equipoId, empresasPermitidas);
+  const categoria = equipo.categoria;
+  const aCamion = categoria.destino === "CAMION";
+  const ocupados = categoria.variasPorDestinatario
+    ? []
+    : await db.equipo.findMany({
+        where: { categoriaId: categoria.id, id: { not: equipo.id }, ...(aCamion ? { vehiculoId: { not: null } } : { personalId: { not: null } }) },
+        include: { empresa: true },
+      });
+  const ocupadoPor = new Map(ocupados.map((o) => [aCamion ? o.vehiculoId : o.personalId, o]));
+  const bloqueo = (id) => (ocupadoPor.has(id) ? `Ya tiene ${equipoQueYaTiene(categoria, ocupadoPor.get(id), empresasPermitidas)}.` : undefined);
+
+  const base = { destino: destinoApi(categoria), tipoEquipo: categoria.nombre, variasPorDestinatario: categoria.variasPorDestinatario };
+  if (aCamion) {
+    const vehiculos = await db.vehiculo.findMany({ include: { empresaDuena: true, empresaUso: true }, orderBy: { placa: "asc" } });
+    return {
+      ...base,
+      personas: [],
+      camiones: vehiculos.map((v) => ({
+        id: v.id,
+        placa: v.placa,
+        tipoUnidad: ENUM_A_TIPO[v.tipoUnidad],
+        cuadrilla: v.cuadrilla,
+        empresa: v.empresaDuena.nombre,
+        ...(v.empresaUsoId !== v.empresaDuenaId ? { empresaUso: v.empresaUso.nombre } : {}),
+        ...(equipo.vehiculoId === v.id ? { actual: true } : {}),
+        ...(bloqueo(v.id) ? { bloqueo: bloqueo(v.id) } : {}),
+      })),
+    };
+  }
+  const personal = await db.personal.findMany({ include: { contratos: { include: { empresa: true } } }, orderBy: { nombre: "asc" } });
   return {
-    camiones: vehiculos.map((v) => ({
-      id: v.id,
-      placa: v.placa,
-      tipoUnidad: ENUM_A_TIPO[v.tipoUnidad],
-      cuadrilla: v.cuadrilla,
-      empresa: v.empresaDuena.nombre,
-      ...(v.empresaUsoId !== v.empresaDuenaId ? { empresaUso: v.empresaUso.nombre } : {}),
-    })),
+    ...base,
+    camiones: [],
     personas: personal.map((p) => ({
       id: p.id,
       nombre: p.nombre,
       dni: p.dni,
       empresas: [...new Set(p.contratos.map((c) => c.empresa.nombre))],
+      ...(equipo.personalId === p.id ? { actual: true } : {}),
+      ...(bloqueo(p.id) ? { bloqueo: bloqueo(p.id) } : {}),
     })),
   };
+}
+
+/**
+ * Pestaña "Asignaciones": cada persona y camión con los equipos que
+ * tiene ahora (solo de las empresas que ve el usuario), con su tipo,
+ * identificador, estado y vencimiento.
+ */
+export async function listarAsignacionesActuales(empresasPermitidas) {
+  const equipos = await db.equipo.findMany({
+    where: { empresa: { slug: { in: empresasPermitidas } }, OR: [{ vehiculoId: { not: null } }, { personalId: { not: null } }] },
+    include: INCLUDE,
+    orderBy: [{ categoria: { orden: "asc" } }, { id: "asc" }],
+  });
+  const grupos = new Map();
+  for (const e of equipos) {
+    const clave = e.vehiculo ? `camion-${e.vehiculo.id}` : `persona-${e.personal.id}`;
+    if (!grupos.has(clave)) {
+      grupos.set(
+        clave,
+        e.vehiculo
+          ? { clave, tipo: "camion", id: e.vehiculo.id, nombre: e.vehiculo.placa, detalle: [ENUM_A_TIPO[e.vehiculo.tipoUnidad], e.vehiculo.cuadrilla].filter(Boolean).join(" · "), equipos: [] }
+          : { clave, tipo: "persona", id: e.personal.id, nombre: e.personal.nombre, detalle: `DNI ${e.personal.dni}`, equipos: [] }
+      );
+    }
+    grupos.get(clave).equipos.push({
+      id: e.id,
+      identificador: identificadorEquipo(e),
+      campoIdentificador: campoIdentificador(e.categoria) === "codigo" && e.codigo ? "Código" : "Serial",
+      categoria: e.categoria.nombre,
+      estado: estadoEfectivo(e).toLowerCase(),
+      vencimiento: e.proximaInspeccion ? formatearFechaDia(e.proximaInspeccion) : null,
+      vencimientoIso: isoDia(e.proximaInspeccion),
+      ...(estaVencido(e) ? { vencido: true } : {}),
+      // Lote solo si su tipo lo pide.
+      ...(camposDelTipo(e.categoria)?.includes("lote") ? { lote: e.lote } : {}),
+      // Enlaces a sus fotos (no las fotos): se cargan recién al desplegar
+      // la fila. ?v= cambia si cambia la foto (ver obtenerFotoActual).
+      fotos: (Array.isArray(e.fotos) ? e.fotos : []).map((f, i) => (f ? `/api/equipos/${e.id}/foto-actual/${i + 1}?v=${versionFoto(f)}` : null)).filter(Boolean),
+    });
+  }
+  return [...grupos.values()]
+    .map((g) => ({ ...g, vencidos: g.equipos.filter((x) => x.vencido).length }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 }
 
 /** Historial de asignaciones del equipo, la más reciente primero. */
@@ -587,13 +729,24 @@ export async function darDeBajaEquipo(equipoId, motivo, empresasPermitidas, usua
   return serializar(actualizado);
 }
 
-// Antes el frontend hacía 2 llamadas separadas (registrar la inspección
-// y después cambiar el estado según el resultado) — eso deja una
-// ventana donde podrían quedar desincronizadas si la segunda falla.
-// Ahora es una sola operación atómica del lado del backend, y además
-// dentro de una transacción real (update + historial juntos).
-export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fechaVencimiento, diasAnticipacion, resultado }, empresasPermitidas, usuarioId) {
+/**
+ * "Actualizar inspección" (también "Renovar fechas" de un equipo vencido).
+ * Una sola operación atómica: fechas, aviso, resultado, estado y fotos.
+ *   - tipo: si no llega, "interna" (las externas ya no se registran; las
+ *     antiguas siguen en el historial tal cual).
+ *   - fotos: 2 elementos, cada uno "actual" o una foto nueva; el equipo
+ *     queda SIEMPRE con exactamente 2. Las reemplazadas no se borran:
+ *     quedan ligadas al historial (fotos_equipo).
+ *   - dejarDisponible: si se llegó eligiendo "Disponible" en un equipo
+ *     vencido y asignado, al aprobar se libera (como hacía "Renovar
+ *     fechas" antes). Si no, aprobado mantiene la asignación.
+ * Las fechas nuevas reinician los avisos de vencimiento (salen de
+ * proxima_inspeccion) y un vencido vuelve a poder asignarse solo con una
+ * fecha de vencimiento de hoy en adelante.
+ */
+export async function registrarInspeccion(equipoId, { tipo = "interna", fechaInspeccion, fechaVencimiento, diasAnticipacion, resultado, fotos: fotosEntrada, dejarDisponible = false }, empresasPermitidas, usuarioId) {
   await buscarEquipo(equipoId, empresasPermitidas);
+  if (tipo !== "interna") throw validacionFallida("Las inspecciones externas ya no se registran: toda inspección nueva es interna, con fotos.");
   if (fechaVencimiento.slice(0, 10) < fechaInspeccion.slice(0, 10)) {
     throw validacionFallida("La fecha de vencimiento no puede ser anterior a la fecha de inspección.");
   }
@@ -601,17 +754,20 @@ export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fec
   // Aprobado deja el equipo en uso (Disponible o asignado): no con una
   // fecha de vencimiento que ya pasó.
   if (aprobado && vencidoPorFecha(new Date(fechaVencimiento.slice(0, 10)))) {
-    throw conflicto("La fecha de vencimiento ya pasó: con el checklist aprobado el equipo seguiría vencido. Ingresa una fecha de vencimiento de hoy en adelante.", "EQUIPO_VENCIDO");
+    throw conflicto("La fecha de vencimiento ya pasó: con la inspección aprobada el equipo seguiría vencido. Ingresa una fecha de vencimiento de hoy en adelante.", "EQUIPO_VENCIDO");
   }
   const etiquetaResultado = { aprobado: "Aprobado", observado: "Observado", rechazado: "Rechazado" }[resultado];
 
   const actualizado = await db.$transaction(async (tx) => {
     const equipo = await bloquearEquipo(tx, equipoId);
-    // Aprobado: si estaba asignado, sigue asignado al mismo destinatario.
-    // Observado o rechazado: pasa a mantenimiento y se libera.
-    const sigueAsignado = aprobado && equipo.estado === "ASIGNADO";
+    // Con el equipo bloqueado: las fotos que tiene ahora son las que valen.
+    const { fotos, reemplazadas, cambiadas } = resolverFotos(fotosEntrada, equipo.fotos);
+    // Aprobado: si estaba asignado, sigue asignado al mismo destinatario
+    // (salvo dejarDisponible). Observado o rechazado: pasa a mantenimiento
+    // y se libera.
+    const sigueAsignado = aprobado && equipo.estado === "ASIGNADO" && !dejarDisponible;
     const estabaVencido = estaVencido(equipo);
-    const tenia = aprobado ? null : await cerrarAsignacion(tx, equipo, `Inspección ${etiquetaResultado.toLowerCase()}`);
+    const tenia = sigueAsignado ? null : await cerrarAsignacion(tx, equipo, aprobado ? "Devuelto" : `Inspección ${etiquetaResultado.toLowerCase()}`);
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: {
@@ -619,18 +775,27 @@ export async function registrarInspeccion(equipoId, { tipo, fechaInspeccion, fec
         ...(sigueAsignado ? {} : SIN_DESTINATARIO),
         ultimaInspeccion: new Date(fechaInspeccion),
         proximaInspeccion: new Date(fechaVencimiento),
+        fotos,
         // Antes este valor del modal se descartaba y se avisaba siempre
         // con 15 días fijos.
         ...(diasAnticipacion !== undefined ? { diasAnticipacionInspeccion: diasAnticipacion } : {}),
       },
       include: INCLUDE,
     });
+    const idsFotos = await guardarFotos(tx, equipoId, fotos);
+    const idsReemplazadas = await guardarFotos(tx, equipoId, reemplazadas);
+    const partes = [
+      `Inspección interna — ${etiquetaResultado}`,
+      ...(aprobado && estabaVencido ? [`fechas renovadas, vence ${formatearFechaDia(new Date(fechaVencimiento.slice(0, 10)))}`] : []),
+      ...(cambiadas.length ? [textoFotosCambiadas(cambiadas)] : []),
+    ];
     await tx.historialEquipo.create({
       data: {
         equipoId,
-        titulo: `Inspección ${tipo === "interna" ? "interna" : "externa"} — ${etiquetaResultado}${aprobado && estabaVencido ? ` (fechas renovadas, vence ${formatearFechaDia(new Date(fechaVencimiento.slice(0, 10)))})` : ""}${seLibero(tenia)}`,
+        titulo: `${partes.join(" — ")}${seLibero(tenia)}`,
         tono: aprobado ? "success" : "volt",
         usuarioId,
+        datos: { tipoInspeccion: "interna", resultado, fotos: idsFotos, reemplazadas: idsReemplazadas },
       },
     });
     return act;
@@ -648,10 +813,35 @@ export async function obtenerHojaDeVida(equipoId, empresasPermitidas) {
   if (!equipo) return [];
   verificarAccesoEmpresa(equipo.empresa.slug, empresasPermitidas);
 
+  // Fotos de cada inspección o cambio de fotos (las reemplazadas
+  // incluidas), como enlaces que se cargan al verlas.
+  const url = (id) => `/api/equipos/${equipoId}/fotos/${id}`;
   return equipo.historial.map((h) => ({
     titulo: h.titulo,
     fecha: formatearFecha(h.creadoEn),
     actor: h.usuario?.nombre || "Sistema",
     ...(h.tono ? { tone: h.tono } : {}),
+    ...(h.datos?.fotos?.length ? { fotos: h.datos.fotos.map(url) } : {}),
+    ...(h.datos?.reemplazadas?.length ? { fotosReemplazadas: h.datos.reemplazadas.map(url) } : {}),
   }));
+}
+
+/**
+ * Foto actual del equipo (1 o 2) como imagen, para las miniaturas de la
+ * pestaña Asignaciones. `inmutable`: la versión pedida es la vigente, así
+ * que el navegador la puede guardar en caché sin volver a pedirla.
+ */
+export async function obtenerFotoActual(equipoId, posicion, version, empresasPermitidas) {
+  const equipo = await buscarEquipo(equipoId, empresasPermitidas);
+  const data = [1, 2].includes(posicion) && Array.isArray(equipo.fotos) ? equipo.fotos[posicion - 1] : null;
+  if (!data) throw new ApiError(404, "NO_ENCONTRADO", "La foto no existe.");
+  return { ...decodificarFoto(data), inmutable: version === versionFoto(data) };
+}
+
+/** Una foto guardada del historial (o actual) del equipo, como imagen. */
+export async function obtenerFotoEquipo(equipoId, fotoId, empresasPermitidas) {
+  await buscarEquipo(equipoId, empresasPermitidas);
+  const foto = Number.isInteger(fotoId) ? await db.fotoEquipo.findFirst({ where: { id: fotoId, equipoId } }) : null;
+  if (!foto) throw new ApiError(404, "NO_ENCONTRADO", "La foto no existe.");
+  return decodificarFoto(foto.data);
 }

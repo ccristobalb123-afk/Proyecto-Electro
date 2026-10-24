@@ -46,9 +46,12 @@ export default function ModalNuevoEquipo({ open, onClose, fEquipo, setFEquipo, o
         </fieldset>
 
         <fieldset className="form-field">
-          <legend>Fotos del equipo</legend>
+          <legend>
+            Fotos del equipo<span className="campo-obligatorio" aria-hidden="true"> *</span>
+          </legend>
+          <p className="campo-ayuda">Son obligatorias las 2 fotos.</p>
           <FotosEquipo
-            fotos={fEquipo.fotos || [null, null]}
+            valor={fEquipo.fotos || [null, null]}
             onChange={(fotos) => setFEquipo((f) => ({ ...f, fotos }))}
             onProcesando={setProcesandoFoto}
           />
@@ -56,7 +59,7 @@ export default function ModalNuevoEquipo({ open, onClose, fEquipo, setFEquipo, o
 
         <div className="checklist-note">
           <IconClipboardCheck width={15} height={15} />
-          Las próximas inspecciones se registran con «Checklist pre-uso» en la tarjeta del equipo.
+          Las próximas inspecciones se registran con «Actualizar inspección» en la tarjeta del equipo.
         </div>
 
         {error && <p className="field-error" role="alert">{error}</p>}

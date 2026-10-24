@@ -1,32 +1,22 @@
 // ============================================================
-// Tipos de equipo y qué campos pide cada uno.
+// Datos que puede pedir un tipo de equipo y cómo se leen sus reglas.
 //
-// Única fuente de verdad: el backend valida con esto y el frontend recibe
-// las mismas reglas por GET /api/categorias-equipo (no tiene su propia
-// copia). Cada categoría de la base se asocia a un tipo por su columna
-// `tipo`; los nombres visibles se pueden corregir sin romper nada.
+// Las reglas de cada tipo (destino, varias unidades por destinatario y
+// qué datos pide) viven en la base, en categorias_equipo, y se editan
+// desde Operaciones > Equipos > "Tipos de equipo". Los valores iniciales
+// de los 9 tipos están en la migración 20261020100000_reglas_tipos_equipo
+// (los mismos que tenía este archivo). Acá queda solo el catálogo de
+// campos posibles, igual para todos los tipos.
 //
-// Todos los campos listados son OBLIGATORIOS para ese tipo; los que no
-// están no se muestran ni se guardan.
+// Todos los campos que pide un tipo son OBLIGATORIOS; los que no pide no
+// se muestran ni se guardan.
 // ============================================================
 
-const FECHAS_INSPECCION = ["fechaInspeccion", "fechaVencimiento"];
-const EPP_ALTURA = ["marca", "serial", "lote", "fechaFabricacion", ...FECHAS_INSPECCION];
+/** Datos que puede pedir un tipo, en el orden en que se muestran. */
+export const CAMPOS_OPCIONALES = ["codigo", "marca", "pasos", "serial", "talla", "lote", "fechaFabricacion"];
 
-export const TIPOS_EQUIPO = {
-  ESCALERA_EMBONABLE: { nombre: "Escalera Embonable", campos: ["codigo", "marca", "pasos", ...FECHAS_INSPECCION] },
-  PINZA_AMPERIMETRICA: { nombre: "Pinza Amperimétrica", campos: ["codigo", "marca", "serial", ...FECHAS_INSPECCION] },
-  SECUENCIMETRO: { nombre: "Secuencímetro", campos: ["codigo", "marca", "serial", ...FECHAS_INSPECCION] },
-  GUANTES_DIELECTRICOS: { nombre: "Guantes Dieléctricos", campos: ["codigo", "marca", "talla", ...FECHAS_INSPECCION] },
-  ARNES: { nombre: "Arnés", campos: EPP_ALTURA },
-  LINEA_DE_VIDA: { nombre: "Línea de Vida", campos: EPP_ALTURA },
-  ESLINGA_ANCLAJE: { nombre: "Eslinga de Anclaje", campos: EPP_ALTURA },
-  ESTROBO_POSICIONAMIENTO: { nombre: "Estrobo de Posicionamiento", campos: EPP_ALTURA },
-  ESTROBO_REGULABLE: { nombre: "Estrobo Regulable", campos: EPP_ALTURA },
-};
-
-/** Orden de los tipos en el formulario y en las listas (el de la tabla). */
-export const ORDEN_TIPOS = Object.keys(TIPOS_EQUIPO);
+/** Siempre obligatorias, en todos los tipos. */
+export const FECHAS_INSPECCION = ["fechaInspeccion", "fechaVencimiento"];
 
 export const ETIQUETAS_CAMPO = {
   codigo: "Código",
@@ -40,27 +30,33 @@ export const ETIQUETAS_CAMPO = {
   fechaVencimiento: "Fecha de vencimiento",
 };
 
-/** Campos que pide un tipo (null si la categoría no tiene tipo: categoría antigua). */
-export function camposDelTipo(tipo) {
-  return TIPOS_EQUIPO[tipo]?.campos ?? null;
+/** Heredada: categoría de la versión anterior sin reglas ("Estrobo Largo"). */
+export function esHeredada(categoria) {
+  return !categoria.camposRequeridos?.length;
+}
+
+/** Campos que pide la categoría (con las fechas), o null si es heredada. */
+export function camposDelTipo(categoria) {
+  return esHeredada(categoria) ? null : [...categoria.camposRequeridos, ...FECHAS_INSPECCION];
+}
+
+/** Se pueden registrar equipos nuevos de este tipo. */
+export function admiteRegistro(categoria) {
+  return categoria.activo && !esHeredada(categoria);
 }
 
 /**
  * Cómo se identifica un equipo de este tipo: por Código si el tipo lo
  * pide; si no (arnés, línea de vida, eslinga, estrobos), por Serial.
  */
-export function campoIdentificador(tipo) {
-  const campos = camposDelTipo(tipo);
+export function campoIdentificador(categoria) {
+  const campos = camposDelTipo(categoria);
   if (!campos) return "codigo";
   return campos.includes("codigo") ? "codigo" : "serial";
 }
 
-/** Nombre visible de una categoría: el de la tabla para los 9 tipos (aunque en la base diga "Escaleras Embonables" o "Secuencimetro"). */
-export function nombreCategoria(categoria) {
-  return TIPOS_EQUIPO[categoria.tipo]?.nombre ?? categoria.nombre;
-}
+/** "camion" | "persona", como lo usa la API. */
+export const destinoApi = (categoria) => (categoria.destino === "CAMION" ? "camion" : "persona");
 
-/** Tipo cuyo nombre visible es `nombre`, o null (categoría antigua). */
-export function tipoPorNombre(nombre) {
-  return ORDEN_TIPOS.find((t) => TIPOS_EQUIPO[t].nombre === nombre) ?? null;
-}
+/** Para buscar y comparar nombres sin distinguir mayúsculas ni tildes. */
+export const normalizarTexto = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("es").trim();

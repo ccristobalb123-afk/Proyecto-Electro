@@ -110,6 +110,48 @@
   overflow-wrap: anywhere;
 }
 
+/* No se puede elegir (ya tiene un equipo de este tipo): gris, con el
+   motivo en rojo oscuro debajo. Texto + color, nunca solo color. */
+.selector-destino__lista button:disabled {
+  cursor: not-allowed;
+  background: var(--gray-tint);
+}
+
+.selector-destino__opcion--bloqueada .selector-destino__titulo {
+  color: var(--muted);
+}
+
+.selector-destino__bloqueo {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--danger-dark);
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+  .selector-destino__lista button:disabled:hover {
+    background: var(--gray-tint);
+  }
+}
+
+/* Destino fijo según el tipo ("Las Pinzas se asignan a camiones") */
+.destino-fijo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 var(--space-3);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--electro-tint);
+  color: var(--electro-dark);
+  font-size: var(--fs-base);
+  font-weight: 500;
+}
+
+.destino-fijo svg {
+  flex: none;
+}
+
 .selector-destino__elegido {
   display: flex;
   flex-wrap: wrap;

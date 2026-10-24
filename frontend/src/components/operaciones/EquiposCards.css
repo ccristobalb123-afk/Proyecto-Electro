@@ -58,9 +58,13 @@
   }
 }
 
+/* Borde compartido con Vehículos (--borde-tarjeta, en tokens.css): con
+   --border la tarjeta blanca se confundía con el fondo. Solo en el
+   contorno; el overflow: hidden deja el pie gris dentro de las esquinas
+   redondeadas. */
 .equipo-card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: var(--borde-tarjeta);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
@@ -73,7 +77,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
-  padding: 16px 16px 14px;
+  padding: 16px calc(16px - var(--borde-tarjeta-extra)) 14px;
 }
 
 .equipo-card-code {
@@ -100,7 +104,7 @@
 }
 
 .equipo-card-body {
-  padding: 0 16px 14px;
+  padding: 0 calc(16px - var(--borde-tarjeta-extra)) 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -243,7 +247,7 @@
 .equipo-card-footer {
   margin-top: auto;
   border-top: 1px solid var(--border);
-  padding: 12px 16px;
+  padding: 12px calc(16px - var(--borde-tarjeta-extra));
   background: var(--paper);
   display: flex;
   flex-direction: column;

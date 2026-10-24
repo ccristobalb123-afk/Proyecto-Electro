@@ -204,7 +204,6 @@
 
   /* Botones sobre fotos: el círculo visible no cambia, solo crece el área
      que responde al toque */
-  html .foto-equipo-quitar::after,
   html .equipo-card-fotos-editar::after {
     content: "";
     position: absolute;

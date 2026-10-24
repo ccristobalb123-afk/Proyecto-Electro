@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Modal, Timeline } from "../shared/Modal";
+import Lightbox from "../shared/Lightbox";
 import Loading from "../shared/Loading";
 import { IconTruck, IconUser } from "../icons/Icons";
 import "./Asignacion.css";
@@ -39,6 +41,8 @@ function HistorialAsignaciones({ asignaciones }) {
 }
 
 export default function ModalHistorialOperaciones({ open, seleccionado, cargando, items, asignaciones, onClose }) {
+  // Foto ampliada (inspecciones y cambios de fotos de un equipo).
+  const [foto, setFoto] = useState(null);
   return (
     <Modal
       open={open}
@@ -56,9 +60,10 @@ export default function ModalHistorialOperaciones({ open, seleccionado, cargando
               <h3 className="hv-seccion-titulo">Hoja de vida</h3>
             </>
           )}
-          <Timeline items={items} />
+          <Timeline items={items} onVerFoto={setFoto} />
         </>
       )}
+      <Lightbox src={foto} alt="Foto del historial del equipo" onClose={() => setFoto(null)} />
     </Modal>
   );
 }
