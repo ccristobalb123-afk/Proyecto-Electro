@@ -13,6 +13,7 @@ import "./styles/badges.css";
 import "./styles/filters.css";
 import "./styles/fichas.css";
 import "./styles/responsive.css";
+import "./styles/tarjetas.css";
 import App from "./App.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import { ConfirmProvider } from "./context/ConfirmContext.jsx";

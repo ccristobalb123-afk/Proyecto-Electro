@@ -1,0 +1,24 @@
+/* ============================================================
+   Borde de las tarjetas y paneles generales
+   No hay una clase de tarjeta compartida: cada pantalla tiene la suya,
+   todas con "border: 1px solid var(--border)". Acá se les cambia solo
+   el color (el ancho sigue en 1px, sin saltos de diseño). Se antepone
+   ".main" para ganarle a la regla de cada pantalla sin depender del
+   orden en que cargue el CSS.
+   Las tarjetas de equipo y vehículo usan --borde-tarjeta (2px, navy).
+   ============================================================ */
+
+.main :is(
+    .kpi-card,          /* indicadores del Dashboard */
+    .panel,             /* Vencimientos, Actividad reciente, gráfico */
+    table,              /* tablas (RRHH) */
+    .rrhh-mobile-card,  /* RRHH en celular */
+    .usuario-card,      /* Administración */
+    .fin-card           /* Finanzas */
+  ),
+/* Fichas de RRHH > Cursos/EMO y Operaciones > Asignaciones (fichas.css).
+   Va aparte, solo cerrada: abierta lleva el navy (--copper) de
+   .persona-cursos--abierta, y dentro del :is() le ganaría. */
+.main .persona-cursos:not(.persona-cursos--abierta) {
+  border-color: var(--borde-tarjeta-suave);
+}

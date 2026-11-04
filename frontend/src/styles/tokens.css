@@ -34,13 +34,18 @@
      y --fondo-pagina (3.00, el valor más claro que llega), criterio WCAG
      1.4.11. --border queda para separadores y tarjetas. */
   --border-control: #6e7a8e;
-  /* Borde de las tarjetas de Operaciones (Equipos y Vehículos): el
-     color de los campos, más grueso para separarlas del fondo. Cambiar
-     acá cambia ambas. --borde-tarjeta-extra es lo que crece respecto de
-     un borde de 1 px; las tarjetas lo descuentan de su relleno lateral
-     para no perder ancho útil. */
+  /* Borde de las tarjetas de Operaciones (Equipos y Vehículos): el azul
+     marino de acción (--copper), más grueso para separarlas del fondo.
+     Cambiar acá cambia ambas. --borde-tarjeta-extra es lo que crece
+     respecto de un borde de 1 px; las tarjetas lo descuentan de su relleno
+     lateral para no perder ancho útil. */
   --borde-tarjeta-ancho: 2px;
-  --borde-tarjeta-color: var(--border-control);
+  --borde-tarjeta-color: var(--copper);
+  /* Borde de 1px de las demás tarjetas y paneles (indicadores y paneles
+     del Dashboard, tablas, tarjetas de usuarios, finanzas, RRHH en
+     celular y fichas de Cursos/EMO y Asignaciones): el azul marino
+     aclarado con blanco. Se aplica en styles/tarjetas.css. */
+  --borde-tarjeta-suave: color-mix(in srgb, var(--copper) 45%, #ffffff); /* ≈ #96a5c8 */
   --borde-tarjeta: var(--borde-tarjeta-ancho) solid var(--borde-tarjeta-color);
   --borde-tarjeta-extra: calc(var(--borde-tarjeta-ancho) - 1px);
 

@@ -18,11 +18,14 @@
   gap: 10px;
 }
 
-/* Cada persona es un bloque: borde más oscuro que el fondo y sombra suave. */
+/* Cada persona es un bloque con borde y sombra suave. El color del borde
+   viene de styles/tarjetas.css (--borde-tarjeta-suave, una sola fuente
+   para todas las tarjetas); acá solo el ancho. --borde-persona queda para
+   los bordes de adentro (flecha, detalle y registros). */
 .persona-cursos {
   --borde-persona: color-mix(in srgb, var(--border-control) 45%, var(--border));
   background: var(--card);
-  border: 1px solid var(--borde-persona);
+  border: 1px solid;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm), 0 2px 6px rgba(16, 24, 40, 0.06);
   min-width: 0;

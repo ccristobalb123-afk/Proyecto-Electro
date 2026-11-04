@@ -30,7 +30,8 @@ no ve la clase armada en tiempo de ejecución); usa
 | Token (`tokens.css`) | Clase de Tailwind |
 |---|---|
 | `--border-control` | `border-control` (también `border-border-control`) |
-| `--borde-tarjeta-color` | `border-tarjeta` |
+| `--borde-tarjeta-color` | `border-tarjeta` (tarjetas de equipo y vehículo, 2px) |
+| `--borde-tarjeta-suave` | `border-tarjeta-suave` (demás tarjetas y paneles, 1px) |
 | `--borde-tarjeta-ancho` | `border-(length:--borde-tarjeta-ancho)` (o `border-2`) |
 | `--border` | `border-border`, `divide-border` |
 | `--paper`, `--card` | `bg-paper`, `bg-card` |

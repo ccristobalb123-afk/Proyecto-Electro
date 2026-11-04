@@ -95,9 +95,11 @@
   --color-link-hover: var(--link-hover);
   --color-nav-activo: var(--nav-activo);
 
-  /* Solo para bordes, con nombre corto: border-control, border-tarjeta */
+  /* Solo para bordes, con nombre corto: border-control, border-tarjeta,
+     border-tarjeta-suave */
   --border-color-control: var(--border-control);
   --border-color-tarjeta: var(--borde-tarjeta-color);
+  --border-color-tarjeta-suave: var(--borde-tarjeta-suave);
 
   /* Fuentes: font-display, font-body, font-mono */
   --font-display: var(--font-display);
