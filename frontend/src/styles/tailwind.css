@@ -1,0 +1,131 @@
+/* ============================================================
+   Tailwind CSS 4 — entrada (guía: frontend/docs/tailwind.md)
+
+   - Sin preflight (el "reinicio" de Tailwind): cambiaría botones,
+     títulos y listas de toda la app. Solo tema + utilidades.
+   - Capas: todo Tailwind va en capas (@layer theme / utilities). El CSS
+     actual no está en ninguna capa, y lo que no está en capa SIEMPRE le
+     gana a lo que sí, sin importar la especificidad ni el orden. O sea:
+     si una clase de Tailwind y una regla antigua tocan la misma
+     propiedad del mismo elemento, gana la antigua. Para que mande
+     Tailwind, al migrar se borra esa propiedad del CSS antiguo.
+   - Tema: lee los valores de tokens.css con var(); no los copia.
+     "inline" hace que la clase use var(--token) directamente y
+     "reference" que no se genere ninguna variable --color-…, --font-…
+     extra en :root. tokens.css sigue siendo la única fuente.
+   ============================================================ */
+
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+/* source(none) + @source: solo se buscan clases en src/ (no en docs/,
+   dist/ ni node_modules). */
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "../";
+/* Clases que Tailwind NO debe generar:
+   - "filter" y "transform": aparecen en el código JS (.filter(),
+     comentarios) y Tailwind los toma como clases; eran ~2 kB que ningún
+     elemento usa. En Tailwind 4 no hacen falta (blur-sm, rotate-45…
+     funcionan solas).
+   - "sr-only": ya existe en tokens.css; la de Tailwind le sumaba
+     clip-path a los textos ocultos para lectores de pantalla. */
+@source not inline("filter transform sr-only");
+
+/* ---------- Valores por defecto de Tailwind que no se usan ----------
+   Se quitan los grupos que tienen equivalente en tokens.css, para que
+   solo existan las clases con los valores de la app (bg-copper sí,
+   bg-blue-600 no). */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --ease-*: initial;
+  --breakpoint-*: initial;
+
+  /* Breakpoints = los de responsive.css, que son "hasta X px"
+     (max-width). Tailwind cuenta "desde": md: rige desde 641px, justo
+     donde deja de valer "@media (max-width: 640px)", y max-md: rige
+     hasta 640px, igual que esa regla. Van en px fijos: una media query
+     no puede leer var(). */
+  --breakpoint-sm: 561px; /* (max-width: 560px)  formularios de modales */
+  --breakpoint-md: 641px; /* (max-width: 640px)  celular */
+  --breakpoint-lg: 961px; /* (max-width: 960px)  tablet */
+}
+
+/* ---------- Tokens de la app ---------- */
+@theme inline reference {
+  /* Colores: --X → bg-X, text-X, border-X… */
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-border: var(--ink-border);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-soft: var(--on-ink-soft);
+  --color-on-ink-accent: var(--on-ink-accent);
+  --color-on-ink-muted: var(--on-ink-muted);
+  --color-on-accent: var(--on-accent);
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-border-control: var(--border-control);
+  --color-copper: var(--copper);
+  --color-copper-dark: var(--copper-dark);
+  --color-copper-tint: var(--copper-tint);
+  --color-electro: var(--electro);
+  --color-electro-dark: var(--electro-dark);
+  --color-electro-tint: var(--electro-tint);
+  --color-volt: var(--volt);
+  --color-volt-dark: var(--volt-dark);
+  --color-volt-tint: var(--volt-tint);
+  --color-danger: var(--danger);
+  --color-danger-dark: var(--danger-dark);
+  --color-danger-tint: var(--danger-tint);
+  --color-success: var(--success);
+  --color-success-dark: var(--success-dark);
+  --color-success-tint: var(--success-tint);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-gray-tint: var(--gray-tint);
+  --color-gray-dark: var(--gray-dark);
+
+  /* Solo para bordes, con nombre corto: border-control, border-tarjeta */
+  --border-color-control: var(--border-control);
+  --border-color-tarjeta: var(--borde-tarjeta-color);
+
+  /* Fuentes: font-display, font-body, font-mono */
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  /* Tamaños de letra: --fs-X → text-X */
+  --text-xs: var(--fs-xs);
+  --text-sm: var(--fs-sm);
+  --text-base: var(--fs-base);
+  --text-md: var(--fs-md);
+  --text-lg: var(--fs-lg);
+  --text-xl: var(--fs-xl);
+  --text-2xl: var(--fs-2xl);
+
+  /* Pesos: --fw-X → font-X */
+  --font-weight-regular: var(--fw-regular);
+  --font-weight-medium: var(--fw-medium);
+  --font-weight-semibold: var(--fw-semibold);
+  --font-weight-bold: var(--fw-bold);
+
+  /* Espaciado: --space-N → p-N, m-N, gap-N… (N × 4px, igual que tokens) */
+  --spacing: var(--space-1);
+
+  /* Radios: --radius → rounded, --radius-lg → rounded-lg */
+  --radius: var(--radius);
+  --radius-lg: var(--radius-lg);
+
+  /* Sombras: --shadow-X → shadow-X */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --ease-out: var(--ease-out);
+}

@@ -4,6 +4,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/tokens.css";
+// Tailwind (solo tema y utilidades, en capas: el CSS de arriba y de cada
+// módulo le gana siempre). Ver docs/tailwind.md.
+import "./styles/tailwind.css";
 import "./styles/motion.css";
 import "./styles/buttons.css";
 import "./styles/badges.css";

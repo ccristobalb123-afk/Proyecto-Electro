@@ -6,6 +6,11 @@ El proyecto **no usa Bootstrap ni `react-bootstrap`**. Todo el estilo sale de
 `tokens.css` (colores, espaciados, tipografía, sombras), `base.css`, `buttons.css`,
 `badges.css`, `filters.css`, `responsive.css` y el CSS de cada módulo.
 
+### Tailwind (migración gradual)
+Tailwind 4 está instalado, sin preflight y en capas: el CSS de este archivo y
+de cada módulo siempre le gana. Uso, tabla token → clase, breakpoints y
+reglas de convivencia en `frontend/docs/tailwind.md`.
+
 ### `base.css`
 Conserva únicamente las reglas del antiguo "reboot" de Bootstrap que la interfaz
 daba por hechas: `line-height: 1.5` en el `body`, márgenes y peso de los
