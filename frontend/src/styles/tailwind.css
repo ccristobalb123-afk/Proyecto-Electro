@@ -67,6 +67,7 @@
   --color-on-ink-muted: var(--on-ink-muted);
   --color-on-accent: var(--on-accent);
   --color-paper: var(--paper);
+  --color-fondo-pagina: var(--fondo-pagina);
   --color-card: var(--card);
   --color-border: var(--border);
   --color-border-control: var(--border-control);

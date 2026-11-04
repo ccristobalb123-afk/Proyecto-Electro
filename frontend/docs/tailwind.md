@@ -34,6 +34,7 @@ no ve la clase armada en tiempo de ejecución); usa
 | `--borde-tarjeta-ancho` | `border-(length:--borde-tarjeta-ancho)` (o `border-2`) |
 | `--border` | `border-border`, `divide-border` |
 | `--paper`, `--card` | `bg-paper`, `bg-card` |
+| `--fondo-pagina` | `bg-fondo-pagina` (fondo de la zona de contenido, detrás de las tarjetas) |
 | `--text`, `--muted`, `--muted-2` | `text-text`, `text-muted`, `text-muted-2` |
 | `--copper`, `--copper-dark`, `--copper-tint` | `bg-copper`, `text-copper-dark`, `bg-copper-tint`… |
 | `--electro*`, `--volt*`, `--danger*`, `--success*` | igual: `bg-danger-tint`, `text-success-dark`… |

@@ -22,12 +22,18 @@
      Blanco encima 5.0:1; contra la barra (--ink) 3.3:1. */
   --nav-activo: #2b65ee;
   --on-accent: #ffffff;
-  --paper: #f5f8fa;       /* fondo general */
+  --paper: #f5f8fa;       /* superficies grises: pies de tarjeta, encabezados de tabla, buscador */
+  /* Fondo de la zona de contenido (detrás de las tarjetas): azul grisáceo
+     de la familia del navy, para que las tarjetas blancas se separen. Solo
+     lo usa el body; --paper sigue siendo el gris de dentro de las zonas
+     blancas. */
+  --fondo-pagina: #cfd7e7;
   --card: #ffffff;        /* tarjetas, paneles, inputs */
   --border: #e3e6e8;
-  /* Borde de campos de formulario: ≥3:1 sobre --card (3.68) y --paper (3.16),
-     criterio WCAG 1.4.11. --border queda para separadores y tarjetas. */
-  --border-control: #7b8698;
+  /* Borde de campos de formulario: ≥3:1 sobre --card (4.34), --paper (4.07)
+     y --fondo-pagina (3.00, el valor más claro que llega), criterio WCAG
+     1.4.11. --border queda para separadores y tarjetas. */
+  --border-control: #6e7a8e;
   /* Borde de las tarjetas de Operaciones (Equipos y Vehículos): el
      color de los campos, más grueso para separarlas del fondo. Cambiar
      acá cambia ambas. --borde-tarjeta-extra es lo que crece respecto de
@@ -169,7 +175,7 @@ html, body, #root {
 body {
   margin: 0;
   font-family: var(--font-body);
-  background: var(--paper);
+  background: var(--fondo-pagina);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }

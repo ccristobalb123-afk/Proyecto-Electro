@@ -614,3 +614,16 @@ label.tipo-check--fija {
   justify-content: flex-end;
   margin: -6px 0 14px;
 }
+
+/* Este botón queda directamente sobre --fondo-pagina: con --border
+   (1.15:1) su contorno no llegaba a 3:1. --border-control da 3.0:1; el
+   hover (--electro) da 3.3:1. */
+.equipos-barra .btn-outline-sm {
+  border-color: var(--border-control);
+}
+
+@media (hover: hover) {
+  .equipos-barra .btn-outline-sm:hover {
+    border-color: var(--electro);
+  }
+}
