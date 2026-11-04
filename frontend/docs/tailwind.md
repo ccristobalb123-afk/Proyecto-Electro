@@ -154,6 +154,11 @@ Para que una migración quede idéntica (no solo "parecida"):
 - `npm run lint` sin subir de 12 avisos.
 - Borrar del `.css` del módulo lo que pasó a clases (y el archivo, si queda
   vacío).
+- Comparar también hover, pressed y foco de lo interactivo, forzándolos de
+  verdad: con WebDriver, acción `pointerMove` (hover), `pointerMove` +
+  `pointerDown` sin soltar (pressed) y `focus({focusVisible: true})` (foco
+  de teclado). Comprobar en el navegador que `:hover`, `:active` y
+  `:focus-visible` quedan activos.
 - Hacer la primera captura de cada tamaño con una sesión de "calentamiento"
   descartada: la primera sesión del navegador dibuja algunas letras con
   0.2 px de diferencia y parece un cambio que no lo es.
@@ -168,6 +173,8 @@ Para que una migración quede idéntica (no solo "parecida"):
 | Login y Restablecer contraseña | `AuthShell.jsx`, `AuthRail.jsx`, `OtpInput.jsx`, `clasesAuth.js`, `Login.jsx`, `RestablecerPassword.jsx` | `AuthShell.css` (h1/p y animaciones), `AuthForm.css` (h2, p, label, input, `.btn-primary`, enlace «Volver») |
 | Campo de contraseña | `PasswordField.jsx` | `PasswordField.css` (`display` del label, letra del input, radio del botón del ojo) |
 | Medidor de fuerza | `PasswordStrength.jsx` | ninguno (`PasswordStrength.css` se eliminó) |
+| Estado vacío | `EstadoVacio.jsx` | `EstadoVacio.css` (márgenes de `<p>` y del botón) |
+| Estado de error | `EstadoError.jsx` | `EstadoError.css` (margen de `<p>`) |
 
 **Sin migrar** (todo su estilo sigue en CSS):
 
@@ -180,10 +187,19 @@ Para que una migración quede idéntica (no solo "parecida"):
 - **Pantallas:** `Dashboard.css`, `Rrhh.css`, `Operaciones.css` (+
   `EquiposCards.css`, `VehiculosCards.css`, `Asignacion.css`), `Finanzas.css`,
   `Administracion.css`.
-- **Componentes compartidos:** `ConfirmDialog.css`, `AvisoInactividad.css`,
-  `ToastContainer.css`, `VisorArchivo.css`, `Lightbox.css`,
-  `SesionesModal.css`, `EstadoVacio.css`, `EstadoError.css`, `Loading.css`,
-  `Carga.css`, `EtiquetaUrgencia.css`, `Monto.css`.
+- **Componentes que van con `Modal.css`:** `ConfirmDialog.css`,
+  `VisorArchivo.css`, `Lightbox.css`, `SesionesModal.css`, y `Carga.css`
+  (`BotonCarga` y el spinner: `Modal.css` estiliza `.modal-actions > button`).
+- **Componentes con reglas en CSS que todavía no se migra** (se dejan para
+  migrarlos junto con ese CSS):
+  - `Loading.css`: `Dashboard.css` le cambia el relleno
+    (`.panel-chart-cargando .loading-bloque`) y usa el spinner de `Carga.css`.
+  - `EtiquetaUrgencia.css`: `Dashboard.css` le da margen en celular
+    (`.row-item .etiqueta-urgencia`).
+  - `AvisoInactividad.css`: `responsive.css` (alto táctil de 44 px de
+    `.btn-seguir-conectado`) y `motion.css` (pulso con movimiento reducido).
+- **Otros:** `ToastContainer.css`. `Monto.css` / `Monto.jsx` no se usan en
+  ninguna pantalla (código sin uso: conviene borrarlo en vez de migrarlo).
 - **Globales** (`styles/`): `buttons.css`, `badges.css`, `filters.css`,
   `fichas.css`, `tarjetas.css`, `motion.css`, `responsive.css`. `tokens.css`
   y `base.css` no se migran: son la fuente de valores y la base.

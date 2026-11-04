@@ -19,12 +19,14 @@ const MENSAJE_POR_CODIGO = {
 export default function EstadoError({ error, onReintentar, mensaje }) {
   const texto = mensaje || MENSAJE_POR_CODIGO[error?.code] || "Ocurrió un problema al cargar la información.";
 
+  // Estilos con Tailwind (ver docs/tailwind.md). estado-error__texto es el
+  // gancho de EstadoError.css: el margen de <p> lo fija base.css (regla 9).
   return (
-    <div className="estado-error">
-      <div className="estado-error__icono">
+    <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+      <div className="flex size-11.5 items-center justify-center rounded-[50%] bg-danger-tint text-danger-dark">
         <IconAlertCircle width={22} height={22} />
       </div>
-      <p className="estado-error__texto">{texto}</p>
+      <p className="estado-error__texto max-w-[360px] text-base text-text">{texto}</p>
       {onReintentar && (
         <button className="btn-outline-sm" type="button" onClick={onReintentar}>
           Reintentar
