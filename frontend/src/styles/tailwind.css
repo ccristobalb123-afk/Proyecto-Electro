@@ -90,6 +90,9 @@
   --color-muted-2: var(--muted-2);
   --color-gray-tint: var(--gray-tint);
   --color-gray-dark: var(--gray-dark);
+  --color-link: var(--link);
+  --color-link-hover: var(--link-hover);
+  --color-nav-activo: var(--nav-activo);
 
   /* Solo para bordes, con nombre corto: border-control, border-tarjeta */
   --border-color-control: var(--border-control);

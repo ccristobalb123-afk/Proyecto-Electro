@@ -147,7 +147,7 @@
 }
 
 .fin-card-archivo--link {
-  color: var(--electro-dark);
+  color: var(--link);
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 3px;
@@ -155,7 +155,7 @@
 
 @media (hover: hover) {
   .fin-card-archivo--link:hover {
-    color: var(--copper-dark);
+    color: var(--link-hover);
   }
 }
 

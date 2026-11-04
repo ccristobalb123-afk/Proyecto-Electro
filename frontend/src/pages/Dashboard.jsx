@@ -20,7 +20,8 @@ import { Link } from "react-router-dom";
 import "./Dashboard.css";
 
 const ICONO_KPI = [IconContrato, IconWrench, IconInvoice, IconBell];
-const TONE_KPI = ["copper", "success", "copper", "danger"];
+// "Contratos por vencer" en ámbar: es un aviso (por vencer), no una acción.
+const TONE_KPI = ["volt", "success", "copper", "danger"];
 
 function soles(monto) {
   // Antes solo había "k": 557 millones se mostraban como "S/ 557682.1k".

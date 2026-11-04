@@ -82,9 +82,10 @@
 }
 
 @media (hover: hover) {
+  /* --danger-dark: --danger sobre el tinte no llegaba a AA (3.97:1) */
   .menu-acciones__item--peligro:hover {
     background: var(--danger-tint);
-    color: var(--danger);
+    color: var(--danger-dark);
   }
 }
 

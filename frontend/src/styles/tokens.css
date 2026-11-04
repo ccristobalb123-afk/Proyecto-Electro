@@ -7,18 +7,24 @@
 
 :root {
   /* Base */
-  --ink: #243447;         /* sidebar — se mantiene oscuro a propósito */
-  --ink-2: #1b2836;
+  /* Azul marino (tono 222°): barra lateral, panel del Login y avisos
+     emergentes. --ink también es el color de la barra del celular
+     (theme-color) y del manifest: vite.config.js lo lee de acá. */
+  --ink: #081c49;
+  --ink-2: #051333;
   --ink-border: rgba(255, 255, 255, 0.08);
   /* Texto sobre superficies oscuras (sidebar, login, toasts) y sobre rellenos de color */
-  --on-ink: #edeae2;
-  --on-ink-soft: #b9c2cc;    /* texto de apoyo sobre navy (7:1) — párrafos del acceso */
-  --on-ink-accent: #f3d889;  /* ámbar claro para el enlace activo del sidebar */
-  --on-ink-muted: #93a0ae;   /* ≥4.5:1 sobre --ink y --ink-2 (antes #7c8794: 3.47:1) */
+  --on-ink: #ebebeb;
+  --on-ink-soft: #a5c5e8;    /* texto de apoyo sobre navy (9.2:1) — menú, párrafos del acceso */
+  --on-ink-accent: #fad66e;  /* ámbar claro sobre navy */
+  --on-ink-muted: #6fa2da;   /* ≥4.5:1 sobre --ink y --ink-2 (6.2:1) */
+  /* Elemento activo del menú y avatar: azul vivo de la familia del navy.
+     Blanco encima 5.0:1; contra la barra (--ink) 3.3:1. */
+  --nav-activo: #2b65ee;
   --on-accent: #ffffff;
-  --paper: #eaeef2;       /* fondo general */
+  --paper: #f5f8fa;       /* fondo general */
   --card: #ffffff;        /* tarjetas, paneles, inputs */
-  --border: #dce2e8;
+  --border: #e3e6e8;
   /* Borde de campos de formulario: ≥3:1 sobre --card (3.68) y --paper (3.16),
      criterio WCAG 1.4.11. --border queda para separadores y tarjetas. */
   --border-control: #7b8698;
@@ -37,9 +43,18 @@
      el resto del CSS, pero el valor es el azul Principal de la paleta.
      CorevexSAC usa este mismo azul como su color de marca (es la
      empresa "principal" del sistema). */
-  --copper: #2563eb;
-  --copper-dark: #1d4ed8;
-  --copper-tint: #dbeafe;
+  /* Desde la propuesta C es azul marino: botón principal, aro de foco,
+     opciones elegidas. --copper-dark: hover/presionado y texto de pestañas
+     activas. Los enlaces tienen su propio azul (--link). */
+  --copper: #153684;
+  --copper-dark: #0c255f;
+  --copper-tint: #e5ebfa;
+
+  /* Enlaces: azul vivo, distinto del navy de los botones y del texto
+     (3.6:1 contra --text, así se reconocen aun sin subrayado; 5.2:1 sobre
+     --card y 4.9:1 sobre --paper). */
+  --link: #185ef9;
+  --link-hover: #0b45cb;
 
   /* ElectroSAC — gris pizarra neutro, para no competir con el azul
      Principal ni sumar un tono extra a la paleta. */
@@ -48,25 +63,25 @@
   --electro-tint: #e2e8f0;
 
   /* Advertencia / pendiente / próximo a vencer */
-  --volt: #f59e0b;
-  --volt-dark: #92400e;
+  --volt: #f69e08;
+  --volt-dark: #8f4314;
   --volt-tint: #fef3c7;
 
   /* Error / vencido */
-  --danger: #dc2626;
-  --danger-dark: #991b1b;
+  --danger: #e40606;
+  --danger-dark: #9a1616;
   --danger-tint: #fee2e2;
 
   /* Éxito / pagado / disponible */
-  --success: #16a34a;
-  --success-dark: #166534;
+  --success: #04a43f;
+  --success-dark: #0f6630;
   --success-tint: #dcfce7;
 
-  --text: #1f2937;
+  --text: #011025;
   /* Texto secundario y terciario: ≥4.5:1 sobre --card, --paper,
      --gray-tint y --electro-tint (antes --muted-2 daba 2.2–2.6:1). */
-  --muted: #4b5769;
-  --muted-2: #5c687d;
+  --muted: #505760;
+  --muted-2: #616773;
 
   --gray-tint: #f1f3f5;
   --gray-dark: #4b5563;
@@ -79,8 +94,8 @@
   /* Layout */
   --sidebar-width: 240px;
   --topbar-height: 64px;
-  --radius: 8px;
-  --radius-lg: 12px;
+  --radius: 12px;      /* botones, campos y elementos del menú */
+  --radius-lg: 20px;   /* tarjetas y paneles */
 
   /* ---------- Sistema de diseño (punto 1.9 del roadmap) ---------- */
 
@@ -118,9 +133,11 @@
   --control-height-lg: 44px;
 
   /* Sombras — sutiles, propias de un fondo claro */
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0 1px 2px rgba(9, 32, 58, 0.05), 0 8px 24px -8px rgba(9, 32, 58, 0.14);
   --shadow-md: 0 12px 32px -4px rgba(16, 24, 40, 0.12);
   --shadow-lg: 0 20px 50px -4px rgba(16, 24, 40, 0.18);
+  /* Sombra de color del botón principal */
+  --shadow-boton: 0 6px 16px -6px color-mix(in srgb, var(--copper) 60%, transparent);
 
   --transition-fast: 0.12s ease;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -187,6 +204,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: var(--shadow-boton);
   transition: background 0.15s ease;
 }
 
@@ -196,9 +214,16 @@ a {
   }
 }
 
+/* Presionado: el tono oscuro y sin sombra (en el Login, además, se achica) */
+.btn-primary:active:not(:disabled) {
+  background: var(--copper-dark);
+  box-shadow: none;
+}
+
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 input:focus-visible,

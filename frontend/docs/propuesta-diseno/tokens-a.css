@@ -1,0 +1,47 @@
+/* Variante A · conservadora: solo los valores que cambiarían respecto de
+   src/styles/tokens.css (que se carga antes). Ver REPORTE.md. */
+:root {
+  /* Colores (misma familia; saturación y luminosidad hacia las referencias) */
+  --copper: #1e61f2; /* antes #2563eb */
+  --danger: #e11414; /* antes #dc2626 */
+  --success: #0ca444; /* antes #16a34a */
+  --volt: #f59e09; /* antes #f59e0b */
+  --copper-dark: #1e4fd7; /* antes #1d4ed8 */
+  --danger-dark: #9a1919; /* antes #991b1b */
+  --success-dark: #126632; /* antes #166534 */
+  --volt-dark: #914111; /* antes #92400e */
+  --copper-tint: #e2ecfb; /* antes #dbeafe */
+  --ink: #142943; /* antes #243447 */
+  --ink-2: #0c1928; /* antes #1b2836 */
+  --text: #0c1c33; /* antes #1f2937 */
+  --muted: #4e5764; /* antes #4b5769 */
+  --muted-2: #5e6878; /* antes #5c687d */
+  --paper: #eff3f6; /* antes #eaeef2 */
+  --border: #dfe4e8; /* antes #dce2e8 */
+  --on-ink: #ebeae6; /* antes #edeae2 */
+  --on-ink-soft: #afc3da; /* antes #b9c2cc */
+  --on-ink-muted: #81a2c5; /* antes #93a0ae */
+  --on-ink-accent: #f6d77d; /* antes #f3d889 */
+
+  /* Forma, sombra y letra */
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-nav: 10px;
+  --radius-boton: 10px;
+  --radius-pill: 999px;
+  --radius-avatar: 50%;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04), 0 2px 6px -1px rgba(16, 24, 40, 0.07);
+  --shadow-boton: none;
+  --borde-tarjeta: var(--borde-tarjeta-ancho) solid var(--borde-tarjeta-color);
+  --fs-rotulo: 11px;
+  --fw-rotulo: 600;
+  --tracking-rotulo: 0.06em;
+  --fs-titulo: 22px;
+  --fw-titulo: 600;
+  --fw-titulo-tarjeta: 600;
+  --font-kpi: var(--font-mono);
+  --fs-kpi: 28px;
+  --fs-kpi-movil: 24px;
+  --fw-kpi: 600;
+  --kpi-icono: 36px;
+}

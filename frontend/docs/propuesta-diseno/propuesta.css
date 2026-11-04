@@ -1,0 +1,886 @@
+/* ============================================================
+   Propuesta de diseño — piezas de muestra (no es parte de la app).
+   Todo sale de variables: tokens.css de la app + tokens-a.css o
+   tokens-b.css, que solo reemplazan los valores que cambiarían.
+   Lo que es distinto en la variante B va bajo html.vb.
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---------- Aviso de la lámina ---------- */
+.lamina-aviso {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  padding: var(--space-2) var(--space-6);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.lamina-aviso strong {
+  color: var(--text);
+}
+
+.lamina-aviso a {
+  color: var(--copper-dark);
+}
+
+/* ---------- Estructura ---------- */
+.app {
+  display: flex;
+  min-height: calc(100vh - 37px);
+}
+
+.contenido {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-8) var(--space-8) var(--space-10);
+}
+
+/* Rótulo pequeño en mayúsculas sobre un título pesado */
+.rotulo {
+  font-size: var(--fs-rotulo);
+  font-weight: var(--fw-rotulo);
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.encabezado h1,
+.encabezado h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-titulo);
+  font-weight: var(--fw-titulo);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin-top: var(--space-1);
+}
+
+.encabezado p {
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+
+.seccion + .seccion {
+  margin-top: var(--space-10);
+}
+
+/* ---------- (a) Barra lateral ---------- */
+.sidebar {
+  flex: 0 0 var(--sidebar-width);
+  background: var(--ink);
+  color: var(--on-ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.marca {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  border-bottom: 1px solid var(--ink-border);
+}
+
+.marca span {
+  color: var(--volt);
+}
+
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-3);
+}
+
+.nav-rotulo {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-rotulo);
+  font-weight: var(--fw-rotulo);
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+  color: var(--on-ink-muted);
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-nav);
+  font-size: 14px;
+  font-weight: var(--fw-medium);
+  color: var(--on-ink-soft);
+  text-decoration: none;
+}
+
+/* Activo: píldora con el azul de acción (no ámbar: el ámbar queda para
+   estados). A: relleno translúcido; B: relleno sólido. */
+.nav a.activo {
+  background: color-mix(in srgb, var(--copper) 26%, transparent);
+  color: var(--on-ink);
+  font-weight: var(--fw-semibold);
+}
+
+html.vb .nav a.activo {
+  background: var(--copper);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-boton);
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--ink-border);
+  font-size: var(--fs-sm);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-avatar);
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--on-ink) 14%, transparent);
+  font-weight: var(--fw-semibold);
+}
+
+.usuario small {
+  display: block;
+  color: var(--on-ink-muted);
+  font-size: var(--fs-xs);
+}
+
+/* ---------- Botón principal ---------- */
+.btn-primario {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 42px;
+  padding: 0 var(--space-5);
+  border: 0;
+  border-radius: var(--radius-boton);
+  background: var(--copper);
+  color: var(--on-accent);
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-boton);
+}
+
+/* ---------- (b) Tarjetas de resumen ---------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.kpi {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-num {
+  font-family: var(--font-kpi);
+  font-size: var(--fs-kpi);
+  font-weight: var(--fw-kpi);
+  line-height: 1.1;
+  margin-top: var(--space-2);
+  letter-spacing: -0.01em;
+}
+
+/* B: el número toma el color de su estado (en su tono oscuro: AA) */
+html.vb .kpi.volt .kpi-num {
+  color: var(--volt-dark);
+}
+
+html.vb .kpi.success .kpi-num {
+  color: var(--success-dark);
+}
+
+html.vb .kpi.danger .kpi-num {
+  color: var(--danger-dark);
+}
+
+.kpi-icono {
+  width: var(--kpi-icono);
+  height: var(--kpi-icono);
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+}
+
+.kpi.copper .kpi-icono {
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.kpi.success .kpi-icono {
+  background: var(--success-tint);
+  color: var(--success-dark);
+}
+
+.kpi.volt .kpi-icono {
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+}
+
+.kpi.danger .kpi-icono {
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+}
+
+/* ---------- (c) Tarjeta de equipo ---------- */
+.equipos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.equipo {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: var(--borde-tarjeta);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.equipo-cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.equipo-cat {
+  font-size: var(--fs-rotulo);
+  font-weight: var(--fw-rotulo);
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* B: rótulo en color, como en las referencias (azul: no es un estado) */
+html.vb .equipo-cat {
+  color: var(--copper-dark);
+}
+
+.equipo-nombre {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-titulo-tarjeta);
+  line-height: 1.25;
+  margin-top: 2px;
+}
+
+.equipo-codigo {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.estado {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+}
+
+.estado i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.estado.vigente {
+  background: var(--success-tint);
+  color: var(--success-dark);
+}
+
+.estado.vencido {
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+}
+
+.estado.asignado {
+  background: var(--electro-tint);
+  color: var(--electro-dark);
+}
+
+/* B: etiqueta sólida, texto blanco sobre el tono oscuro (≥ 6:1) */
+html.vb .estado {
+  color: var(--on-accent);
+}
+
+html.vb .estado.vigente {
+  background: var(--success-dark);
+}
+
+html.vb .estado.vencido {
+  background: var(--danger-dark);
+}
+
+html.vb .estado.asignado {
+  background: var(--electro-dark);
+}
+
+.equipo-cuerpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-5) var(--space-5);
+}
+
+/* Sin fotos reales: los mismos cuadros vacíos que usa la app */
+.fotos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.fotos span {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  background: var(--gray-tint);
+  border: 1px dashed var(--border);
+  display: grid;
+  place-items: center;
+  color: var(--muted-2);
+}
+
+.dato-rotulo {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.datos b {
+  font-weight: var(--fw-medium);
+}
+
+.asignado-a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--gray-tint);
+}
+
+.asignado-a svg {
+  color: var(--electro-dark);
+}
+
+.aviso-vencido {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--danger-tint);
+  color: var(--danger-dark);
+  font-size: var(--fs-sm);
+}
+
+.aviso-vencido a {
+  color: var(--danger-dark);
+  font-weight: var(--fw-semibold);
+}
+
+.equipo-pie {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: var(--paper);
+  border-top: 1px solid var(--border);
+}
+
+.btn-borde {
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-boton);
+  background: var(--card);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.btn-icono {
+  width: 36px;
+  height: 36px;
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-boton);
+  background: none;
+  color: var(--muted);
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 960px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .equipos {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* En celular el menú es un cajón: se muestra abierto, arriba, para verlo. */
+@media (max-width: 640px) {
+  .app {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .sidebar {
+    flex: none;
+  }
+
+  .contenido {
+    padding: var(--space-6) var(--space-4) var(--space-8);
+  }
+
+  .lamina-aviso {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .kpis {
+    gap: var(--space-3);
+  }
+
+  .kpi {
+    flex-direction: column-reverse;
+    padding: var(--space-4);
+  }
+
+  .kpi-num {
+    font-size: var(--fs-kpi-movil);
+  }
+}
+
+/* ============================================================
+   Variante C (html.vb.vc: hereda lo de B y cambia lo de abajo)
+   ============================================================ */
+
+/* Menú activo: píldora azul más clara que el navy de la barra
+   (blanco sobre ella 5.0:1; píldora contra la barra 3.3:1). */
+html.vc .nav a.activo {
+  background: var(--nav-activo);
+  box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--nav-activo) 70%, transparent);
+}
+
+/* En la app el avatar usa --copper: en C sería navy sobre navy. */
+html.vc .avatar {
+  background: var(--nav-activo);
+  color: var(--on-accent);
+}
+
+/* ---------- Galería de botones ----------
+   Copia de los botones de la app (tokens.css, buttons.css, Modal.css):
+   mismos colores, relleno y opacidad de deshabilitado; los radios son
+   los de la variante. Las clases es-* fuerzan un estado para verlo. */
+.galeria {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.galeria-fila {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+}
+
+.galeria-fila h3 {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--space-3);
+}
+
+.galeria-fila h3 small {
+  font-weight: var(--fw-regular);
+  color: var(--muted);
+}
+
+.estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-5);
+  align-items: flex-end;
+}
+
+.estado-caja {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.estado-caja > span {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.b-principal,
+.b-secundario,
+.b-peligro {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 42px;
+  padding: 0 18px;
+  border-radius: var(--radius-boton);
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold);
+  transition: background 0.15s ease, transform 100ms var(--ease-out);
+}
+
+.b-principal {
+  border: 0;
+  background: var(--copper);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-boton);
+}
+
+.b-principal.es-hover {
+  background: var(--copper-dark);
+}
+
+.b-principal.es-presionado {
+  background: var(--copper-dark);
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+.b-principal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+.b-secundario {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+}
+
+.b-secundario.es-hover {
+  border-color: var(--electro);
+  color: var(--electro-dark);
+}
+
+.b-secundario:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.b-peligro {
+  border: 0;
+  background: var(--danger);
+  color: var(--on-accent);
+  font-size: 13px;
+}
+
+.b-peligro.es-hover {
+  background: var(--danger-dark);
+}
+
+.b-peligro:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Ocupado no es deshabilitado: color normal y cursor de "trabajando"
+   (como .boton-carga en la app). Va después de :disabled para ganarle. */
+.b-principal:disabled[aria-busy="true"],
+.b-peligro:disabled[aria-busy="true"] {
+  opacity: 1;
+  cursor: progress;
+}
+
+.b-borde {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+}
+
+.b-borde.primario {
+  border-color: var(--copper);
+  color: var(--copper-dark);
+}
+
+.b-borde.primario.es-hover {
+  border-color: var(--copper-dark);
+  background: var(--copper-tint);
+}
+
+.b-borde.peligro {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.b-borde.peligro.es-hover {
+  background: var(--danger-tint);
+}
+
+.b-borde:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.b-icono {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--muted);
+}
+
+.b-icono svg {
+  width: 16px;
+  height: 16px;
+}
+
+.b-icono.es-hover {
+  background: var(--paper);
+}
+
+.b-icono.peligro {
+  color: var(--danger-dark);
+}
+
+.b-icono.peligro.es-hover {
+  border-color: var(--danger);
+  background: var(--danger-tint);
+}
+
+.b-icono:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* El aro de foco de la app: 2px del color de acción, separado 2px */
+.es-foco,
+.galeria button:focus-visible,
+.campo input:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 2px;
+}
+
+.girando svg {
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Otros usos del color de acción ---------- */
+.usos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-4);
+}
+
+.uso {
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.uso h3 {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.uso h3 code {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-regular);
+  color: var(--muted);
+}
+
+.enlace {
+  font-size: 12px;
+  color: var(--copper-dark);
+  text-decoration: underline;
+}
+
+.texto-uso {
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.pestanas button {
+  border: 0;
+  background: none;
+  padding: 8px 14px;
+  border-radius: calc(var(--radius) - 3px);
+  font-size: 13.5px;
+  font-weight: var(--fw-medium);
+  color: var(--muted);
+}
+
+.pestanas button.activa {
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+}
+
+.campo input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--copper);
+  border-radius: var(--radius);
+  background: var(--copper-tint);
+  color: var(--copper-dark);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.opcion input {
+  accent-color: var(--copper);
+  margin: 0;
+}
+
+.cargando-bloque {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.cargando-bloque svg {
+  color: var(--copper);
+}

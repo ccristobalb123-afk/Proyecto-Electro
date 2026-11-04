@@ -103,13 +103,13 @@
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 3px;
-  color: var(--electro-dark);
+  color: var(--link);
   cursor: pointer;
 }
 
 @media (hover: hover) {
   .vehiculo-doc-nombre--link:hover {
-    color: var(--copper-dark);
+    color: var(--link-hover);
   }
 }
 

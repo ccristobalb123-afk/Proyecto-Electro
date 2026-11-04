@@ -1,0 +1,51 @@
+/* Variante C: B con la barra lateral y la acción en azul marino.
+   Solo los valores que cambiarían respecto de src/styles/tokens.css
+   (que se carga antes); no depende de tokens-b.css. Ver REPORTE.md. */
+:root {
+  /* Azul marino (tono 222°): barra lateral, botón principal y su familia */
+  --ink: #081c49; /* antes #243447 */
+  --ink-2: #051333; /* antes #1b2836 */
+  --copper: #153684; /* antes #2563eb */
+  --copper-dark: #0c255f; /* antes #1d4ed8 */
+  --copper-tint: #e5ebfa; /* antes #dbeafe */
+
+  /* Resto de colores: iguales a la variante B */
+  --danger: #e40606; /* antes #dc2626 */
+  --success: #04a43f; /* antes #16a34a */
+  --volt: #f69e08; /* antes #f59e0b */
+  --danger-dark: #9a1616; /* antes #991b1b */
+  --success-dark: #0f6630; /* antes #166534 */
+  --volt-dark: #8f4314; /* antes #92400e */
+  --text: #011025; /* antes #1f2937 */
+  --muted: #505760; /* antes #4b5769 */
+  --muted-2: #616773; /* antes #5c687d */
+  --paper: #f5f8fa; /* antes #eaeef2 */
+  --border: #e3e6e8; /* antes #dce2e8 */
+  --on-ink: #ebebeb; /* antes #edeae2 */
+  --on-ink-soft: #a5c5e8; /* antes #b9c2cc */
+  --on-ink-muted: #6fa2da; /* antes #93a0ae */
+  --on-ink-accent: #fad66e; /* antes #f3d889 */
+
+  /* Forma, sombra y letra: iguales a B, salvo el borde de la tarjeta de
+     equipo, que queda como hoy en la app (2px, --border-control). */
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-nav: 999px;
+  --radius-boton: 12px;
+  --radius-pill: 999px;
+  --radius-avatar: 12px;
+  --shadow-sm: 0 1px 2px rgba(9, 32, 58, 0.05), 0 8px 24px -8px rgba(9, 32, 58, 0.14);
+  --shadow-boton: 0 6px 16px -6px color-mix(in srgb, var(--copper) 60%, transparent);
+  --fs-rotulo: 11.5px;
+  --fw-rotulo: 700;
+  --tracking-rotulo: 0.08em;
+  --fs-titulo: 30px;
+  --fw-titulo: 700;
+  --fw-titulo-tarjeta: 700;
+  --font-kpi: var(--font-display);
+  --fs-kpi: 34px;
+  --fs-kpi-movil: 28px;
+  --fw-kpi: 700;
+  --kpi-icono: 44px;
+  --nav-activo: #2b65ee;
+}

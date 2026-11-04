@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es" class="vb">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Propuesta de diseño — variante B · marcada</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <!-- Valores reales de la app, luego los que cambiaría esta variante -->
+  <link rel="stylesheet" href="../../src/styles/tokens.css" />
+  <link rel="stylesheet" href="tokens-b.css" />
+  <link rel="stylesheet" href="propuesta.css" />
+</head>
+<body>
+  <div class="lamina-aviso">
+    <span><strong>Propuesta de diseño — variante B · marcada.</strong> Valores de ejemplo, no son datos reales.</span>
+    <a href="variante-a.html">Ver variante A · conservadora</a> · <a href="variante-c.html">Ver variante C · azul marino</a>
+  </div>
+  <div class="app">
+    <aside class="sidebar" aria-label="(a) Barra lateral">
+      <div class="marca">Activo<span>360</span></div>
+      <nav class="nav">
+        <div class="nav-rotulo">Módulos</div>
+        <a href="#" class="activo" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><circle cx="18" cy="8.5" r="2.5"/><path d="M15.5 13.5c2.8.3 5 2.7 5 6.5"/></svg>RRHH</a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4l-3-3-3 3z"/></svg>Operaciones</a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 12h6M12 9v6"/></svg>Finanzas</a>
+        <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Administración</a>
+      </nav>
+      <div class="usuario">
+        <div class="avatar">UE</div>
+        <div>Usuario de ejemplo<small>CorevexSAC · ElectroSAC</small></div>
+      </div>
+    </aside>
+
+    <main class="contenido">
+      <section class="seccion" aria-label="(b) Tarjetas de resumen">
+        <div class="encabezado">
+          <div>
+            <div class="rotulo">Resumen</div>
+            <h1>Dashboard general</h1>
+            <p>Lo que vence y lo pendiente de las dos empresas.</p>
+          </div>
+        </div>
+        <div class="kpis">
+        <div class="kpi volt">
+          <div><div class="rotulo">Contratos por vencer</div><div class="kpi-num">7</div></div>
+          <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2v4M15 2v4M4 8h16v12H4z"/><path d="M4 12h16"/></svg></div>
+        </div>
+        <div class="kpi success">
+          <div><div class="rotulo">Equipos disponibles</div><div class="kpi-num">12</div></div>
+          <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4l-3-3-3 3z"/></svg></div>
+        </div>
+        <div class="kpi copper">
+          <div><div class="rotulo">Por cobrar</div><div class="kpi-num">S/ 48.2k</div></div>
+          <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        </div>
+        <div class="kpi danger">
+          <div><div class="rotulo">Alertas pendientes</div><div class="kpi-num">3</div></div>
+          <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        </div>
+        </div>
+      </section>
+
+      <section class="seccion" aria-label="(c) Tarjeta de equipo">
+        <div class="encabezado">
+          <div>
+            <div class="rotulo">Operaciones</div>
+            <h2>Equipos</h2>
+          </div>
+          <button class="btn-primario" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Nuevo equipo</span></button>
+        </div>
+        <div class="equipos">
+        <article class="equipo">
+          <div class="equipo-cab">
+            <div>
+              <div class="equipo-cat">Seguridad eléctrica</div>
+              <h3 class="equipo-nombre">Detector de tensión</h3>
+              <div class="equipo-codigo">EQ-0108</div>
+            </div>
+            <span class="estado vigente"><i></i>Vigente</span>
+          </div>
+          <div class="equipo-cuerpo">
+            <div class="fotos"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span></div>
+            
+            <div class="datos">
+              <div><span class="dato-rotulo">Inspección</span><b>12/09/2026</b></div>
+              <div><span class="dato-rotulo">Vencimiento</span><b>12/03/2027</b></div>
+            </div>
+          </div>
+          <div class="equipo-pie">
+            <button class="btn-borde" type="button">Inspeccionar</button>
+            <button class="btn-borde" type="button">Editar</button>
+            <button class="btn-icono" type="button" aria-label="Más acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+          </div>
+        </article>
+        <article class="equipo">
+          <div class="equipo-cab">
+            <div>
+              <div class="equipo-cat">Maniobra</div>
+              <h3 class="equipo-nombre">Pértiga telescópica</h3>
+              <div class="equipo-codigo">EQ-0115</div>
+            </div>
+            <span class="estado vencido"><i></i>Vencido</span>
+          </div>
+          <div class="equipo-cuerpo">
+            <div class="fotos"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span></div>
+            <div class="aviso-vencido" role="status"><span>Inspección vencida hace 5 días</span><a href="#">Renovar</a></div>
+            <div class="datos">
+              <div><span class="dato-rotulo">Inspección</span><b>29/04/2026</b></div>
+              <div><span class="dato-rotulo">Vencimiento</span><b>29/10/2026</b></div>
+            </div>
+          </div>
+          <div class="equipo-pie">
+            <button class="btn-borde" type="button">Inspeccionar</button>
+            <button class="btn-borde" type="button">Editar</button>
+            <button class="btn-icono" type="button" aria-label="Más acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+          </div>
+        </article>
+        <article class="equipo">
+          <div class="equipo-cab">
+            <div>
+              <div class="equipo-cat">Protección personal</div>
+              <h3 class="equipo-nombre">Arnés de seguridad</h3>
+              <div class="equipo-codigo">EQ-0121</div>
+            </div>
+            <span class="estado asignado"><i></i>Asignado</span>
+          </div>
+          <div class="equipo-cuerpo">
+            <div class="fotos"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span></div>
+            <div class="asignado-a"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="15" height="11" rx="2"/><path d="M18 9h2.5L22 12v5h-4"/><circle cx="7.5" cy="18.5" r="1.5"/><circle cx="17.5" cy="18.5" r="1.5"/></svg><div><span class="dato-rotulo">Asignado a</span><b>Camión de ejemplo</b></div></div>
+            <div class="datos">
+              <div><span class="dato-rotulo">Inspección</span><b>02/10/2026</b></div>
+              <div><span class="dato-rotulo">Vencimiento</span><b>02/04/2027</b></div>
+            </div>
+          </div>
+          <div class="equipo-pie">
+            <button class="btn-borde" type="button">Inspeccionar</button>
+            <button class="btn-borde" type="button">Editar</button>
+            <button class="btn-icono" type="button" aria-label="Más acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+          </div>
+        </article>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>

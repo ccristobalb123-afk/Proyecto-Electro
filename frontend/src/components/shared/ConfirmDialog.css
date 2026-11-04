@@ -1,7 +1,7 @@
 .confirm-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(18, 24, 31, 0.55);
+  background: color-mix(in srgb, var(--ink-2) 55%, transparent);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;

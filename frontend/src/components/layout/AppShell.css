@@ -76,10 +76,20 @@
   flex: none;
 }
 
+/* Activo: azul vivo (--nav-activo) con las esquinas de los controles
+   (--radius, como en hover). El borde izquierdo queda transparente pero
+   se conserva: sus 3px sostienen la posición del texto. */
 .nav a.active {
-  background: color-mix(in srgb, var(--volt) 8%, transparent);
-  color: var(--on-ink-accent);
-  border-left-color: var(--volt);
+  background: var(--nav-activo);
+  color: var(--on-accent);
+  border-left-color: transparent;
+}
+
+@media (hover: hover) {
+  .nav a:not(.active):hover {
+    background: color-mix(in srgb, var(--on-ink) 8%, transparent);
+    color: var(--on-ink);
+  }
 }
 
 /* Dos filas: avatar + nombre/empresas arriba, botones abajo. Con los
@@ -133,7 +143,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--copper);
+  background: var(--nav-activo); /* --copper es navy: no se vería sobre la barra */
   color: var(--on-accent);
   display: flex;
   align-items: center;
@@ -321,7 +331,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(18, 24, 31, 0.5);
+    background: color-mix(in srgb, var(--ink-2) 50%, transparent);
     z-index: var(--z-drawer-overlay);
   }
 

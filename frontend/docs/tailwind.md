@@ -39,6 +39,8 @@ no ve la clase armada en tiempo de ejecución); usa
 | `--electro*`, `--volt*`, `--danger*`, `--success*` | igual: `bg-danger-tint`, `text-success-dark`… |
 | `--ink`, `--ink-2`, `--on-ink*`, `--on-accent` | `bg-ink`, `text-on-ink-muted`, `text-on-accent`… |
 | `--gray-tint`, `--gray-dark` | `bg-gray-tint`, `text-gray-dark` |
+| `--link`, `--link-hover` | `text-link`, `hover:text-link-hover` (enlaces) |
+| `--nav-activo` | `bg-nav-activo` (elemento activo del menú, avatar) |
 | `--font-display`, `--font-body`, `--font-mono` | `font-display`, `font-body`, `font-mono` |
 | `--fs-xs` … `--fs-2xl` | `text-xs`, `text-sm`, `text-base`, `text-md`, `text-lg`, `text-xl`, `text-2xl` |
 | `--fw-regular` … `--fw-bold` | `font-regular`, `font-medium`, `font-semibold`, `font-bold` |

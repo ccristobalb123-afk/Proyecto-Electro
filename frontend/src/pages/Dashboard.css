@@ -39,6 +39,11 @@
   color: var(--copper-dark);
 }
 
+.kpi-icon.volt {
+  background: var(--volt-tint);
+  color: var(--volt-dark);
+}
+
 .kpi-icon.danger {
   background: var(--danger-tint);
   color: var(--danger-dark);

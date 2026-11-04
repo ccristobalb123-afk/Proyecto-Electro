@@ -269,7 +269,7 @@ tbody tr:last-child td {
 }
 
 .docs-row-title--link {
-  color: var(--electro-dark);
+  color: var(--link);
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 3px;
@@ -278,7 +278,7 @@ tbody tr:last-child td {
 
 @media (hover: hover) {
   .docs-row-title--link:hover {
-    color: var(--copper-dark);
+    color: var(--link-hover);
   }
 }
 
@@ -290,12 +290,13 @@ tbody tr:last-child td {
 
 .docs-row-sub--link {
   display: inline-block;
+  color: var(--link);
   text-decoration: underline;
 }
 
 @media (hover: hover) {
   .docs-row-sub--link:hover {
-    color: var(--copper);
+    color: var(--link-hover);
   }
 }
 

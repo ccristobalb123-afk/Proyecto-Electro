@@ -2,7 +2,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(18, 24, 31, 0.5);
+  background: color-mix(in srgb, var(--ink-2) 50%, transparent);
   align-items: center;
   justify-content: center;
   z-index: var(--z-modal);
@@ -282,7 +282,7 @@ fieldset.form-field {
 }
 
 .dropzone p b {
-  color: var(--copper-dark);
+  color: var(--link);
 }
 
 .dropzone.has-file {
