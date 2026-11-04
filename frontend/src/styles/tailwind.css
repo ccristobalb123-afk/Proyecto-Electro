@@ -3,12 +3,20 @@
 
    - Sin preflight (el "reinicio" de Tailwind): cambiaría botones,
      títulos y listas de toda la app. Solo tema + utilidades.
-   - Capas: todo Tailwind va en capas (@layer theme / utilities). El CSS
-     actual no está en ninguna capa, y lo que no está en capa SIEMPRE le
-     gana a lo que sí, sin importar la especificidad ni el orden. O sea:
-     si una clase de Tailwind y una regla antigua tocan la misma
-     propiedad del mismo elemento, gana la antigua. Para que mande
-     Tailwind, al migrar se borra esa propiedad del CSS antiguo.
+   - Capas, de menor a mayor prioridad: theme → base → components →
+     utilities → CSS sin capa.
+     · base: styles/base.css (el "reboot" de etiquetas: h1-h6, p, label,
+       button, input…). Al estar en capa, cualquier clase de Tailwind le
+       gana, y también cualquier regla sin capa.
+     · El resto del CSS de la app (tokens.css, responsive.css, el .css de
+       cada módulo) no está en capa y SIEMPRE le gana a lo que sí, sin
+       importar la especificidad ni el orden. Si una clase de Tailwind y
+       una de esas reglas tocan la misma propiedad del mismo elemento,
+       gana la regla; para que mande Tailwind, al migrar se borra esa
+       propiedad del CSS antiguo.
+     · La regla global de foco de tokens.css (input/button:focus-visible)
+       queda a propósito fuera de capa: es la red de seguridad del anillo
+       de foco.
    - Tema: lee los valores de tokens.css con var(); no los copia.
      "inline" hace que la clase use var(--token) directamente y
      "reference" que no se genere ninguna variable --color-…, --font-…
@@ -16,6 +24,7 @@
    ============================================================ */
 
 @layer theme, base, components, utilities;
+@import "./base.css" layer(base);
 
 @import "tailwindcss/theme.css" layer(theme);
 /* source(none) + @source: solo se buscan clases en src/ (no en docs/,

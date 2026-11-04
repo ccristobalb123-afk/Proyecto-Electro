@@ -4,8 +4,14 @@
    interfaz daba por hechas y que el CSS propio nunca declaró (interlineado
    del body, encabezados, formularios, <legend>, íconos SVG, tablas). Sin
    ellas todo el texto y los formularios cambiarían de tamaño y de posición.
-   Va ANTES de tokens.css: tokens.css y el CSS de cada módulo tienen la
-   última palabra.
+
+   Se carga desde styles/tailwind.css en la capa "base" de Tailwind
+   (@import … layer(base)), no desde main.jsx. Por eso pierde contra todo:
+   las clases de Tailwind y cualquier regla sin capa (tokens.css y el CSS
+   de cada módulo) le ganan sin importar la especificidad.
+   Excepción: sus dos reglas con !important ([hidden] y el foco de
+   [tabindex="-1"]) le ganan a cualquier !important sin capa (en capas,
+   !important se invierte).
    ============================================================ */
 
 *::before,

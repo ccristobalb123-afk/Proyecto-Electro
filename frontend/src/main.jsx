@@ -1,11 +1,11 @@
 import "./utils/plataforma.js";
-import "./styles/base.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/tokens.css";
-// Tailwind (solo tema y utilidades, en capas: el CSS de arriba y de cada
-// módulo le gana siempre). Ver docs/tailwind.md.
+// Tailwind (tema, base.css en la capa "base" y utilidades, todo en capas:
+// el CSS sin capa de arriba y de cada módulo le gana siempre). base.css ya
+// no se importa acá: entra por tailwind.css. Ver docs/tailwind.md.
 import "./styles/tailwind.css";
 import "./styles/motion.css";
 import "./styles/buttons.css";

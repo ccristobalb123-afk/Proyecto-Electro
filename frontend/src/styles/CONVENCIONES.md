@@ -7,15 +7,21 @@ El proyecto **no usa Bootstrap ni `react-bootstrap`**. Todo el estilo sale de
 `badges.css`, `filters.css`, `responsive.css` y el CSS de cada módulo.
 
 ### Tailwind (migración gradual)
-Tailwind 4 está instalado, sin preflight y en capas: el CSS de este archivo y
-de cada módulo siempre le gana. Uso, tabla token → clase, breakpoints y
-reglas de convivencia en `frontend/docs/tailwind.md`.
+Tailwind 4 está instalado, sin preflight y en capas. El CSS sin capa
+(`tokens.css`, `responsive.css` y el CSS de cada módulo) siempre le gana a las
+clases; `base.css` no, porque va en la capa `base`. Uso, tabla token → clase,
+breakpoints y reglas de convivencia en `frontend/docs/tailwind.md`.
 
 ### `base.css`
 Conserva únicamente las reglas del antiguo "reboot" de Bootstrap que la interfaz
 daba por hechas: `line-height: 1.5` en el `body`, márgenes y peso de los
 encabezados, `vertical-align: middle` en los SVG, formularios que heredan la
 fuente, `<legend>`/`<fieldset>` y tablas. No agregar estilos visuales ahí.
+
+Se carga desde `tailwind.css` en la capa `base` de Tailwind (no desde
+`main.jsx`): cualquier regla sin capa o clase de Tailwind le gana. Sus dos
+reglas con `!important` (`[hidden]` y el foco de `[tabindex="-1"]`) le ganan
+a cualquier `!important` sin capa.
 
 ### Grillas de tarjetas
 CSS Grid con `minmax(0, 1fr)`, sin librería y con `gap: var(--space-4)`:

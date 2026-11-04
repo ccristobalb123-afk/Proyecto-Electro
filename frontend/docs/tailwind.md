@@ -91,11 +91,26 @@ reglas siguen en `responsive.css`.
 1. **Sin preflight.** No se carga el "reinicio" de Tailwind. Los elementos
    siguen con los estilos del navegador + `base.css`. Consecuencia: `border`
    no pone color (usa el del texto); escribe siempre `border border-control`.
-2. **El CSS actual siempre gana.** Tailwind vive en capas de cascada
-   (`@layer theme` y `@layer utilities`); el CSS de la app no está en ninguna
-   capa, y lo que no está en capa le gana a lo que sí, sin importar la
-   especificidad ni el orden de carga. Si un elemento tiene
-   `.equipo-card { padding: 16px }` y le agregas `p-2`, **sigue con 16 px**.
+2. **El CSS sin capa gana; `base.css` no.** El orden de las capas, de menor
+   a mayor prioridad, es `theme → base → components → utilities → CSS sin
+   capa`.
+   - `base.css` va en la capa `base` (lo importa `tailwind.css` con
+     `layer(base)`): **cualquier clase de Tailwind le gana**. Un `<h2>` o un
+     `<p>` aceptan clases de tamaño, peso y margen sin dejar nada en CSS.
+   - El resto del CSS de la app (`tokens.css`, `responsive.css`, el `.css` de
+     cada módulo) no está en capa, y lo que no está en capa le gana a lo que
+     sí, sin importar la especificidad ni el orden de carga. Si un elemento
+     tiene `.equipo-card { padding: 16px }` y le agregas `p-2`, **sigue con
+     16 px**.
+   - **Ojo con `!important`:** en capas se invierte. Las dos reglas con
+     `!important` de `base.css` (`[hidden] { display: none }` y el foco de
+     `[tabindex="-1"]`) ahora le ganan a **cualquier** `!important` sin capa.
+     Hoy ninguna regla compite con ellas; no escribas otro `display` u
+     `outline` con `!important` para esos casos.
+   - La regla global de foco de `tokens.css`
+     (`input:focus-visible, button:focus-visible`) queda a propósito fuera de
+     capa: es la red de seguridad del anillo de foco y ninguna clase debe
+     poder quitarlo.
 3. **Cómo migrar una regla:** pasa la propiedad a clases de Tailwind y
    **bórrala** del CSS antiguo en el mismo cambio. Si dejas las dos, gana la
    antigua (y la clase nueva parece "no funcionar").
@@ -113,20 +128,25 @@ reglas siguen en `responsive.css`.
    inútil, se excluye en `@source not inline(...)` de `tailwind.css`.
 8. **CSP:** todo queda en el archivo `.css` del build (`style-src 'self'`),
    sin estilos en línea. No hay que tocar la política.
-9. **Etiquetas con estilo de `base.css`:** `base.css` tampoco está en capa,
-   así que en estos elementos esas propiedades **no** se pueden pasar a
-   clases (se quedan en el `.css` del módulo):
+9. **Componentes globales sin capa:** si un elemento lleva una clase o
+   etiqueta que otra regla sin capa ya estiliza, esas propiedades **no** se
+   pueden pasar a clases (se quedan en el `.css` del módulo). Hoy:
 
-   | Elemento | Propiedades que fija `base.css` |
+   | Regla sin capa | Propiedades que fija |
    |---|---|
-   | `h1`…`h6` | `font-size`, `font-weight`, `line-height`, `margin-top`, `margin-bottom` |
-   | `p` | `margin-top`, `margin-bottom` |
-   | `label` | `display` |
-   | `button`, `input`, `select`, `textarea` | `margin`, `font-family`, `font-size`, `line-height` |
-   | `button` | `border-radius`, `text-transform` |
+   | `.btn-primary` (`tokens.css`) | alto, relleno, letra, color, fondo, radio, transición… |
+   | `button`, `a` (`tokens.css`) | `button`: `font-family`, `cursor`; `a`: `color`, `text-decoration` |
+   | `.link-button` (`buttons.css`) | color, letra, margen, subrayado |
+   | `.loading-bloque` (`Loading.css`) | relleno, separación… |
+   | `.password-field` (`PasswordField.css`) | `display` del label, letra del input, radio del ojo |
 
-   Lo mismo con un botón global (`.btn-primary`) o un enlace (`a` ya trae
-   `color` y `text-decoration`). Ejemplo: Login (`AuthForm.css`).
+   `base.css` ya **no** está en esta lista: desde que va en la capa `base`,
+   sus propiedades (márgenes y tamaños de `h1`-`h6` y `p`, `display` de
+   `label`, letra y margen de `button`/`input`/`select`/`textarea`, radio de
+   `button`) se pueden pasar a clases. Los restos que quedaron por `base.css`
+   en archivos ya migrados (`AuthShell.css`, `AuthForm.css`,
+   `PasswordField.css`, `EstadoVacio.css`, `EstadoError.css`, `Dashboard.css`)
+   se migran en un paso aparte.
 
 ## Detalles que cambian el estilo calculado
 
@@ -165,8 +185,14 @@ Para que una migración quede idéntica (no solo "parecida"):
 
 ## Estado de la migración
 
-**Migrado** (estilos en clases; en su `.css` solo queda lo que bloquea
-`base.css` o un componente global, regla 9):
+**Capa base:** `base.css` está en `@layer base` (desde `tailwind.css`). Falta:
+las reglas de etiqueta globales de `tokens.css` (`*`, `html/body/#root`,
+`body`, `button`, `a`; la de foco se queda fuera a propósito) y migrar los
+restos que `base.css` dejó en los archivos ya migrados.
+
+**Migrado** (estilos en clases; en su `.css` queda lo que fijaba `base.css`
+cuando estaba sin capa —pendiente de pasar a clases— o lo que bloquea un
+componente global, regla 9):
 
 | Qué | Archivos | CSS que queda |
 |---|---|---|
