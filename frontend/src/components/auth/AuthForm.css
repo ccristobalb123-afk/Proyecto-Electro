@@ -1,60 +1,36 @@
 /* ============================================================
    Contenido de los formularios del acceso (dentro de AuthShell).
-   Clases con prefijo auth-: no se mezclan con .field-error ni con
-   ningún otro estilo global que usan los modales de la app.
+   Los estilos van con clases de Tailwind (components/auth/clasesAuth.js).
+   Acá queda solo lo que una clase no puede cambiar, porque una regla sin
+   capa ya lo fija en el mismo elemento (ver docs/tailwind.md):
+   - base.css: márgenes y letra de <h2> y <p>, display de <label>, letra
+     y fuente de <input> y <button>;
+   - .btn-primary (tokens.css) y .password-field (PasswordField.css):
+     botón y campo compartidos con el resto de la app;
+   - a { color: inherit } (tokens.css): color del enlace «Volver».
+   Clases con prefijo auth-: no se mezclan con .field-error ni con ningún
+   otro estilo global que usan los modales de la app.
    ============================================================ */
 
-.auth-form {
-  width: 100%;
-}
-
 .auth-form h2 {
-  font-size: 26px;
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-semibold);
   line-height: 1.2;
-  letter-spacing: -0.015em;
   margin: 0 0 var(--space-2);
 }
 
-.auth-form h2:focus {
-  outline: none; /* recibe el foco por código al cambiar de paso; no es un control */
-}
-
 .auth-sub {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--muted);
   margin: 0 0 28px;
 }
 
 /* ---------- Campos de texto (usuario, correo) ---------- */
-.auth-field {
-  margin-bottom: 18px;
-}
-
 .auth-field label {
   display: block;
-  font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-  color: var(--muted);
-  margin-bottom: 6px;
 }
 
 .auth-field input {
-  width: 100%;
-  height: var(--control-height-lg);
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius);
-  padding: 0 14px;
   font-size: 14px;
   font-family: var(--font-body);
-  color: var(--text);
-  background: var(--card);
-  transition: border-color var(--transition-fast);
-}
-
-.auth-field input[aria-invalid="true"] {
-  border-color: var(--danger);
 }
 
 /* Los campos de contraseña de la carcasa se alinean con los demás */
@@ -62,25 +38,12 @@
   margin-bottom: 18px;
 }
 
-/* ---------- Mensaje de error ---------- */
+/* ---------- Mensajes ---------- */
 .auth-error {
-  font-size: var(--fs-sm);
-  line-height: 1.4;
-  color: var(--danger-dark);
   margin: -6px 0 var(--space-4);
-  animation: auth-error-entrada 160ms var(--ease-out) both;
 }
 
-/* Aviso informativo (no es un error del formulario): por qué se volvió
-   al login, por ejemplo "Tu sesión se cerró por inactividad". */
 .auth-aviso {
-  font-size: var(--fs-sm);
-  line-height: 1.4;
-  color: var(--text);
-  background: var(--volt-tint);
-  border-left: 3px solid var(--volt-dark);
-  border-radius: var(--radius);
-  padding: var(--space-2) var(--space-3);
   margin: 0 0 var(--space-4);
 }
 
@@ -106,23 +69,11 @@
   transform: scale(0.97);
 }
 
-.auth-link-btn {
-  text-align: center;
-  text-decoration: none;
-}
-
 /* ---------- Enlace «Volver» ---------- */
 .auth-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
   font-size: var(--fs-base);
   color: var(--muted);
   margin: 0 0 20px -4px; /* el ícono alinea su trazo con el borde del texto */
-  padding: 0;
-  background: none;
-  border: none;
-  text-decoration: none;
 }
 
 .auth-back--abajo {
@@ -135,65 +86,8 @@
   }
 }
 
-@media (pointer: coarse) {
-  .auth-back {
-    min-height: 44px;
-  }
-}
-
-/* ---------- Ícono de paso ---------- */
-.auth-step-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--volt-tint);
-  color: var(--volt-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 18px;
-}
-
-.auth-step-icon--exito {
-  background: var(--success-tint);
-  color: var(--success-dark);
-}
-
-/* ---------- QR de configuración de MFA ---------- */
-.auth-qr {
-  display: block;
-  width: 180px;
-  height: 180px;
-  margin: 8px auto 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 10px;
-  background: #fff; /* el QR necesita fondo blanco para leerse, sin importar el tema */
-}
-
 /* ---------- Casillas del código (OtpInput) ---------- */
-.auth-otp {
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-6);
-}
-
 .auth-otp__casilla {
-  flex: 1 1 0;
-  min-width: 0; /* en pantallas de 320px se encogen en vez de desbordar */
-  max-width: 48px;
-  height: 52px;
-  padding: 0;
-  text-align: center;
   font-size: 20px;
   font-family: var(--font-mono);
-  color: var(--text);
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius);
-  background: var(--card);
-  transition: border-color var(--transition-fast);
-}
-
-.auth-otp__casilla[aria-invalid="true"] {
-  border-color: var(--danger);
 }

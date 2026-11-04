@@ -7,6 +7,7 @@ import PasswordStrength from "../components/shared/PasswordStrength";
 import { MIN_LARGO_PASSWORD } from "../utils/password";
 import { IconChevronLeft } from "../components/icons/Icons";
 import * as authService from "../services/authService";
+import * as c from "../components/auth/clasesAuth";
 
 const PASOS = [
   { id: "nueva", etiqueta: "Nueva contraseña" },
@@ -59,26 +60,26 @@ export default function RestablecerPassword() {
   return (
     <AuthShell flujo="restablecer" pasos={PASOS} actual={listo ? 1 : 0} paso={listo ? "listo" : "formulario"}>
       {listo ? (
-        <div className="auth-form">
-          <div className="auth-step-icon auth-step-icon--exito">
+        <div className={c.FORM}>
+          <div className={c.ICONO_EXITO}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M20 6 9 17l-5-5" />
             </svg>
           </div>
-          <h2 className="font-display" tabIndex={-1}>
+          <h2 className={c.TITULO} tabIndex={-1}>
             Contraseña actualizada
           </h2>
-          <p className="auth-sub">Ya puedes iniciar sesión con tu contraseña nueva.</p>
-          <Link className="btn-primary auth-link-btn" to="/login">
+          <p className={c.SUB}>Ya puedes iniciar sesión con tu contraseña nueva.</p>
+          <Link className="btn-primary text-center" to="/login">
             Ir a iniciar sesión
           </Link>
         </div>
       ) : (
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <h2 className="font-display" tabIndex={-1}>
+        <form className={c.FORM} onSubmit={handleSubmit}>
+          <h2 className={c.TITULO} tabIndex={-1}>
             Crea una contraseña nueva
           </h2>
-          <p className="auth-sub">Elige una contraseña que no hayas usado antes.</p>
+          <p className={c.SUB}>Elige una contraseña que no hayas usado antes.</p>
 
           <PasswordField
             id="passwordNueva"
@@ -104,7 +105,7 @@ export default function RestablecerPassword() {
           />
 
           {mensajeError && (
-            <p id="restablecer-error" className="auth-error" role="alert">
+            <p id="restablecer-error" className={c.ERROR} role="alert">
               {mensajeError}
             </p>
           )}
@@ -113,7 +114,7 @@ export default function RestablecerPassword() {
             Guardar contraseña
           </BotonCarga>
 
-          <Link className="auth-back auth-back--abajo" to="/login">
+          <Link className={`${c.VOLVER} auth-back--abajo`} to="/login">
             <IconChevronLeft width={16} height={16} /> Volver a inicio de sesión
           </Link>
         </form>

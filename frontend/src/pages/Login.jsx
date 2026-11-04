@@ -6,6 +6,7 @@ import OtpInput from "../components/auth/OtpInput";
 import PasswordField from "../components/shared/PasswordField";
 import { IconChevronLeft } from "../components/icons/Icons";
 import { useAuth } from "../context/AuthContext";
+import * as c from "../components/auth/clasesAuth";
 
 // Por qué se volvió al login (ver AuthContext → motivoCierre).
 const MENSAJES_CIERRE = {
@@ -48,7 +49,7 @@ export default function Login() {
 
   const errorId = l.error ? "login-error" : undefined;
   const mensajeError = l.error && (
-    <p id="login-error" className="auth-error" role="alert">
+    <p id="login-error" className={c.ERROR} role="alert">
       {l.error}
     </p>
   );
@@ -56,21 +57,22 @@ export default function Login() {
   return (
     <AuthShell flujo={flujo} pasos={pasos} actual={actual} paso={l.step}>
       {l.step === STEPS.CREDENTIALS && (
-        <form className="auth-form" onSubmit={l.handleCredentialsSubmit}>
-          <h2 className="font-display" tabIndex={-1}>
+        <form className={c.FORM} onSubmit={l.handleCredentialsSubmit}>
+          <h2 className={c.TITULO} tabIndex={-1}>
             Inicia sesión
           </h2>
-          <p className="auth-sub">Ingresa tus credenciales para continuar.</p>
+          <p className={c.SUB}>Ingresa tus credenciales para continuar.</p>
           {MENSAJES_CIERRE[motivoCierre] && (
-            <p className="auth-aviso" role="status">
+            <p className={c.AVISO} role="status">
               {MENSAJES_CIERRE[motivoCierre]}
             </p>
           )}
-          <div className="auth-field">
-            <label htmlFor="usuario">Usuario</label>
+          <div className={c.CAMPO}>
+            <label htmlFor="usuario" className={c.CAMPO_LABEL}>Usuario</label>
             <input
               type="text"
               id="usuario"
+              className={c.CAMPO_INPUT}
               name="usuario"
               placeholder="Ej. ccorahua"
               value={l.usuario}
@@ -97,32 +99,38 @@ export default function Login() {
           <BotonCarga type="submit" cargando={l.loading} textoCargando="Verificando…">
             Continuar
           </BotonCarga>
-          <button type="button" className="auth-back auth-back--abajo" onClick={() => l.irAPaso(STEPS.RECOVERY)}>
+          <button type="button" className={`${c.VOLVER} auth-back--abajo`} onClick={() => l.irAPaso(STEPS.RECOVERY)}>
             ¿Olvidaste tu contraseña?
           </button>
         </form>
       )}
 
       {l.step === STEPS.MFA_SETUP && (
-        <div className="auth-form">
-          <button type="button" className="auth-back" onClick={() => l.irAPaso(STEPS.CREDENTIALS)}>
+        <div className={c.FORM}>
+          <button type="button" className={c.VOLVER} onClick={() => l.irAPaso(STEPS.CREDENTIALS)}>
             <IconChevronLeft width={16} height={16} /> Volver
           </button>
-          <div className="auth-step-icon">
+          <div className={c.ICONO_PASO}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <rect x="3" y="3" width="7" height="7" rx="1" />
               <rect x="14" y="3" width="7" height="7" rx="1" />
               <rect x="3" y="14" width="7" height="7" rx="1" />
             </svg>
           </div>
-          <h2 className="font-display" tabIndex={-1}>
+          <h2 className={c.TITULO} tabIndex={-1}>
             Configura la verificación en dos pasos
           </h2>
-          <p className="auth-sub">
+          <p className={c.SUB}>
             Escanea este código con Google Authenticator, Authy o cualquier app similar en tu celular.
           </p>
           {l.qrDataUrl && (
-            <img src={l.qrDataUrl} alt="Código QR para configurar la verificación en dos pasos" className="auth-qr" />
+            <img
+              src={l.qrDataUrl}
+              alt="Código QR para configurar la verificación en dos pasos"
+              // bg-[#fff] y no bg-card: el QR necesita fondo blanco para leerse, sin
+              // importar el tema.
+              className="mx-auto mt-2 mb-5 block size-[180px] rounded border border-border bg-[#fff] p-2.5"
+            />
           )}
           <button className="btn-primary" type="button" onClick={l.handleContinuarDesdeSetup}>
             Ya lo escaneé, continuar
@@ -131,20 +139,20 @@ export default function Login() {
       )}
 
       {l.step === STEPS.MFA && (
-        <form className="auth-form" onSubmit={l.handleMfaSubmit}>
-          <button type="button" className="auth-back" onClick={() => l.irAPaso(STEPS.CREDENTIALS)}>
+        <form className={c.FORM} onSubmit={l.handleMfaSubmit}>
+          <button type="button" className={c.VOLVER} onClick={() => l.irAPaso(STEPS.CREDENTIALS)}>
             <IconChevronLeft width={16} height={16} /> Volver
           </button>
-          <div className="auth-step-icon">
+          <div className={c.ICONO_PASO}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <rect x="5" y="11" width="14" height="10" rx="2" />
               <path d="M8 11V7a4 4 0 0 1 8 0v4" />
             </svg>
           </div>
-          <h2 className="font-display" tabIndex={-1}>
+          <h2 className={c.TITULO} tabIndex={-1}>
             Verificación en dos pasos
           </h2>
-          <p className="auth-sub">Ingresa el código de tu app de autenticación.</p>
+          <p className={c.SUB}>Ingresa el código de tu app de autenticación.</p>
           <OtpInput
             otp={l.otp}
             onChange={l.handleOtpChange}
@@ -160,25 +168,26 @@ export default function Login() {
       )}
 
       {l.step === STEPS.RECOVERY && (
-        <form className="auth-form" onSubmit={l.handleRecoverySubmit}>
-          <button type="button" className="auth-back" onClick={() => l.irAPaso(STEPS.CREDENTIALS)}>
+        <form className={c.FORM} onSubmit={l.handleRecoverySubmit}>
+          <button type="button" className={c.VOLVER} onClick={() => l.irAPaso(STEPS.CREDENTIALS)}>
             <IconChevronLeft width={16} height={16} /> Volver a inicio de sesión
           </button>
-          <div className="auth-step-icon">
+          <div className={c.ICONO_PASO}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <rect x="3" y="5" width="18" height="14" rx="2" />
               <path d="m3 7 9 6 9-6" />
             </svg>
           </div>
-          <h2 className="font-display" tabIndex={-1}>
+          <h2 className={c.TITULO} tabIndex={-1}>
             Recuperar contraseña
           </h2>
-          <p className="auth-sub">Ingresa tu correo y te enviamos un enlace para restablecerla.</p>
-          <div className="auth-field">
-            <label htmlFor="correoRecovery">Correo</label>
+          <p className={c.SUB}>Ingresa tu correo y te enviamos un enlace para restablecerla.</p>
+          <div className={c.CAMPO}>
+            <label htmlFor="correoRecovery" className={c.CAMPO_LABEL}>Correo</label>
             <input
               type="email"
               id="correoRecovery"
+              className={c.CAMPO_INPUT}
               placeholder="nombre@corevex.pe"
               value={l.correoRecovery}
               onChange={(e) => l.setCorreoRecovery(e.target.value)}
@@ -196,20 +205,20 @@ export default function Login() {
       )}
 
       {l.step === STEPS.RECOVERY_SENT && (
-        <div className="auth-form">
-          <div className="auth-step-icon auth-step-icon--exito">
+        <div className={c.FORM}>
+          <div className={c.ICONO_EXITO}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M20 6 9 17l-5-5" />
             </svg>
           </div>
-          <h2 className="font-display" tabIndex={-1}>
+          <h2 className={c.TITULO} tabIndex={-1}>
             Revisa tu correo
           </h2>
-          <p className="auth-sub">
+          <p className={c.SUB}>
             Si ese correo existe en el sistema, te llegará un enlace para crear una nueva contraseña. El enlace vence
             en 30 minutos.
           </p>
-          <button type="button" className="auth-back" onClick={() => l.irAPaso(STEPS.CREDENTIALS)}>
+          <button type="button" className={c.VOLVER} onClick={() => l.irAPaso(STEPS.CREDENTIALS)}>
             <IconChevronLeft width={16} height={16} /> Volver a inicio de sesión
           </button>
         </div>
