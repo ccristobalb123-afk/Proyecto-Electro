@@ -10,9 +10,11 @@ function texto({ severidad, dias }) {
   return `En ${enDias(dias)}`;
 }
 
-export default function EtiquetaUrgencia({ aviso }) {
+// `className`: ajustes de quien la usa (ej. el margen en celular de las filas
+// del Dashboard), con clases de Tailwind.
+export default function EtiquetaUrgencia({ aviso, className = "" }) {
   return (
-    <span className={`etiqueta-urgencia etiqueta-urgencia--${aviso.severidad}`}>
+    <span className={`etiqueta-urgencia etiqueta-urgencia--${aviso.severidad}${className ? ` ${className}` : ""}`}>
       <i aria-hidden="true" />
       {texto(aviso)}
     </span>

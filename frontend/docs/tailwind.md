@@ -175,6 +175,7 @@ Para que una migración quede idéntica (no solo "parecida"):
 | Medidor de fuerza | `PasswordStrength.jsx` | ninguno (`PasswordStrength.css` se eliminó) |
 | Estado vacío | `EstadoVacio.jsx` | `EstadoVacio.css` (márgenes de `<p>` y del botón) |
 | Estado de error | `EstadoError.jsx` | `EstadoError.css` (margen de `<p>`) |
+| Dashboard | `Dashboard.jsx` (+ `className` en `EtiquetaUrgencia.jsx`) | `Dashboard.css`: tamaño y peso de los `<h2>` (base.css), margen y letra de «Ver todos» (`.link-button`), letra del `<select>` (base.css) y el relleno de la carga del gráfico (`.panel-chart-cargando .loading-bloque`, porque `Loading.css` fija el relleno) |
 
 **Sin migrar** (todo su estilo sigue en CSS):
 
@@ -184,7 +185,7 @@ Para que una migración quede idéntica (no solo "parecida"):
   modal y no antes.
 - **Estructura y menú:** `AppShell.css`, `GlobalSearch.css`,
   `NotificacionesBell.css`, `MenuAcciones.css`.
-- **Pantallas:** `Dashboard.css`, `Rrhh.css`, `Operaciones.css` (+
+- **Pantallas:** `Rrhh.css`, `Operaciones.css` (+
   `EquiposCards.css`, `VehiculosCards.css`, `Asignacion.css`), `Finanzas.css`,
   `Administracion.css`.
 - **Componentes que van con `Modal.css`:** `ConfirmDialog.css`,
@@ -192,14 +193,16 @@ Para que una migración quede idéntica (no solo "parecida"):
   (`BotonCarga` y el spinner: `Modal.css` estiliza `.modal-actions > button`).
 - **Componentes con reglas en CSS que todavía no se migra** (se dejan para
   migrarlos junto con ese CSS):
-  - `Loading.css`: `Dashboard.css` le cambia el relleno
-    (`.panel-chart-cargando .loading-bloque`) y usa el spinner de `Carga.css`.
-  - `EtiquetaUrgencia.css`: `Dashboard.css` le da margen en celular
-    (`.row-item .etiqueta-urgencia`).
+  - `Loading.css`: usa el spinner de `Carga.css` (va con `Modal.css`). Al
+    migrarlo, pasar a clases la regla `.panel-chart-cargando .loading-bloque`
+    que quedó en `Dashboard.css`.
+  - `EtiquetaUrgencia.css`: ya no depende de `Dashboard.css` (el margen en
+    celular de las filas es `max-md:ml-11` vía `className`); se usa también
+    en `NotificacionesBell`, que se puede migrar junto.
   - `AvisoInactividad.css`: `responsive.css` (alto táctil de 44 px de
     `.btn-seguir-conectado`) y `motion.css` (pulso con movimiento reducido).
-- **Otros:** `ToastContainer.css`. `Monto.css` / `Monto.jsx` no se usan en
-  ninguna pantalla (código sin uso: conviene borrarlo en vez de migrarlo).
+- **Otros:** `ToastContainer.css`. (`Monto.jsx` / `Monto.css` se borraron:
+  no se usaban.)
 - **Globales** (`styles/`): `buttons.css`, `badges.css`, `filters.css`,
   `fichas.css`, `tarjetas.css`, `motion.css`, `responsive.css`. `tokens.css`
   y `base.css` no se migran: son la fuente de valores y la base.

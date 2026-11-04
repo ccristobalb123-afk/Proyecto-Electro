@@ -133,7 +133,7 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
           },
           options: {
             responsive: true,
-            // El canvas toma el alto fijo de .panel-chart (Dashboard.css), no el que
+            // El canvas toma el alto fijo de su contenedor (Dashboard.jsx), no el que
             // resultaría de mantener una proporción ancho/alto. Sin esto, Chart.js
             // calculaba su alto a partir de la relación 2:1 por defecto contra el
             // ancho real del contenedor — y ese ancho depende de en qué momento del

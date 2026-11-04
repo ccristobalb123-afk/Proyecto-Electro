@@ -23,6 +23,37 @@ const ICONO_KPI = [IconContrato, IconWrench, IconInvoice, IconBell];
 // "Contratos por vencer" en ámbar: es un aviso (por vencer), no una acción.
 const TONE_KPI = ["volt", "success", "copper", "danger"];
 
+/* Estilos con Tailwind (ver docs/tailwind.md). Las clases sin estilo propio
+   que quedan son ganchos de reglas sin capa que siguen en otros archivos:
+   - kpi-grid, cols: columnas en tablet/celular (responsive.css);
+   - kpi-card, panel: color del borde suave (tarjetas.css; acá solo el ancho);
+   - month-select: alto táctil de 44px (responsive.css) y letra (Dashboard.css);
+   - panel-head, panel-head__accion, panel-chart-cargando: Dashboard.css
+     (lo que fijan base.css, .link-button y Loading.css en esos elementos).
+   [background:…] y [box-shadow:…] en vez de bg-… / shadow-…: copian el
+   "background:" abreviado y la sombra de antes, para que el estilo calculado
+   quede igual. max-md: = celular (≤640px), max-lg: = tablet (≤960px). */
+const KPI_CARD = `kpi-card rounded-lg border bg-card p-[18px] [box-shadow:var(--shadow-sm)]
+  max-md:grid max-md:grid-cols-[auto_minmax(0,1fr)] max-md:items-center max-md:gap-x-2 max-md:p-3`;
+const KPI_ICONO = `flex size-[34px] items-center justify-center rounded *:size-[18px]
+  max-md:size-7 max-md:*:size-4`;
+const KPI_TONO = {
+  copper: "[background:var(--copper-tint)] text-copper-dark",
+  volt: "[background:var(--volt-tint)] text-volt-dark",
+  danger: "[background:var(--danger-tint)] text-danger-dark",
+  success: "[background:var(--success-tint)] text-success-dark",
+};
+const PANEL = "panel overflow-hidden rounded-lg border bg-card [box-shadow:var(--shadow-sm)]";
+const PANEL_HEAD = `panel-head flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-b-border px-5 py-4
+  max-md:px-4 max-md:py-3`;
+// Avisos de vencimiento: toda la fila lleva al registro. En celular la
+// etiqueta baja debajo del texto, alineada con él (ml-11 = ícono de 32px +
+// separación de 12px), para que título y detalle usen todo el ancho.
+const FILA = `flex items-center gap-3 border-b border-b-border px-5 py-[13px] last:[border-bottom:none]
+  hover:[background:var(--gray-tint)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-copper
+  max-md:flex-wrap max-md:items-start max-md:gap-y-2 max-md:px-4 max-md:py-3`;
+const ACTIVIDAD = "flex gap-2.5 border-b border-b-border px-5 py-[13px] last:[border-bottom:none]";
+
 function soles(monto) {
   // Antes solo había "k": 557 millones se mostraban como "S/ 557682.1k".
   if (monto >= 1_000_000) return `S/ ${(monto / 1_000_000).toFixed(1)}M`;
@@ -110,21 +141,23 @@ export default function Dashboard() {
       {errorKpis ? (
         <EstadoError error={errorKpis} onReintentar={recargarKpis} mensaje="No se pudieron cargar los indicadores." />
       ) : (
-        <div className="kpi-grid">
+        <div className="kpi-grid mb-6 grid grid-cols-[repeat(4,1fr)] gap-4">
           {cargandoKpis ? (
             <Loading texto="Cargando indicadores…" />
           ) : (
             kpis.map(({ label, value }, i) => {
               const Icon = ICONO_KPI[i];
               return (
-                <div className="kpi-card" key={label}>
-                  <div className="kpi-top">
-                    <div className={`kpi-icon ${TONE_KPI[i]}`}>
+                <div className={KPI_CARD} key={label}>
+                  <div className="mb-3.5 flex items-center justify-between max-md:mb-0">
+                    <div className={`${KPI_ICONO} ${KPI_TONO[TONE_KPI[i]]}`}>
                       <Icon />
                     </div>
                   </div>
-                  <div className="kpi-num">{value}</div>
-                  <div className="kpi-label">{label}</div>
+                  <div className="mb-0.5 font-mono text-[26px] font-semibold max-md:mb-0 max-md:text-xl max-md:wrap-anywhere">
+                    {value}
+                  </div>
+                  <div className="text-sm text-muted max-md:col-span-full max-md:mt-1 max-md:leading-[1.35]">{label}</div>
                 </div>
               );
             })
@@ -132,9 +165,9 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="cols">
-        <div className="panel">
-          <div className="panel-head">
+      <div className="cols mb-6 grid grid-cols-[1.5fr_1fr] gap-5">
+        <div className={PANEL}>
+          <div className={PANEL_HEAD}>
             <h2>Vencimientos</h2>
             {proximosVencimientos.length > AVISOS_VISIBLES && (
               <button className="link-button panel-head__accion" type="button" onClick={() => setVerTodos((v) => !v)} aria-expanded={verTodos}>
@@ -152,46 +185,54 @@ export default function Dashboard() {
             avisosVisibles.map((aviso) => {
               const Icon = ICONO_POR_TIPO[aviso.tipo] || IconBell;
               return (
-                <Link className={`row-item row-item--${aviso.severidad}`} key={aviso.id} to={aviso.url}>
-                  <div className="row-icon">
+                <Link className={FILA} key={aviso.id} to={aviso.url}>
+                  <div className="flex size-8 flex-none items-center justify-center rounded [background:var(--paper)] *:size-4 *:text-copper-dark">
                     <Icon />
                   </div>
-                  <div className="row-main">
-                    <div className="row-title">{aviso.titulo}</div>
+                  <div className="min-w-0 flex-1 max-md:basis-[calc(100%-44px)]">
+                    {/* Título y cuerpo completos (nombre del documento incluido):
+                        pueden ocupar más de una línea en vez de cortarse con "…". */}
+                    <div className="overflow-hidden text-base font-medium text-ellipsis whitespace-normal wrap-anywhere">
+                      {aviso.titulo}
+                    </div>
                     {/* Mismo texto que el push y la campana */}
-                    <div className="row-sub">{aviso.cuerpo}</div>
+                    <div className="mt-0.5 block items-center gap-1.5 text-xs leading-[1.4] text-muted wrap-anywhere">
+                      {aviso.cuerpo}
+                    </div>
                   </div>
-                  <EtiquetaUrgencia aviso={aviso} />
+                  <EtiquetaUrgencia aviso={aviso} className="max-md:ml-11" />
                 </Link>
               );
             })
           )}
         </div>
 
-        <div className="panel">
-          <div className="panel-head">
+        <div className={PANEL}>
+          <div className={PANEL_HEAD}>
             <h2>Actividad reciente</h2>
           </div>
           {actividadReciente.map((item, i) => (
-            <div className="act-item" key={`${item.actor}-${item.detalle}-${i}`}>
-              <div className="act-avatar">{item.iniciales}</div>
+            <div className={ACTIVIDAD} key={`${item.actor}-${item.detalle}-${i}`}>
+              <div className="flex size-[26px] flex-none items-center justify-center rounded-[50%] [background:var(--paper)] text-xs font-semibold text-muted">
+                {item.iniciales}
+              </div>
               <div>
-                <div className="act-text">
-                  <b>{item.actor}</b> {item.accion} {item.detalle}
+                <div className="text-sm leading-[1.5]">
+                  <b className="font-semibold">{item.actor}</b> {item.accion} {item.detalle}
                 </div>
-                <div className="act-time">{item.tiempo}</div>
+                <div className="mt-0.5 text-xs text-muted-2">{item.tiempo}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="panel">
-        <div className="panel-head">
+      <div className={PANEL}>
+        <div className={PANEL_HEAD}>
           <h2>Facturado vs. gastado por empresa</h2>
           {comparativo && (
             <select
-              className="month-select"
+              className="month-select h-8 rounded-[6px] border border-control [background:var(--card)] px-2.5 py-0 text-muted"
               aria-label="Mes final del gráfico comparativo"
               value={mesFinalIndex ?? comparativo.labels.length - 1}
               onChange={(e) => setMesFinalIndex(Number(e.target.value))}
@@ -206,14 +247,23 @@ export default function Dashboard() {
             </select>
           )}
         </div>
-        <div className="panel-chart">
+        {/* Alto fijo (no una proporción ancho/alto): el canvas de Chart.js usa
+            maintainAspectRatio: false (useComparativoChart.js) y toma su tamaño
+            de este contenedor. Sin un alto propio, el canvas no tiene de qué
+            medirse y en algunos casos dejaba un hueco debajo del gráfico. En
+            celular 300px: con menos, la leyenda (4 series, una por fila) no
+            entraba y Chart.js cortaba la última. */}
+        <div className="relative h-[320px] px-5 py-[18px] max-lg:h-[260px] max-md:h-[300px]">
           {/* Sin esto, el lienzo quedaba en blanco hasta que llegaban los datos */}
           {cargandoComparativo && (
-            <div className="panel-chart-cargando">
+            <div className="panel-chart-cargando absolute inset-0 flex items-center justify-center [background:var(--card)]">
               <Loading texto="Cargando gráfico…" />
             </div>
           )}
+          {/* Mismo tamaño que fijará Chart.js al cargar: evita un salto de
+              diseño mientras el chunk de Chart.js todavía se descarga. */}
           <canvas
+            className="h-full w-full"
             ref={chartRef}
             role="img"
             aria-label="Gráfico de líneas: facturado y gastado por empresa"
