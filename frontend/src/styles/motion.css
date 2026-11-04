@@ -61,8 +61,8 @@
     animation: none;
   }
 
-  html .auth-form .btn-primary:active:not(:disabled),
-  html .password-field__toggle:active {
+  /* El ojo de PasswordField: clase motion-reduce: en PasswordField.jsx */
+  html .auth-form .btn-primary:active:not(:disabled) {
     transform: none;
   }
 }

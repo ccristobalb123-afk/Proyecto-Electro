@@ -154,3 +154,36 @@ Para que una migración quede idéntica (no solo "parecida"):
 - `npm run lint` sin subir de 12 avisos.
 - Borrar del `.css` del módulo lo que pasó a clases (y el archivo, si queda
   vacío).
+- Hacer la primera captura de cada tamaño con una sesión de "calentamiento"
+  descartada: la primera sesión del navegador dibuja algunas letras con
+  0.2 px de diferencia y parece un cambio que no lo es.
+
+## Estado de la migración
+
+**Migrado** (estilos en clases; en su `.css` solo queda lo que bloquea
+`base.css` o un componente global, regla 9):
+
+| Qué | Archivos | CSS que queda |
+|---|---|---|
+| Login y Restablecer contraseña | `AuthShell.jsx`, `AuthRail.jsx`, `OtpInput.jsx`, `clasesAuth.js`, `Login.jsx`, `RestablecerPassword.jsx` | `AuthShell.css` (h1/p y animaciones), `AuthForm.css` (h2, p, label, input, `.btn-primary`, enlace «Volver») |
+| Campo de contraseña | `PasswordField.jsx` | `PasswordField.css` (`display` del label, letra del input, radio del botón del ojo) |
+| Medidor de fuerza | `PasswordStrength.jsx` | ninguno (`PasswordStrength.css` se eliminó) |
+
+**Sin migrar** (todo su estilo sigue en CSS):
+
+- **Modal compartido** (`Modal.css`, ~20 modales), incluida la variante
+  «seguridad» del modal de cambiar contraseña. Sus reglas caen sobre el
+  mismo elemento que `.modal-electro`, así que conviene migrarlas junto con el
+  modal y no antes.
+- **Estructura y menú:** `AppShell.css`, `GlobalSearch.css`,
+  `NotificacionesBell.css`, `MenuAcciones.css`.
+- **Pantallas:** `Dashboard.css`, `Rrhh.css`, `Operaciones.css` (+
+  `EquiposCards.css`, `VehiculosCards.css`, `Asignacion.css`), `Finanzas.css`,
+  `Administracion.css`.
+- **Componentes compartidos:** `ConfirmDialog.css`, `AvisoInactividad.css`,
+  `ToastContainer.css`, `VisorArchivo.css`, `Lightbox.css`,
+  `SesionesModal.css`, `EstadoVacio.css`, `EstadoError.css`, `Loading.css`,
+  `Carga.css`, `EtiquetaUrgencia.css`, `Monto.css`.
+- **Globales** (`styles/`): `buttons.css`, `badges.css`, `filters.css`,
+  `fichas.css`, `tarjetas.css`, `motion.css`, `responsive.css`. `tokens.css`
+  y `base.css` no se migran: son la fuente de valores y la base.

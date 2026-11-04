@@ -13,7 +13,25 @@ import "./PasswordField.css";
  *
  * El `name` es obligatorio en el Login: handleCredentialsSubmit lee el valor
  * con FormData, por si el navegador autocompletó sin disparar onChange.
+ *
+ * Estilos con Tailwind (ver docs/tailwind.md). Funciona igual sobre la hoja
+ * del Login y dentro del modal: lleva su propio aspecto completo y no depende
+ * de .form-field ni de .auth-field. Las clases password-field* no dan estilo
+ * por sí solas: son el gancho de PasswordField.css (lo que base.css fija en
+ * <label>, <input> y <button>) y de AuthForm.css (margen en el Login).
  */
+
+// pr-12: el espacio de la derecha es del botón del ojo.
+const INPUT = `h-(--control-height-lg) w-full rounded border border-control bg-card py-0 pr-12 pl-3.5 text-text
+  [transition:border-color_var(--transition-fast)] aria-invalid:border-danger`;
+
+// Responde al presionar (se achica); con movimiento reducido, sin escalar. El
+// hover solo donde existe (hover: ya va en @media (hover: hover)): en táctil
+// se queda "pegado" tras el toque.
+const OJO = `password-field__toggle absolute top-0 right-0 flex size-(--control-height-lg) items-center justify-center
+  [border:none] [background:none] text-muted hover:[background:var(--paper)] hover:text-text
+  active:[transform:scale(0.94)] active:[transition:transform_100ms_var(--ease-out)] motion-reduce:active:[transform:none]`;
+
 export default function PasswordField({
   id,
   name,
@@ -31,12 +49,15 @@ export default function PasswordField({
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className="password-field">
-      <label htmlFor={id}>{label}</label>
-      <div className="password-field__control">
+    <div className="password-field mb-4">
+      <label htmlFor={id} className="mb-1.5 text-base font-medium text-muted">
+        {label}
+      </label>
+      <div className="relative">
         <input
           id={id}
           name={name}
+          className={INPUT}
           type={visible ? "text" : "password"}
           value={value}
           onChange={onChange}
@@ -51,7 +72,7 @@ export default function PasswordField({
         />
         <button
           type="button"
-          className="password-field__toggle"
+          className={OJO}
           onClick={() => setVisible((v) => !v)}
           aria-pressed={visible}
           aria-label="Mostrar contraseña"
@@ -59,7 +80,7 @@ export default function PasswordField({
           {visible ? <IconEyeOff width={18} height={18} /> : <IconEye width={18} height={18} />}
         </button>
       </div>
-      {children && <div className="password-field__extra">{children}</div>}
+      {children && <div className="mt-2">{children}</div>}
     </div>
   );
 }
