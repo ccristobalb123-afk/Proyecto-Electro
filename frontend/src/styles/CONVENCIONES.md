@@ -3,13 +3,13 @@
 ## CSS propio (sin Bootstrap)
 
 El proyecto **no usa Bootstrap ni `react-bootstrap`**. Todo el estilo sale de
-`tokens.css` (colores, espaciados, tipografía, sombras), `base.css`, `buttons.css`,
+`tokens.css` (colores, espaciados, tipografía, sombras), `base.css`, `etiquetas.css`, `buttons.css`,
 `badges.css`, `filters.css`, `responsive.css` y el CSS de cada módulo.
 
 ### Tailwind (migración gradual)
 Tailwind 4 está instalado, sin preflight y en capas. El CSS sin capa
 (`tokens.css`, `responsive.css` y el CSS de cada módulo) siempre le gana a las
-clases; `base.css` no, porque va en la capa `base`. Uso, tabla token → clase,
+clases; `base.css` y `etiquetas.css` no, porque van en la capa `base`. Uso, tabla token → clase,
 breakpoints y reglas de convivencia en `frontend/docs/tailwind.md`.
 
 ### `base.css`
@@ -22,6 +22,14 @@ Se carga desde `tailwind.css` en la capa `base` de Tailwind (no desde
 `main.jsx`): cualquier regla sin capa o clase de Tailwind le gana. Sus dos
 reglas con `!important` (`[hidden]` y el foco de `[tabindex="-1"]`) le ganan
 a cualquier `!important` sin capa.
+
+### `etiquetas.css`
+Las reglas de etiqueta globales de la app que antes estaban en `tokens.css`:
+`*` (`box-sizing`), `html, body, #root` (alto), `body` (margen, letra, fondo,
+color), `button` (letra del body, cursor) y `a` (color heredado, sin
+subrayado). También va en la capa `base`, **después** de `base.css`, para que
+la letra de `button` le gane al `font-family: inherit` de `base.css`. La regla
+de foco (`input/button:focus-visible`) se queda sin capa en `tokens.css`.
 
 ### Grillas de tarjetas
 CSS Grid con `minmax(0, 1fr)`, sin librería y con `gap: var(--space-4)`:

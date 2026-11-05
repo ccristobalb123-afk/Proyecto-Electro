@@ -169,21 +169,12 @@
      - Tablet:       max-width: 960px
      - Desktop ancho: sin media query (es el diseño base) */
 
-* {
-  box-sizing: border-box;
-}
-
-html, body, #root {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  font-family: var(--font-body);
-  background: var(--fondo-pagina);
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
-}
+/* Las reglas de etiqueta globales (*, html/body/#root, body, button, a)
+   ya no están acá: viven en styles/etiquetas.css, dentro de la capa
+   "base" de Tailwind (ver docs/tailwind.md). Lo que queda en este
+   archivo sigue sin capa y le gana a cualquier clase: .font-display,
+   .font-mono, .btn-primary, la regla de foco, .pantalla-cargando-sesion
+   y .sr-only. */
 
 .font-display {
   font-family: var(--font-display);
@@ -191,16 +182,6 @@ body {
 
 .font-mono {
   font-family: var(--font-mono);
-}
-
-button {
-  font-family: var(--font-body);
-  cursor: pointer;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
 }
 
 .btn-primary {
@@ -237,6 +218,9 @@ a {
   box-shadow: none;
 }
 
+/* Anillo de foco: a propósito SIN capa (no va a etiquetas.css). Es la
+   red de seguridad del foco de teclado y ninguna clase debe poder
+   quitarlo. */
 input:focus-visible,
 button:focus-visible {
   outline: 2px solid var(--copper);

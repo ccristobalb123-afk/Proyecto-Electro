@@ -6,10 +6,14 @@
    - Capas, de menor a mayor prioridad: theme → base → components →
      utilities → CSS sin capa.
      · base: styles/base.css (el "reboot" de etiquetas: h1-h6, p, label,
-       button, input…). Al estar en capa, cualquier clase de Tailwind le
+       button, input…) y, después, styles/etiquetas.css (*, html/body/
+       #root, body, button y a, que antes estaban en tokens.css; va
+       después para que su letra de button le gane al "inherit" de
+       base.css). Al estar en capa, cualquier clase de Tailwind les
        gana, y también cualquier regla sin capa.
-     · El resto del CSS de la app (tokens.css, responsive.css, el .css de
-       cada módulo) no está en capa y SIEMPRE le gana a lo que sí, sin
+     · El resto del CSS de la app (variables y clases de tokens.css,
+       responsive.css, el .css de cada módulo) no está en capa y
+       SIEMPRE le gana a lo que sí, sin
        importar la especificidad ni el orden. Si una clase de Tailwind y
        una de esas reglas tocan la misma propiedad del mismo elemento,
        gana la regla; para que mande Tailwind, al migrar se borra esa
@@ -25,6 +29,7 @@
 
 @layer theme, base, components, utilities;
 @import "./base.css" layer(base);
+@import "./etiquetas.css" layer(base);
 
 @import "tailwindcss/theme.css" layer(theme);
 /* source(none) + @source: solo se buscan clases en src/ (no en docs/,

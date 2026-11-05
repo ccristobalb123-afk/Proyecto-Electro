@@ -91,15 +91,28 @@ reglas siguen en `responsive.css`.
 1. **Sin preflight.** No se carga el "reinicio" de Tailwind. Los elementos
    siguen con los estilos del navegador + `base.css`. Consecuencia: `border`
    no pone color (usa el del texto); escribe siempre `border border-control`.
-2. **El CSS sin capa gana; `base.css` no.** El orden de las capas, de menor
-   a mayor prioridad, es `theme → base → components → utilities → CSS sin
-   capa`.
-   - `base.css` va en la capa `base` (lo importa `tailwind.css` con
-     `layer(base)`): **cualquier clase de Tailwind le gana**. Un `<h2>` o un
-     `<p>` aceptan clases de tamaño, peso y margen sin dejar nada en CSS.
-   - El resto del CSS de la app (`tokens.css`, `responsive.css`, el `.css` de
-     cada módulo) no está en capa, y lo que no está en capa le gana a lo que
-     sí, sin importar la especificidad ni el orden de carga. Si un elemento
+2. **El CSS sin capa gana; la capa `base` no.** El orden de las capas, de
+   menor a mayor prioridad, es `theme → base → components → utilities → CSS
+   sin capa`.
+   - En la capa `base` van, en este orden, `base.css` y `etiquetas.css` (los
+     importa `tailwind.css` con `layer(base)`): **cualquier clase de Tailwind
+     les gana**. Un `<h2>` o un `<p>` aceptan clases de tamaño, peso y margen
+     sin dejar nada en CSS, y un `<button>` o un `<a>` aceptan clases de
+     letra, cursor, color o subrayado.
+   - `etiquetas.css` tiene las reglas de etiqueta globales que antes estaban
+     en `tokens.css`: `*` (`box-sizing`), `html, body, #root` (alto),
+     `body` (margen, letra, fondo, color), `button` (letra del body,
+     cursor) y `a` (color heredado, sin subrayado). Va **después** de
+     `base.css` a propósito: `base.css` pone `button { font-family:
+     inherit }` y la regla de `etiquetas.css`, con la misma especificidad,
+     la reemplaza por la letra del body. No cambies ese orden.
+   - Consecuencia nueva: una regla sin capa con especificidad 0
+     (`:where(...)`) ahora le gana a esas etiquetas. Pasó con el botón de
+     `VisorArchivo` (ver regla 10).
+   - El resto del CSS de la app (variables y clases de `tokens.css`,
+     `responsive.css`, el `.css` de cada módulo) no está en capa, y lo que
+     no está en capa le gana a lo que sí, sin importar la especificidad ni
+     el orden de carga. Si un elemento
      tiene `.equipo-card { padding: 16px }` y le agregas `p-2`, **sigue con
      16 px**.
    - **Ojo con `!important`:** en capas se invierte. Las dos reglas con
@@ -135,18 +148,31 @@ reglas siguen en `responsive.css`.
    | Regla sin capa | Propiedades que fija |
    |---|---|
    | `.btn-primary` (`tokens.css`) | alto, relleno, letra, color, fondo, radio, transición… |
-   | `button`, `a` (`tokens.css`) | `button`: `font-family`, `cursor`; `a`: `color`, `text-decoration` |
    | `.link-button` (`buttons.css`) | color, letra, margen, subrayado |
    | `.loading-bloque` (`Loading.css`) | relleno, separación… |
    | `.password-field` (`PasswordField.css`) | `display` del label, letra del input, radio del ojo |
 
-   `base.css` ya **no** está en esta lista: desde que va en la capa `base`,
-   sus propiedades (márgenes y tamaños de `h1`-`h6` y `p`, `display` de
-   `label`, letra y margen de `button`/`input`/`select`/`textarea`, radio de
-   `button`) se pueden pasar a clases. Los restos que quedaron por `base.css`
+   `base.css` y las etiquetas `button`/`a` ya **no** están en esta lista:
+   desde que van en la capa `base`, sus propiedades (márgenes y tamaños de
+   `h1`-`h6` y `p`, `display` de `label`, letra y margen de
+   `button`/`input`/`select`/`textarea`, radio y cursor de `button`, color
+   y subrayado de `a`) se pueden pasar a clases. Los restos que quedaron por `base.css`
    en archivos ya migrados (`AuthShell.css`, `AuthForm.css`,
    `PasswordField.css`, `EstadoVacio.css`, `EstadoError.css`, `Dashboard.css`)
    se migran en un paso aparte.
+10. **Reglas sin capa con especificidad 0 (`:where(...)`).** Antes perdían
+    contra las etiquetas de `tokens.css`; ahora les ganan, porque esas
+    etiquetas están en capa. Hoy hay una sola:
+    `:where(button.boton-ver-archivo) { font: inherit }` (`VisorArchivo.css`).
+    Antes el botón tomaba siempre la letra del body (la regla `button`
+    ganaba); ahora la hereda del contenedor. Se midió en todas las pantallas,
+    modales y estados donde aparece (chips de RRHH, documentos de vehículos,
+    tarjetas de Finanzas): el contenedor siempre tiene la letra del body
+    (Inter), así que no cambia nada. Si alguna vez se pone ese botón dentro
+    de un texto con `font-display` o `font-mono`, tomará esa letra.
+    El único botón medido dentro de un texto con otra letra (el «Cerrar» de
+    la campana, dentro del título en Space Grotesk) sigue con Inter por el
+    orden de `etiquetas.css` (regla 2).
 
 ## Detalles que cambian el estilo calculado
 
@@ -185,10 +211,13 @@ Para que una migración quede idéntica (no solo "parecida"):
 
 ## Estado de la migración
 
-**Capa base:** `base.css` está en `@layer base` (desde `tailwind.css`). Falta:
-las reglas de etiqueta globales de `tokens.css` (`*`, `html/body/#root`,
-`body`, `button`, `a`; la de foco se queda fuera a propósito) y migrar los
-restos que `base.css` dejó en los archivos ya migrados.
+**Capa base:** hecha. En `@layer base` (desde `tailwind.css`) están
+`base.css` y `etiquetas.css` (las reglas de etiqueta `*`, `html/body/#root`,
+`body`, `button` y `a`, que antes estaban en `tokens.css`). Quedan sin capa a
+propósito, en `tokens.css`: la regla de foco y las clases globales
+`.btn-primary`, `.sr-only`, `.font-display`, `.font-mono` y
+`.pantalla-cargando-sesion`. Falta migrar los restos que `base.css` dejó en
+los archivos ya migrados.
 
 **Migrado** (estilos en clases; en su `.css` queda lo que fijaba `base.css`
 cuando estaba sin capa —pendiente de pasar a clases— o lo que bloquea un
@@ -230,5 +259,6 @@ componente global, regla 9):
 - **Otros:** `ToastContainer.css`. (`Monto.jsx` / `Monto.css` se borraron:
   no se usaban.)
 - **Globales** (`styles/`): `buttons.css`, `badges.css`, `filters.css`,
-  `fichas.css`, `tarjetas.css`, `motion.css`, `responsive.css`. `tokens.css`
-  y `base.css` no se migran: son la fuente de valores y la base.
+  `fichas.css`, `tarjetas.css`, `motion.css`, `responsive.css`. `tokens.css`,
+  `base.css` y `etiquetas.css` no se migran: son la fuente de valores y la
+  base.

@@ -1,0 +1,42 @@
+/* ============================================================
+   Etiquetas globales de la app (antes en tokens.css)
+
+   Se carga desde styles/tailwind.css en la capa "base" de Tailwind,
+   DESPUÉS de base.css (@import … layer(base)). Por estar en capa,
+   cualquier clase de Tailwind y cualquier regla sin capa le ganan.
+
+   El orden con base.css importa: base.css pone
+   `button { font-family: inherit }` y la regla de button de acá, al
+   venir después con la misma especificidad, la reemplaza por la letra
+   del body. Así los botones siguen con Inter aunque estén dentro de un
+   texto con otra letra.
+
+   La regla de foco (input/button:focus-visible) NO está acá: se queda
+   sin capa en tokens.css.
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--fondo-pagina);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
