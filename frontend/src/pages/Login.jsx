@@ -99,7 +99,7 @@ export default function Login() {
           <BotonCarga type="submit" cargando={l.loading} textoCargando="Verificando…">
             Continuar
           </BotonCarga>
-          <button type="button" className={`${c.VOLVER} auth-back--abajo`} onClick={() => l.irAPaso(STEPS.RECOVERY)}>
+          <button type="button" className={c.VOLVER_ABAJO} onClick={() => l.irAPaso(STEPS.RECOVERY)}>
             ¿Olvidaste tu contraseña?
           </button>
         </form>

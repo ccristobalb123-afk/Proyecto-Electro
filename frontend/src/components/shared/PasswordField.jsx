@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { IconEye, IconEyeOff } from "../icons/Icons";
-import "./PasswordField.css";
 
 /**
  * Campo de contraseña compartido por el Login, "Restablecer contraseña" y el
@@ -16,19 +15,18 @@ import "./PasswordField.css";
  *
  * Estilos con Tailwind (ver docs/tailwind.md). Funciona igual sobre la hoja
  * del Login y dentro del modal: lleva su propio aspecto completo y no depende
- * de .form-field ni de .auth-field. Las clases password-field* no dan estilo
- * por sí solas: son el gancho de PasswordField.css (lo que base.css fija en
- * <label>, <input> y <button>) y de AuthForm.css (margen en el Login).
+ * de .form-field. La clase password-field no da estilo por sí sola: es el
+ * gancho de AuthForm.css (margen del campo dentro del acceso).
  */
 
 // pr-12: el espacio de la derecha es del botón del ojo.
-const INPUT = `h-(--control-height-lg) w-full rounded border border-control bg-card py-0 pr-12 pl-3.5 text-text
+const INPUT = `h-(--control-height-lg) w-full rounded border border-control bg-card py-0 pr-12 pl-3.5 font-body text-[14px] text-text
   [transition:border-color_var(--transition-fast)] aria-invalid:border-danger`;
 
 // Responde al presionar (se achica); con movimiento reducido, sin escalar. El
 // hover solo donde existe (hover: ya va en @media (hover: hover)): en táctil
 // se queda "pegado" tras el toque.
-const OJO = `password-field__toggle absolute top-0 right-0 flex size-(--control-height-lg) items-center justify-center
+const OJO = `absolute top-0 right-0 flex size-(--control-height-lg) items-center justify-center rounded
   [border:none] [background:none] text-muted hover:[background:var(--paper)] hover:text-text
   active:[transform:scale(0.94)] active:[transition:transform_100ms_var(--ease-out)] motion-reduce:active:[transform:none]`;
 
@@ -50,7 +48,7 @@ export default function PasswordField({
 
   return (
     <div className="password-field mb-4">
-      <label htmlFor={id} className="mb-1.5 text-base font-medium text-muted">
+      <label htmlFor={id} className="mb-1.5 block text-base font-medium text-muted">
         {label}
       </label>
       <div className="relative">

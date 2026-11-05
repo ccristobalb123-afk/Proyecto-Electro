@@ -114,7 +114,7 @@ export default function RestablecerPassword() {
             Guardar contraseña
           </BotonCarga>
 
-          <Link className={`${c.VOLVER} auth-back--abajo`} to="/login">
+          <Link className={c.VOLVER_ABAJO} to="/login">
             <IconChevronLeft width={16} height={16} /> Volver a inicio de sesión
           </Link>
         </form>

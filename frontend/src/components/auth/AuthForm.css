@@ -1,37 +1,14 @@
 /* ============================================================
    Contenido de los formularios del acceso (dentro de AuthShell).
    Los estilos van con clases de Tailwind (components/auth/clasesAuth.js).
-   Acá queda solo lo que una clase no puede cambiar, porque una regla sin
-   capa ya lo fija en el mismo elemento (ver docs/tailwind.md):
-   - base.css: márgenes y letra de <h2> y <p>, display de <label>, letra
-     y fuente de <input> y <button>;
-   - .btn-primary (tokens.css) y .password-field (PasswordField.css):
-     botón y campo compartidos con el resto de la app;
-   - a { color: inherit } (tokens.css): color del enlace «Volver».
-   Clases con prefijo auth-: no se mezclan con .field-error ni con ningún
-   otro estilo global que usan los modales de la app.
+   Acá queda solo (ver "Estado de la migración" en docs/tailwind.md):
+   - el botón principal: .btn-primary (tokens.css) es una regla sin capa
+     que fija alto, letra, transición… y le gana a cualquier clase;
+   - el margen de PasswordField dentro del acceso: es un ajuste de
+     contexto sobre un componente compartido (en el modal lleva otro);
+   - la animación del mensaje de error (@keyframes; la usa la clase
+     animate-[…] de ERROR).
    ============================================================ */
-
-.auth-form h2 {
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-semibold);
-  line-height: 1.2;
-  margin: 0 0 var(--space-2);
-}
-
-.auth-sub {
-  margin: 0 0 28px;
-}
-
-/* ---------- Campos de texto (usuario, correo) ---------- */
-.auth-field label {
-  display: block;
-}
-
-.auth-field input {
-  font-size: 14px;
-  font-family: var(--font-body);
-}
 
 /* Los campos de contraseña de la carcasa se alinean con los demás */
 .auth-form .password-field {
@@ -39,14 +16,6 @@
 }
 
 /* ---------- Mensajes ---------- */
-.auth-error {
-  margin: -6px 0 var(--space-4);
-}
-
-.auth-aviso {
-  margin: 0 0 var(--space-4);
-}
-
 @keyframes auth-error-entrada {
   from {
     opacity: 0;
@@ -67,27 +36,4 @@
 
 .auth-form .btn-primary:active:not(:disabled) {
   transform: scale(0.97);
-}
-
-/* ---------- Enlace «Volver» ---------- */
-.auth-back {
-  font-size: var(--fs-base);
-  color: var(--muted);
-  margin: 0 0 20px -4px; /* el ícono alinea su trazo con el borde del texto */
-}
-
-.auth-back--abajo {
-  margin: var(--space-4) 0 0;
-}
-
-@media (hover: hover) {
-  .auth-back:hover {
-    color: var(--text);
-  }
-}
-
-/* ---------- Casillas del código (OtpInput) ---------- */
-.auth-otp__casilla {
-  font-size: 20px;
-  font-family: var(--font-mono);
 }

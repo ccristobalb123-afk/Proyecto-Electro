@@ -1,24 +1,10 @@
 /* ============================================================
    Carcasa del acceso (Login y Restablecer contraseña)
    Los estilos van con clases de Tailwind en AuthShell.jsx y AuthRail.jsx.
-   Acá queda solo lo que Tailwind no puede poner:
-   - propiedades que base.css fija en <h1> y <p> (no está en capa y le
-     gana a cualquier clase; ver docs/tailwind.md);
-   - las animaciones de entrada (@keyframes), que usan las clases
-     animate-[…]. La rama de prefers-reduced-motion son clases
-     motion-reduce: (fade-in vive en styles/motion.css).
+   Acá quedan solo las animaciones de entrada (@keyframes), que usan las
+   clases animate-[…]. La rama de prefers-reduced-motion son clases
+   motion-reduce: (fade-in vive en styles/motion.css).
    ============================================================ */
-
-.auth-copy h1 {
-  font-size: 34px;
-  font-weight: var(--fw-semibold);
-  line-height: 1.15;
-  margin: 0 0 14px;
-}
-
-.auth-copy p {
-  margin: 0;
-}
 
 @keyframes auth-paso-entrada {
   from {

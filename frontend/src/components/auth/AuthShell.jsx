@@ -3,9 +3,10 @@ import AuthRail from "./AuthRail";
 import "./AuthShell.css";
 import "./AuthForm.css";
 
-// Estilos con Tailwind (ver docs/tailwind.md). Lo que sigue en AuthShell.css
-// y AuthForm.css son propiedades que base.css o .btn-primary fijan en el
-// mismo elemento: esas reglas no están en capa y le ganan a cualquier clase.
+// Estilos con Tailwind (ver docs/tailwind.md). AuthShell.css solo tiene las
+// animaciones de entrada (@keyframes); AuthForm.css, lo que .btn-primary
+// fija en el botón principal (regla sin capa que le gana a cualquier clase)
+// y el margen del campo de contraseña compartido dentro del acceso.
 //
 // El cambio de diseño de este acceso es en 960px (no en lg: = 961px):
 // max-[960px]: = hasta 959px, igual que el "@media (max-width: 959px)" de
@@ -94,9 +95,11 @@ export default function AuthShell({ flujo, pasos, actual, paso, children }) {
           Activo<span className="text-volt">360</span>
         </div>
         {/* mt-auto empuja el bloque copy + riel + empresas hacia abajo */}
-        <div className="auth-copy relative mt-auto max-w-[360px] max-[960px]:hidden">
-          <h1 className="font-display tracking-[-0.02em] text-balance">Gestión empresarial, simplificada.</h1>
-          <p className="text-md leading-[1.6] text-on-ink-soft">
+        <div className="relative mt-auto max-w-[360px] max-[960px]:hidden">
+          <h1 className="m-0 mb-3.5 font-display text-[34px] leading-[1.15] font-semibold tracking-[-0.02em] text-balance">
+            Gestión empresarial, simplificada.
+          </h1>
+          <p className="m-0 text-md leading-[1.6] text-on-ink-soft">
             Centraliza personas, equipos, camiones y finanzas de CorevexSAC y
             ElectroSAC en una sola plataforma. Activo360 te permite organizar
             la información, hacer seguimiento de tus recursos y recibir alertas

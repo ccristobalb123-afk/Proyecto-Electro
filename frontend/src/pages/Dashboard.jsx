@@ -27,9 +27,9 @@ const TONE_KPI = ["volt", "success", "copper", "danger"];
    que quedan son ganchos de reglas sin capa que siguen en otros archivos:
    - kpi-grid, cols: columnas en tablet/celular (responsive.css);
    - kpi-card, panel: color del borde suave (tarjetas.css; acá solo el ancho);
-   - month-select: alto táctil de 44px (responsive.css) y letra (Dashboard.css);
-   - panel-head, panel-head__accion, panel-chart-cargando: Dashboard.css
-     (lo que fijan base.css, .link-button y Loading.css en esos elementos).
+   - month-select: alto táctil de 44px (responsive.css);
+   - panel-head__accion, panel-chart-cargando: Dashboard.css (lo que fijan
+     .link-button y Loading.css, reglas sin capa, en esos elementos).
    [background:…] y [box-shadow:…] en vez de bg-… / shadow-…: copian el
    "background:" abreviado y la sombra de antes, para que el estilo calculado
    quede igual. max-md: = celular (≤640px), max-lg: = tablet (≤960px). */
@@ -44,8 +44,9 @@ const KPI_TONO = {
   success: "[background:var(--success-tint)] text-success-dark",
 };
 const PANEL = "panel overflow-hidden rounded-lg border bg-card [box-shadow:var(--shadow-sm)]";
-const PANEL_HEAD = `panel-head flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-b-border px-5 py-4
+const PANEL_HEAD = `flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-b-border px-5 py-4
   max-md:px-4 max-md:py-3`;
+const PANEL_TITULO = "text-[14.5px] font-semibold";
 // Avisos de vencimiento: toda la fila lleva al registro. En celular la
 // etiqueta baja debajo del texto, alineada con él (ml-11 = ícono de 32px +
 // separación de 12px), para que título y detalle usen todo el ancho.
@@ -168,7 +169,7 @@ export default function Dashboard() {
       <div className="cols mb-6 grid grid-cols-[1.5fr_1fr] gap-5">
         <div className={PANEL}>
           <div className={PANEL_HEAD}>
-            <h2>Vencimientos</h2>
+            <h2 className={PANEL_TITULO}>Vencimientos</h2>
             {proximosVencimientos.length > AVISOS_VISIBLES && (
               <button className="link-button panel-head__accion" type="button" onClick={() => setVerTodos((v) => !v)} aria-expanded={verTodos}>
                 {verTodos ? "Ver menos" : `Ver todos (${proximosVencimientos.length})`}
@@ -209,7 +210,7 @@ export default function Dashboard() {
 
         <div className={PANEL}>
           <div className={PANEL_HEAD}>
-            <h2>Actividad reciente</h2>
+            <h2 className={PANEL_TITULO}>Actividad reciente</h2>
           </div>
           {actividadReciente.map((item, i) => (
             <div className={ACTIVIDAD} key={`${item.actor}-${item.detalle}-${i}`}>
@@ -229,10 +230,10 @@ export default function Dashboard() {
 
       <div className={PANEL}>
         <div className={PANEL_HEAD}>
-          <h2>Facturado vs. gastado por empresa</h2>
+          <h2 className={PANEL_TITULO}>Facturado vs. gastado por empresa</h2>
           {comparativo && (
             <select
-              className="month-select h-8 rounded-[6px] border border-control [background:var(--card)] px-2.5 py-0 text-muted"
+              className="month-select h-8 rounded-[6px] border border-control [background:var(--card)] px-2.5 py-0 font-body text-sm text-muted"
               aria-label="Mes final del gráfico comparativo"
               value={mesFinalIndex ?? comparativo.labels.length - 1}
               onChange={(e) => setMesFinalIndex(Number(e.target.value))}

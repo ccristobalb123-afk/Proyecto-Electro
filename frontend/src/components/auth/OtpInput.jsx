@@ -76,11 +76,10 @@ export default function OtpInput({ otp, onChange, setOtp, invalid, describedBy }
         <input
           key={i}
           id={`otp-${i}`}
-          // auth-otp__casilla: letra y fuente en AuthForm.css (base.css las
-          // fija en todo <input>). [flex:1_1_0] y min-w-0: en pantallas de
-          // 320px se encogen en vez de desbordar.
-          className={`auth-otp__casilla h-13 max-w-12 min-w-0 [flex:1_1_0] rounded border border-control bg-card p-0
-            text-center text-text [transition:border-color_var(--transition-fast)] aria-invalid:border-danger`}
+          // [flex:1_1_0] y min-w-0: en pantallas de 320px se encogen en vez
+          // de desbordar.
+          className={`h-13 max-w-12 min-w-0 [flex:1_1_0] rounded border border-control bg-card p-0
+            text-center font-mono text-[20px] text-text [transition:border-color_var(--transition-fast)] aria-invalid:border-danger`}
           aria-label={`Dígito ${i + 1} del código`}
           aria-invalid={invalid ? true : undefined}
           aria-describedby={describedBy}

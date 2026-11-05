@@ -4,13 +4,8 @@
    sin capa ya lo fija en el mismo elemento (regla 9 de docs/tailwind.md):
    ============================================================ */
 
-/* base.css fija tamaño y peso de <h2> */
-.panel-head h2 {
-  font-size: 14.5px;
-  font-weight: 600;
-}
-
-/* "Ver todos": .link-button (buttons.css) y base.css fijan margen y letra */
+/* "Ver todos": .link-button (buttons.css, sin capa) fija margen y letra.
+   Pasa a clases cuando se migre .link-button. */
 .panel-head__accion {
   margin-top: 0;
   font-size: var(--fs-sm);
@@ -20,10 +15,4 @@
    clases cuando se migre Loading.css. */
 .panel-chart-cargando .loading-bloque {
   padding: var(--space-6) var(--space-4);
-}
-
-/* base.css fija letra y fuente de <select> */
-.month-select {
-  font-size: 12.5px;
-  font-family: var(--font-body);
 }

@@ -41,8 +41,9 @@ no hace falta ninguna clase extra.
 
 ### Acceso (Login y Restablecer contraseña)
 - `components/auth/AuthShell.jsx`: carcasa compartida (panel navy + riel de pasos + hoja del
-  formulario). Sus clases llevan prefijo `auth-` para no mezclarse con estilos globales de los
-  modales (`.field-error` y similares).
+  formulario). Sus estilos van con clases de Tailwind (`components/auth/clasesAuth.js`); lo que
+  queda con prefijo `auth-` (`.auth-form`, las animaciones) es para no mezclarse con estilos
+  globales de los modales (`.field-error` y similares).
 - `components/auth/AuthRail.jsx`: el riel; cada paso es un nodo con texto y `aria-current`.
 - `components/auth/OtpInput.jsx`: las 6 casillas del código (pegado, retroceso y autocompletado).
 - `components/shared/PasswordField.jsx`: campo de contraseña con mostrar/ocultar, usado también

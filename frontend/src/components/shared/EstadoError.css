@@ -1,7 +1,0 @@
-/* Estado de error: los estilos van con clases de Tailwind en
-   EstadoError.jsx. Acá queda solo el margen de <p>, que fija base.css
-   (regla 9 de docs/tailwind.md). */
-
-.estado-error__texto {
-  margin: 0;
-}

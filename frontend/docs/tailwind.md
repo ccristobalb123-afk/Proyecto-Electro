@@ -150,16 +150,14 @@ reglas siguen en `responsive.css`.
    | `.btn-primary` (`tokens.css`) | alto, relleno, letra, color, fondo, radio, transición… |
    | `.link-button` (`buttons.css`) | color, letra, margen, subrayado |
    | `.loading-bloque` (`Loading.css`) | relleno, separación… |
-   | `.password-field` (`PasswordField.css`) | `display` del label, letra del input, radio del ojo |
 
    `base.css` y las etiquetas `button`/`a` ya **no** están en esta lista:
    desde que van en la capa `base`, sus propiedades (márgenes y tamaños de
    `h1`-`h6` y `p`, `display` de `label`, letra y margen de
    `button`/`input`/`select`/`textarea`, radio y cursor de `button`, color
-   y subrayado de `a`) se pueden pasar a clases. Los restos que quedaron por `base.css`
-   en archivos ya migrados (`AuthShell.css`, `AuthForm.css`,
-   `PasswordField.css`, `EstadoVacio.css`, `EstadoError.css`, `Dashboard.css`)
-   se migran en un paso aparte.
+   y subrayado de `a`) se pueden pasar a clases. Los restos que habían
+   quedado por `base.css` en los archivos ya migrados ya pasaron a clases
+   (ver «Estado de la migración»).
 10. **Reglas sin capa con especificidad 0 (`:where(...)`).** Antes perdían
     contra las etiquetas de `tokens.css`; ahora les ganan, porque esas
     etiquetas están en capa. Hoy hay una sola:
@@ -216,21 +214,39 @@ Para que una migración quede idéntica (no solo "parecida"):
 `body`, `button` y `a`, que antes estaban en `tokens.css`). Quedan sin capa a
 propósito, en `tokens.css`: la regla de foco y las clases globales
 `.btn-primary`, `.sr-only`, `.font-display`, `.font-mono` y
-`.pantalla-cargando-sesion`. Falta migrar los restos que `base.css` dejó en
-los archivos ya migrados.
+`.pantalla-cargando-sesion`.
 
-**Migrado** (estilos en clases; en su `.css` queda lo que fijaba `base.css`
-cuando estaba sin capa —pendiente de pasar a clases— o lo que bloquea un
-componente global, regla 9):
+**Restos de `base.css`:** migrados. Lo que `base.css` (y después
+`etiquetas.css`) bloqueaba cuando estaba sin capa pasó a clases en el mismo
+cambio en que se borró del CSS viejo:
 
-| Qué | Archivos | CSS que queda |
+- `AuthShell.css`: tamaños, márgenes y letra del `h1` y el `p` del panel
+  (`AuthShell.jsx`).
+- `AuthForm.css`: `h2`, subtítulo y `p` de error/aviso, `label`, letra de
+  `input` y de las casillas OTP, y el enlace «Volver» (margen, letra, color y
+  hover; `VOLVER` y `VOLVER_ABAJO` en `clasesAuth.js`).
+- `PasswordField.css`: eliminado (`display` y letra del label, letra del
+  input y radio del ojo, ahora en `PasswordField.jsx`).
+- `EstadoVacio.css` y `EstadoError.css`: eliminados (márgenes de los `<p>` y
+  del botón).
+- `Dashboard.css`: tamaño y peso de los `<h2>` (`PANEL_TITULO`) y letra del
+  `<select>` de mes.
+
+Las clases que siguen siendo gancho de otra regla se dejaron:
+`auth-form` (`AuthForm.css` y `motion.css`), `password-field` (`AuthForm.css`)
+y `month-select` (alto táctil de 44 px en `responsive.css`).
+
+**Migrado** (estilos en clases; en su `.css` queda solo lo que bloquea una
+regla sin capa, regla 9, o lo que una clase no puede expresar):
+
+| Qué | Archivos | CSS que queda y motivo |
 |---|---|---|
-| Login y Restablecer contraseña | `AuthShell.jsx`, `AuthRail.jsx`, `OtpInput.jsx`, `clasesAuth.js`, `Login.jsx`, `RestablecerPassword.jsx` | `AuthShell.css` (h1/p y animaciones), `AuthForm.css` (h2, p, label, input, `.btn-primary`, enlace «Volver») |
-| Campo de contraseña | `PasswordField.jsx` | `PasswordField.css` (`display` del label, letra del input, radio del botón del ojo) |
+| Login y Restablecer contraseña | `AuthShell.jsx`, `AuthRail.jsx`, `OtpInput.jsx`, `clasesAuth.js`, `Login.jsx`, `RestablecerPassword.jsx` | `AuthShell.css`: solo los `@keyframes` de entrada. `AuthForm.css`: ancho, alto, letra, centrado, transición y escala al presionar del botón principal (`.auth-form .btn-primary`: `.btn-primary` va sin capa en `tokens.css`, y `motion.css` engancha esa regla); el margen de 18 px del campo de contraseña dentro del formulario (`.auth-form .password-field`: ajuste de contexto sobre un componente compartido que fuera del acceso usa `mb-4`), y el `@keyframes` del error |
+| Campo de contraseña | `PasswordField.jsx` | ninguno (`PasswordField.css` se eliminó) |
 | Medidor de fuerza | `PasswordStrength.jsx` | ninguno (`PasswordStrength.css` se eliminó) |
-| Estado vacío | `EstadoVacio.jsx` | `EstadoVacio.css` (márgenes de `<p>` y del botón) |
-| Estado de error | `EstadoError.jsx` | `EstadoError.css` (margen de `<p>`) |
-| Dashboard | `Dashboard.jsx` (+ `className` en `EtiquetaUrgencia.jsx`) | `Dashboard.css`: tamaño y peso de los `<h2>` (base.css), margen y letra de «Ver todos» (`.link-button`), letra del `<select>` (base.css) y el relleno de la carga del gráfico (`.panel-chart-cargando .loading-bloque`, porque `Loading.css` fija el relleno) |
+| Estado vacío | `EstadoVacio.jsx` | ninguno (`EstadoVacio.css` se eliminó) |
+| Estado de error | `EstadoError.jsx` | ninguno (`EstadoError.css` se eliminó) |
+| Dashboard | `Dashboard.jsx` (+ `className` en `EtiquetaUrgencia.jsx`) | `Dashboard.css`: margen y letra de «Ver todos» (`.panel-head__accion`: `.link-button` va sin capa en `buttons.css`) y el relleno de la carga del gráfico (`.panel-chart-cargando .loading-bloque`: `Loading.css` va sin capa y fija el relleno). Pasan a clases cuando se migren `buttons.css` y `Loading.css` |
 
 **Sin migrar** (todo su estilo sigue en CSS):
 
