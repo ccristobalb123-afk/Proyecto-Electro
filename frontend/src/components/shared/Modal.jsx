@@ -6,23 +6,25 @@ import { ACCIONES, BOTON_SECUNDARIO, MENSAJE_VACIO, CAMPO, FILA, AVISO, AVISO_RE
 
 // Clases que quedan como gancho de otras reglas (no dan estilo por sí solas):
 // - modal-overlay y open: ToastContainer.css (body:has(.modal-overlay.open)).
-// - modal-overlay--{variant} y modal--{variant}: VisorArchivo.css (visor) y
-//   motion.css (seguridad).
-// - modal-electro: responsive.css (.modal-electro .form-row…) y VisorArchivo.css.
+// - modal--{variant}: motion.css (seguridad).
+// - modal-electro: responsive.css (.modal-electro .form-row…).
 // - modal-cuerpo: Finanzas.css (.modal-cuerpo:disabled .gasto-documento label).
+// Las variantes («seguridad», «visor») cambian propiedades que la base
+// también fija: por eso cada una tiene su constante y no se suman dos clases
+// de la misma propiedad en un elemento.
 
 // Fondo oscuro. En celular deja un margen alrededor del modal (y respeta la
 // muesca); en celular horizontal (apaisado:, poca altura), uno más chico.
 const FONDO = `modal-overlay open fixed inset-0 z-(--z-modal) flex items-center justify-center
-  [background:color-mix(in_srgb,var(--ink-2)_50%,transparent)]
   max-md:px-3 max-md:pt-[max(var(--space-3),env(safe-area-inset-top))] max-md:pb-[max(var(--space-3),env(safe-area-inset-bottom))]
   apaisado:px-2 apaisado:pt-[max(var(--space-2),env(safe-area-inset-top))] apaisado:pb-[max(var(--space-2),env(safe-area-inset-bottom))]`;
+const FONDO_COLOR = "[background:color-mix(in_srgb,var(--ink-2)_50%,transparent)]";
 
 // La caja del modal. En celular usa todo el ancho y el alto disponibles.
 // El ancho va en dos constantes (normal y wide) para no poner dos w- en el
 // mismo elemento.
-const CAJA = `modal-electro rounded-[14px] [background:var(--card)] max-w-[92vw] max-h-[88vh] supports-[max-height:88dvh]:max-h-[88dvh]
-  overflow-y-auto overscroll-contain px-7 py-[26px] focus:[outline:none]
+const CAJA = "modal-electro rounded-[14px] [background:var(--card)] overscroll-contain focus:[outline:none]";
+const CAJA_FORMULARIO = `max-w-[92vw] max-h-[88vh] supports-[max-height:88dvh]:max-h-[88dvh] overflow-y-auto px-7 py-[26px]
   max-md:w-full max-md:max-w-full max-md:px-4
   apaisado:max-h-full apaisado:px-6 apaisado:py-[18px]`;
 const CAJA_MOVIL = "max-md:max-h-full max-md:py-5";
@@ -42,11 +44,24 @@ const CAJA_SEGURIDAD = `relative [animation:modal-seguridad-entrada_200ms_var(--
   max-md:max-h-[92vh] max-md:supports-[max-height:92dvh]:max-h-[92dvh] max-md:rounded-[16px_16px_0_0]
   max-md:pt-5 max-md:pb-[max(26px,env(safe-area-inset-bottom))] max-md:[animation:modal-seguridad-hoja_280ms_var(--ease-out)_both]`;
 
-// Encabezado: título y botón de cerrar. modal-head y modal-close quedan como
-// gancho: VisorArchivo.css (.modal--visor .modal-head…) y responsive.css
-// (44px táctiles del botón de cerrar).
-const ENCABEZADO = "modal-head mb-1 flex items-center justify-between gap-3";
-const TITULO = "font-display min-w-0 text-[19px] font-semibold [overflow-wrap:anywhere] max-md:text-xl";
+// Variante «visor» (VisorArchivo: fotos y PDFs): casi toda la pantalla en
+// escritorio y la pantalla completa en celular, sin scroll (la imagen se
+// ajusta sola), con el nombre del archivo arriba y las acciones abajo. Los
+// @keyframes están en VisorArchivo.css; con movimiento reducido, sin animación.
+const FONDO_VISOR = "[background:rgba(15,19,24,0.8)] [animation:visor-fondo_150ms_ease-out_both] motion-reduce:[animation:none]";
+const CAJA_VISOR = `flex h-[90vh] max-h-none w-[min(960px,96vw)] max-w-[96vw] flex-col overflow-hidden px-5 py-4 supports-[height:90dvh]:h-[90dvh]
+  [animation:visor-entrada_200ms_var(--ease-out)_both] motion-reduce:[animation:none]
+  max-md:h-screen max-md:w-full max-md:max-w-full max-md:rounded-none max-md:px-3 max-md:supports-[height:100dvh]:h-dvh
+  max-md:pt-[max(var(--space-3),env(safe-area-inset-top))] max-md:pb-[max(var(--space-3),env(safe-area-inset-bottom))]`;
+
+// Encabezado: título y botón de cerrar. modal-close queda como gancho:
+// responsive.css (44px táctiles). En el visor, nombres de archivo largos
+// ("Certificado_SCTR_Juan_Perez_2026.pdf") se cortan con puntos suspensivos
+// en vez de empujar el botón de cerrar.
+const ENCABEZADO = "flex items-center justify-between gap-3";
+const TITULO = "font-display min-w-0 font-semibold [overflow-wrap:anywhere]";
+const TITULO_TAMANO = "text-[19px] max-md:text-xl";
+const TITULO_VISOR = "m-0 truncate text-lg";
 const CERRAR = `modal-close flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded [border:none] [background:none] text-muted
   hover:[background:var(--paper)] disabled:cursor-progress disabled:opacity-40`;
 const SUBTITULO = "mb-[22px] text-[13px] text-muted max-md:mb-4";
@@ -146,8 +161,9 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant,
 
   if (!open) return null;
   const esSeguridad = variant === "seguridad";
+  const esVisor = variant === "visor";
   return (
-    <div className={`${FONDO} ${esSeguridad ? FONDO_SEGURIDAD : ""} ${variant ? `modal-overlay--${variant}` : ""}`} onClick={cerrar}>
+    <div className={`${FONDO} ${esVisor ? FONDO_VISOR : FONDO_COLOR} ${esSeguridad ? FONDO_SEGURIDAD : ""}`} onClick={cerrar}>
       <div
         ref={dialogRef}
         role="dialog"
@@ -155,11 +171,11 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant,
         aria-labelledby={tituloId}
         aria-busy={ocupado || undefined}
         tabIndex={-1}
-        className={`${CAJA} ${wide ? ANCHO_WIDE : ANCHO} ${esSeguridad ? CAJA_SEGURIDAD : CAJA_MOVIL} ${variant ? `modal--${variant}` : ""}`}
+        className={`${CAJA} ${esVisor ? CAJA_VISOR : `${CAJA_FORMULARIO} ${wide ? ANCHO_WIDE : ANCHO} ${esSeguridad ? CAJA_SEGURIDAD : CAJA_MOVIL}`} ${variant ? `modal--${variant}` : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={ENCABEZADO}>
-          <h2 id={tituloId} className={`${TITULO} ${esSeguridad ? "tracking-[-0.01em]" : ""}`}>{title}</h2>
+        <div className={`${ENCABEZADO} ${esVisor ? "mb-3" : "mb-1"}`}>
+          <h2 id={tituloId} className={`${TITULO} ${esVisor ? TITULO_VISOR : TITULO_TAMANO} ${esSeguridad ? "tracking-[-0.01em]" : ""}`}>{title}</h2>
           {/* Un modal sin onClose (ej. cambio de contraseña obligatorio) no se puede cerrar: sin botón */}
           {onClose && (
             <button className={CERRAR} onClick={cerrar} type="button" aria-label="Cerrar" disabled={ocupado}>

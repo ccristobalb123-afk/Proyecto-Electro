@@ -29,7 +29,7 @@ function FilaDocumento({ d, subiendo, onSubirArchivo }) {
             {subiendo}
           </div>
         ) : d.archivo ? (
-          <BotonVerArchivo className="docs-row-sub docs-row-sub--link" url={d.archivoUrl} nombre={d.archivoNombre} icono={false}>
+          <BotonVerArchivo className="docs-row-sub docs-row-sub--link max-w-full truncate" url={d.archivoUrl} nombre={d.archivoNombre} icono={false}>
             {d.archivoNombre || "Ver documento"}
           </BotonVerArchivo>
         ) : (

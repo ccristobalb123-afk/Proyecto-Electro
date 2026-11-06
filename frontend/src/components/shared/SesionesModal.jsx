@@ -5,8 +5,14 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import * as authService from "../../services/authService";
-import "./SesionesModal.css";
 import { ACCIONES, BOTON_SECUNDARIO, ERROR_CAMPO } from "./clasesModal";
+
+// Cada sesión: dispositivo (y "Este dispositivo"), última actividad, inicio e
+// IP, y su botón. En celulares angostos (≤480px) el botón baja debajo del texto
+// y los botones del pie se apilan, el principal arriba.
+const ITEM = `flex items-center justify-between gap-3 rounded border border-border [background:var(--card)] p-3
+  max-[481px]:flex-col max-[481px]:items-stretch`;
+const ACCIONES_SESIONES = "max-[481px]:flex-col-reverse max-[481px]:[&>button]:w-full";
 
 function haceCuanto(fecha) {
   const minutos = Math.round((Date.now() - new Date(fecha).getTime()) / 60_000);
@@ -93,26 +99,26 @@ function ListaSesiones({ onClose }) {
         </p>
       )}
       {!sesiones && !error && (
-        <div className="sesiones-cargando" role="status">
+        <div className="flex items-center gap-2 px-0 py-3 text-sm text-muted" role="status">
           <Spinner tamano={18} /> Cargando…
         </div>
       )}
       {sesiones && (
-        <ul className="sesiones-lista">
+        <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {sesiones.map((s) => (
-            <li key={s.id} className="sesion-item">
-              <div className="sesion-info">
-                <div className="sesion-dispositivo">
+            <li key={s.id} className={ITEM}>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2 text-base font-semibold text-text">
                   {s.dispositivo}
-                  {s.esActual && <span className="sesion-actual">Este dispositivo</span>}
+                  {s.esActual && <span className="rounded-[999px] [background:var(--success-tint)] px-2 py-px text-xs font-medium text-success-dark">Este dispositivo</span>}
                 </div>
-                <div className="sesion-detalle">
+                <div className="mt-0.5 text-sm leading-[1.4] text-muted [overflow-wrap:anywhere]">
                   Última actividad: {haceCuanto(s.ultimaActividadEn)} · Inició: {fechaHora(s.iniciadaEn)}
                   {s.ip ? ` · IP ${s.ip}` : ""}
                 </div>
               </div>
               <BotonCarga
-                className="btn-outline-sm"
+                className="btn-outline-sm flex-none"
                 cargando={cerrandoId === s.id}
                 textoCargando="Cerrando…"
                 onClick={() => cerrarUna(s)}
@@ -124,7 +130,7 @@ function ListaSesiones({ onClose }) {
           ))}
         </ul>
       )}
-      <div className={`${ACCIONES} sesiones-acciones`}>
+      <div className={`${ACCIONES} ${ACCIONES_SESIONES}`}>
         <button type="button" className={BOTON_SECUNDARIO} onClick={onClose}>
           Listo
         </button>

@@ -6,7 +6,7 @@ import EstadoError from "./EstadoError";
 import { IconExternalLink, IconFile } from "../icons/Icons";
 import { obtenerArchivo } from "../../services/uploadsService";
 import "./VisorArchivo.css";
-import { ACCIONES, BOTON_SECUNDARIO } from "./clasesModal";
+import { ACCIONES_VISOR, BOTON_SECUNDARIO } from "./clasesModal";
 
 const EXT_IMAGEN = /\.(jpe?g|png|webp|gif)$/i;
 
@@ -16,6 +16,16 @@ function tipoDeArchivo(url = "") {
   if (/\.pdf$/i.test(url)) return "pdf";
   return "archivo";
 }
+
+// Los dos enlaces del pie. En «Nueva pestaña», .btn-primary (tokens.css, sin
+// capa) ya fija display, alineación y separación con los mismos valores.
+const ENLACE = "inline-flex items-center justify-center gap-1.5";
+
+// Botón "Ver PDF / Ver imagen" (antes era un <a>): sin fondo, borde ni
+// relleno de botón nativo, con la letra y el color del texto que lo rodea.
+// Quien lo usa le pasa la clase de su pantalla (.doc-chip, .fin-card-archivo
+// --link…), que no tiene capa y manda en color, fondo, relleno y letra.
+const BOTON_VER = "[font:inherit] text-left [border:none] [background:none] p-0 [color:inherit]";
 
 const ETIQUETA_VER = { imagen: "Ver imagen", pdf: "Ver PDF", archivo: "Ver archivo" };
 
@@ -64,7 +74,7 @@ export function VisorArchivo({ archivo, onClose }) {
 
   return createPortal(
     <Modal open title={nombre} onClose={onClose} variant="visor">
-      <div className="visor-cuerpo">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded [background:var(--paper)]">
         {estado.cargando && <Loading texto="Abriendo archivo…" />}
         {estado.error && (
           <EstadoError
@@ -76,22 +86,22 @@ export function VisorArchivo({ archivo, onClose }) {
             }}
           />
         )}
-        {estado.blobUrl && tipo === "imagen" && <img className="visor-imagen" src={estado.blobUrl} alt={nombre} />}
-        {estado.blobUrl && tipo === "pdf" && pdfEnLinea && <iframe className="visor-pdf" src={estado.blobUrl} title={nombre} />}
+        {estado.blobUrl && tipo === "imagen" && <img className="block max-h-full max-w-full object-contain" src={estado.blobUrl} alt={nombre} />}
+        {estado.blobUrl && tipo === "pdf" && pdfEnLinea && <iframe className="h-full w-full rounded [border:none] [background:var(--card)]" src={estado.blobUrl} title={nombre} />}
         {estado.blobUrl && tipo !== "imagen" && !(tipo === "pdf" && pdfEnLinea) && (
-          <div className="visor-sin-vista">
+          <div className="flex max-w-[34ch] flex-col items-center gap-3 p-6 text-center text-muted">
             <IconFile width={28} height={28} />
-            <p>Este navegador no puede mostrar el {tipo === "pdf" ? "PDF" : "archivo"} aquí. Ábrelo o descárgalo con los botones de abajo.</p>
+            <p className="m-0 text-base">Este navegador no puede mostrar el {tipo === "pdf" ? "PDF" : "archivo"} aquí. Ábrelo o descárgalo con los botones de abajo.</p>
           </div>
         )}
       </div>
 
       {estado.blobUrl && (
-        <div className={`${ACCIONES} visor-acciones`}>
-          <a className={BOTON_SECUNDARIO} href={estado.blobUrl} download={archivo.nombre || true}>
+        <div className={ACCIONES_VISOR}>
+          <a className={`${BOTON_SECUNDARIO} ${ENLACE}`} href={estado.blobUrl} download={archivo.nombre || true}>
             Descargar
           </a>
-          <a className="btn-primary" href={estado.blobUrl} target="_blank" rel="noreferrer">
+          <a className={`btn-primary ${ENLACE}`} href={estado.blobUrl} target="_blank" rel="noreferrer">
             <IconExternalLink width={15} height={15} />
             Nueva pestaña
           </a>
@@ -110,7 +120,7 @@ export function BotonVerArchivo({ url, nombre, className = "doc-chip", children,
   const [abierto, setAbierto] = useState(false);
   return (
     <>
-      <button type="button" className={`boton-ver-archivo ${className}`} onClick={() => setAbierto(true)}>
+      <button type="button" className={`${BOTON_VER} ${className}`} onClick={() => setAbierto(true)}>
         {icono && <IconFile width={13} height={13} />}
         {children || ETIQUETA_VER[tipoDeArchivo(url)]}
       </button>

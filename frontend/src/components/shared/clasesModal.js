@@ -15,12 +15,22 @@
 // arriba del borde, por eso el bottom y los márgenes negativos son iguales
 // al padding del modal en cada caso. En celular, además, los botones van del
 // mismo tamaño y repartidos a lo ancho.
-export const ACCIONES = `modal-actions flex flex-wrap justify-end gap-2.5
-  max-md:sticky max-md:-bottom-5 max-md:z-1 max-md:-mx-4 max-md:mt-2 max-md:-mb-5
-  max-md:border-t max-md:border-t-border max-md:[background:var(--card)] max-md:px-4 max-md:pt-3 max-md:pb-4
-  apaisado:sticky apaisado:bottom-[-18px] apaisado:z-1 apaisado:-mx-6 apaisado:mt-2 apaisado:mb-[-18px]
-  apaisado:border-t apaisado:border-t-border apaisado:[background:var(--card)] apaisado:px-6 apaisado:py-3
+const ACCIONES_FILA = `modal-actions flex flex-wrap justify-end gap-2.5
   max-md:[&>:is(button,a)]:min-h-(--control-height-lg) max-md:[&>:is(button,a)]:[flex:1_1_auto] max-md:[&>:is(button,a)]:justify-center`;
+const BARRA_APAISADO = `apaisado:sticky apaisado:bottom-[-18px] apaisado:z-1 apaisado:-mx-6 apaisado:mb-[-18px]
+  apaisado:border-t apaisado:border-t-border apaisado:[background:var(--card)] apaisado:px-6 apaisado:py-3`;
+export const ACCIONES = `${ACCIONES_FILA} ${BARRA_APAISADO} apaisado:mt-2
+  max-md:sticky max-md:-bottom-5 max-md:z-1 max-md:-mx-4 max-md:mt-2 max-md:-mb-5
+  max-md:border-t max-md:border-t-border max-md:[background:var(--card)] max-md:px-4 max-md:pt-3 max-md:pb-4`;
+
+// Pie del visor de archivos: el visor no hace scroll (la imagen se ajusta
+// sola), así que en celular no lleva la barra fija; en celular horizontal sí
+// (como antes). Los dos enlaces se reparten el ancho en partes iguales:
+// [&&>a] le gana a la regla de los hijos de ACCIONES_FILA. bottom, z-index y
+// background:none en celular no se ven (el pie no es sticky ahí), pero son
+// los valores que tenía: se copian para que el estilo calculado sea igual.
+export const ACCIONES_VISOR = `${ACCIONES_FILA} ${BARRA_APAISADO} mt-3 shrink-0 max-md:[&&>a]:[flex:1_1_0]
+  max-md:-bottom-5 max-md:z-1 max-md:[background:none]`;
 
 // Botón secundario ("Cancelar", "Descargar"). "btn-secondary" queda como
 // gancho: responsive.css (44px táctiles).

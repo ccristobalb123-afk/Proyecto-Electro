@@ -4,6 +4,42 @@ import { IconAlertCircle, IconHelpCircle } from "../icons/Icons";
 import { Spinner } from "./Carga";
 import "./ConfirmDialog.css";
 
+// Clases que quedan como gancho de otras reglas (no dan estilo por sí solas):
+// confirm-overlay (ToastContainer.css: con un diálogo abierto, los avisos no
+// estorban), btn-confirm-* (responsive.css: 44px táctiles) y confirm-palabra
+// (ConfirmDialog.css: anillo de foco rojo del campo, ver allí).
+// Solo -webkit-backdrop-filter, como quedaba antes en el build: lightningcss
+// juntaba "backdrop-filter" y "-webkit-backdrop-filter" y dejaba solo la
+// versión con prefijo, así que el desenfoque solo se ve en Safari. Se copia
+// tal cual para no cambiar el aspecto en este paso (ver docs/tailwind.md).
+const FONDO = `confirm-overlay fixed inset-0 z-(--z-confirm) flex items-center justify-center p-6
+  [background:color-mix(in_srgb,var(--ink-2)_55%,transparent)] [-webkit-backdrop-filter:blur(4px)]
+  max-md:p-4`;
+const TARJETA = `m-0 max-h-full w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-lg border p-[26px]
+  [background:var(--card)] [box-shadow:var(--shadow-lg)] focus:[outline:none] max-md:p-5`;
+const ICONO = "box-border h-[46px] w-[46px] rounded-[10px] p-2.5";
+const ICONO_PELIGRO = `${ICONO} [background:var(--danger-tint)] text-danger-dark`;
+const ICONO_NORMAL = `${ICONO} [background:var(--electro-tint)] text-electro-dark`;
+const TITULO = "mx-0 mt-0 mb-2 text-xl leading-[1.3] font-semibold text-text [overflow-wrap:anywhere]";
+// Sin título (llamadas viejas con un solo texto), el mensaje es lo principal
+// y conserva el color fuerte.
+const MENSAJE = "mx-0 mt-0 mb-6 text-[14.5px] leading-[1.5] [overflow-wrap:anywhere]";
+const PALABRA_CAMPO = "h-(--control-height-lg) w-full rounded border border-control [background:var(--card)] px-3 py-0 font-body text-md text-text";
+const ERROR = "mx-0 -mt-3 mb-5 rounded [background:var(--danger-tint)] px-4 py-3 text-base leading-[1.45] text-danger-dark";
+const ACCIONES = "flex justify-end gap-3 max-md:flex-wrap max-md:[&>button]:[flex:1_1_auto]";
+const BOTON = `inline-flex min-h-(--control-height-md) cursor-pointer items-center justify-center gap-2 rounded px-4 py-[9px] text-[13.5px]
+  [transition:background_0.15s_ease]`;
+// Deshabilitado por el usuario: atenuado. Ocupado (ejecutando la acción): el
+// botón principal muestra el spinner con su opacidad normal.
+const DESHABILITADO = "disabled:cursor-not-allowed disabled:opacity-55";
+const OCUPADO = "disabled:cursor-progress disabled:opacity-100";
+const BOTON_SECUNDARIO = `btn-confirm-secondary ${BOTON} ${DESHABILITADO} border border-border [background:var(--paper)] font-medium text-text
+  hover:[background:var(--gray-tint)]`;
+const BOTON_PRINCIPAL = `btn-confirm-primary ${BOTON} [border:none] [background:var(--electro)] font-semibold text-on-accent
+  hover:[background:var(--electro-dark)]`;
+const BOTON_PELIGRO = `btn-confirm-danger ${BOTON} [border:none] [background:var(--danger)] font-semibold text-on-accent
+  hover:[background:var(--danger-dark)]`;
+
 // Compara lo escrito con la palabra pedida sin exigir mayúsculas ni
 // espacios exactos ("juan  pérez " vale para "Juan Pérez").
 function coincide(escrito, esperado) {
@@ -121,10 +157,10 @@ export default function ConfirmDialog({
   const mensajeVisible = alternativaActiva ? alternativaActiva.mensaje : mensaje;
   const textoBoton = alternativaActiva ? alternativaActiva.texto : soloInformativo ? "Entendido" : textoConfirmar;
   const textoBotonCargando = alternativaActiva ? alternativaActiva.textoCargando || "Procesando…" : textoCargando;
-  const claseBoton = esPeligro && !soloInformativo ? "btn-confirm-danger" : "btn-confirm-primary";
+  const claseBoton = `${esPeligro && !soloInformativo ? BOTON_PELIGRO : BOTON_PRINCIPAL} ${cargando ? OCUPADO : DESHABILITADO}`;
 
   return (
-    <div className="confirm-overlay" onClick={cancelar}>
+    <div className={FONDO} onClick={cancelar}>
       <form
         ref={cardRef}
         role="alertdialog"
@@ -132,34 +168,35 @@ export default function ConfirmDialog({
         aria-labelledby={tituloVisible ? tituloId : undefined}
         aria-describedby={mensajeId}
         aria-busy={cargando}
-        className={`confirm-card ${tipo === "peligro" ? "confirm-card--peligro" : ""}`}
+        className={`${TARJETA} ${tipo === "peligro" ? "border-danger-tint" : "border-border"}`}
         onClick={(e) => e.stopPropagation()}
         onSubmit={onConfirmar}
         noValidate
       >
-        <div className="confirm-icono-container">
+        <div className="mb-4 inline-flex">
           {tipo === "peligro" ? (
-            <IconAlertCircle className="confirm-icono confirm-icono--peligro" width={26} height={26} />
+            <IconAlertCircle className={ICONO_PELIGRO} width={26} height={26} />
           ) : (
-            <IconHelpCircle className="confirm-icono confirm-icono--normal" width={26} height={26} />
+            <IconHelpCircle className={ICONO_NORMAL} width={26} height={26} />
           )}
         </div>
 
         {tituloVisible && (
-          <h2 id={tituloId} className="confirm-titulo font-display">
+          <h2 id={tituloId} className={`${TITULO} font-display`}>
             {tituloVisible}
           </h2>
         )}
-        <p id={mensajeId} className="confirm-mensaje">
+        <p id={mensajeId} className={`${MENSAJE} ${tituloVisible ? "text-muted" : "text-text"}`}>
           {mensajeVisible}
         </p>
 
         {palabraConfirmacion && !alternativaActiva && (
-          <div className="confirm-palabra">
-            <label htmlFor={inputId}>
-              Para confirmar, escribe <b>{palabraConfirmacion}</b>
+          <div className="confirm-palabra mx-0 -mt-2 mb-5">
+            <label className="mb-2 block text-base text-text" htmlFor={inputId}>
+              Para confirmar, escribe <b className="[font-family:var(--font-mono)] font-semibold [overflow-wrap:anywhere]">{palabraConfirmacion}</b>
             </label>
             <input
+              className={PALABRA_CAMPO}
               id={inputId}
               type="text"
               autoComplete="off"
@@ -173,14 +210,14 @@ export default function ConfirmDialog({
         )}
 
         {error && (
-          <p className="confirm-error" role="alert">
+          <p className={ERROR} role="alert">
             {error}
           </p>
         )}
 
-        <div className="confirm-acciones">
+        <div className={ACCIONES}>
           {!soloInformativo && (
-            <button ref={cancelarRef} className="btn-confirm-secondary" type="button" onClick={cancelar} disabled={cargando}>
+            <button ref={cancelarRef} className={BOTON_SECUNDARIO} type="button" onClick={cancelar} disabled={cargando}>
               Cancelar
             </button>
           )}

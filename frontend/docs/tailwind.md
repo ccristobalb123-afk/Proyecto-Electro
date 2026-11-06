@@ -106,9 +106,9 @@ reglas siguen en `responsive.css`.
      `base.css` a propósito: `base.css` pone `button { font-family:
      inherit }` y la regla de `etiquetas.css`, con la misma especificidad,
      la reemplaza por la letra del body. No cambies ese orden.
-   - Consecuencia nueva: una regla sin capa con especificidad 0
-     (`:where(...)`) ahora le gana a esas etiquetas. Pasó con el botón de
-     `VisorArchivo` (ver regla 10).
+   - Consecuencia: una regla sin capa con especificidad 0 (`:where(...)`)
+     le gana a esas etiquetas. Pasó con el botón de `VisorArchivo` (ver
+     regla 10).
    - El resto del CSS de la app (variables y clases de `tokens.css`,
      `responsive.css`, el `.css` de cada módulo) no está en capa, y lo que
      no está en capa le gana a lo que sí, sin importar la especificidad ni
@@ -161,11 +161,12 @@ reglas siguen en `responsive.css`.
    quedado por `base.css` en los archivos ya migrados ya pasaron a clases
    (ver «Estado de la migración»).
 10. **Reglas sin capa con especificidad 0 (`:where(...)`).** Antes perdían
-    contra las etiquetas de `tokens.css`; ahora les ganan, porque esas
-    etiquetas están en capa. Hoy hay una sola:
-    `:where(button.boton-ver-archivo) { font: inherit }` (`VisorArchivo.css`).
-    Antes el botón tomaba siempre la letra del body (la regla `button`
-    ganaba); ahora la hereda del contenedor. Se midió en todas las pantallas,
+    contra las etiquetas de `tokens.css`; desde que esas etiquetas están en
+    capa, les ganan. Ya no queda ninguna: la única,
+    `:where(button.boton-ver-archivo) { font: inherit; … }` (`VisorArchivo.css`),
+    pasó a clases en `BotonVerArchivo` (`BOTON_VER`, con `[font:inherit]`),
+    que también le ganan a las etiquetas y pierden contra la clase de cada
+    pantalla, igual que la regla. El botón hereda la letra del contenedor. Se midió en todas las pantallas,
     modales y estados donde aparece (chips de RRHH, documentos de vehículos,
     tarjetas de Finanzas): el contenedor siempre tiene la letra del body
     (Inter), así que no cambia nada. Si alguna vez se pone ese botón dentro
@@ -202,6 +203,13 @@ Para que una migración quede idéntica (no solo "parecida"):
   Variantes útiles: `[&_input:not([type=radio]):not([type=checkbox])]:…`
   (0-3-1), `[fieldset&]:…` (solo si el elemento es un `<fieldset>`),
   `[&>:is(button,a)]:…` (hijos directos).
+- **`backdrop-filter`:** el build (lightningcss) juntaba `backdrop-filter` y
+  `-webkit-backdrop-filter` de una misma regla y dejaba solo el que tiene
+  prefijo, así que el desenfoque del fondo de ConfirmDialog (y del aviso de
+  inactividad) solo se ve en Safari. Al migrar se copió así
+  (`[-webkit-backdrop-filter:blur(4px)]`) para no cambiar el aspecto;
+  agregar `[backdrop-filter:blur(4px)]` lo activaría también en Firefox y
+  Chrome.
 - **`font-mono` y `font-display` también existen sin capa** en `tokens.css`:
   como clase le ganan a cualquier otra regla de letra de Tailwind (por
   ejemplo a la de un contenedor `[&_input]:font-body`). Si la letra tiene que
@@ -277,16 +285,16 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Campos de formulario de los modales | `clasesModal.js` (`CAMPO`, `FILA`, `ERROR_CAMPO`, `AYUDA`, `AVISO…`, `DROPZONE…`, `OPCION…`, `BOTON_SECUNDARIO`…), usadas en `Modal.jsx` (empresa, aviso de vencimiento, IGV, detracción) y en cada formulario (`ModalNuevo*`, `ModalEditar*`, `ModalInspeccion`, `ModalTiposEquipo`, `FotosEquipo`, `CamposEquipo`, `CamposDocumentosVehiculo`, `ModalDocumentos`, `Administracion.jsx`…) | `Modal.css`: la letra de los botones de archivo de Nuevo gasto y el display y la letra del adjunto de cada documento del vehículo (`.form-field label.btn-outline-sm` / `label.doc-chip`: la etiqueta de campo les ganaba por especificidad a `.btn-outline-sm` y `.doc-chip`, que no tienen capa); display, alineación, separación, relleno y letra de «Tomar foto» / «Elegir archivo» (`.foto-equipo__botones label.btn-outline-sm`, que además conserva el cursor de mano mientras se guarda: le ganaba a la regla del cursor «trabajando» por venir después) y el `display: none` de la cámara con mouse (`.foto-equipo__camara`), por `.btn-outline-sm`; alineación y letra de «Mantener la actual» (`.foto-equipo__mantener`, por `.link-button`); color, fondo y borde del adjunto opcional (`.doc-chip.doc-chip--opcional`, por `.doc-chip`). Ganchos: `form-field` (`responsive.css`, `Operaciones.css`, `Administracion.css`), `form-row` (`responsive.css`), `campo-ayuda` (`Operaciones.css`), `co-choice`, `igv-choice` (`responsive.css`, `Finanzas.css`), `aviso-input-row`, `btn-secondary` (`responsive.css`), `dropzone`, `foto-equipo-slot` (campos atenuados mientras se guarda) |
 | Botón con carga y spinner | `Carga.jsx` | `Carga.css`: el `@keyframes` del giro y, en `.boton-carga`, display, alineación, separación y el aspecto «ocupado» (`:disabled` sin atenuar): el botón lleva `.btn-primary`, `.btn-danger` o `.btn-outline-sm`, sin capa |
 | Bloque de carga | `Loading.jsx` | `Loading.css`: solo el `@keyframes` del pulso del texto |
+| Diálogo de confirmación | `ConfirmDialog.jsx` | `ConfirmDialog.css`: solo el anillo de foco rojo del campo «escribe ELIMINAR» (`.confirm-palabra input:focus-visible`: la regla global de foco de `tokens.css` no tiene capa a propósito y le ganaría a la clase, regla 9). Ganchos: `confirm-overlay` (`ToastContainer.css`), `btn-confirm-primary`, `-secondary`, `-danger` (`responsive.css`) y `confirm-palabra`. El fondo lleva solo `-webkit-backdrop-filter` (ver «Detalles») |
+| Visor de archivos | `VisorArchivo.jsx`, variante «visor» de `Modal.jsx` (`FONDO_VISOR`, `CAJA_VISOR`, `TITULO_VISOR`), `ACCIONES_VISOR` en `clasesModal.js` | `VisorArchivo.css`: solo los `@keyframes` de entrada del fondo y del visor. El botón «Ver archivo» (`BotonVerArchivo`) ya no usa la regla `:where(...)` (regla 10) |
+| Foto ampliada | `Lightbox.jsx` | ninguno (`Lightbox.css` se eliminó). Gancho: `lightbox-close` (`responsive.css`) |
+| Sesiones y dispositivos | `SesionesModal.jsx` | ninguno (`SesionesModal.css` se eliminó) |
 
 **Sin migrar** (todo su estilo sigue en CSS):
 
 - **Pantallas:** `Rrhh.css`, `Operaciones.css` (+
   `EquiposCards.css`, `VehiculosCards.css`, `Asignacion.css`), `Finanzas.css`,
   `Administracion.css`.
-- **Componentes que usan el modal** (siguiente paso): `ConfirmDialog.css`,
-  `VisorArchivo.css`, `Lightbox.css`, `SesionesModal.css`. Sus botones y
-  pies ya usan las clases del modal (`BOTON_SECUNDARIO`, `ACCIONES`), pero
-  sus propias reglas siguen en CSS.
 - **Formularios de cada pantalla:** sus campos ya usan las clases de
   `clasesModal.js`, pero las reglas propias de la pantalla (`Rrhh.css`,
   `Operaciones.css`, `Finanzas.css`, `Administracion.css`, `Asignacion.css`)
