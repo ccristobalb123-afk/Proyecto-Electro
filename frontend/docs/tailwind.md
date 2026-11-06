@@ -150,6 +150,7 @@ reglas siguen en `responsive.css`.
    | `.btn-primary` (`tokens.css`) | alto, relleno, letra, color, fondo, radio, transición… |
    | `.link-button` (`buttons.css`) | color, letra, margen, subrayado |
    | `.loading-bloque` (`Loading.css`) | relleno, separación… |
+   | `input:focus-visible`, `button:focus-visible` (`tokens.css`) | contorno de foco (`outline`): a propósito, para que ninguna clase lo quite |
 
    `base.css` y las etiquetas `button`/`a` ya **no** están en esta lista:
    desde que van en la capa `base`, sus propiedades (márgenes y tamaños de
@@ -246,6 +247,10 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Medidor de fuerza | `PasswordStrength.jsx` | ninguno (`PasswordStrength.css` se eliminó) |
 | Estado vacío | `EstadoVacio.jsx` | ninguno (`EstadoVacio.css` se eliminó) |
 | Estado de error | `EstadoError.jsx` | ninguno (`EstadoError.css` se eliminó) |
+| Estructura (menú lateral, topbar, contenido) | `AppShell.jsx` | `AppShell.css`: el botón de acción de cada pantalla en el topbar (`.topbar-right .btn-primary`: `.btn-primary` va sin capa en `tokens.css`) y `.topbar-accion-texto` (el texto de ese botón, que se oculta en ≤400 px; el `<span>` está en las pantallas y pasa a clases cuando se migren). Clases que quedan como gancho: `sidebar` (`motion.css`), `sidebar-cerrar`, `hamburger-btn`, `logout-btn`, `nav` (`responsive.css`), `main` (`responsive.css`, `tarjetas.css`), `topbar-right` |
+| Buscador global | `GlobalSearch.jsx` | `GlobalSearch.css`: solo el `outline: none` del campo (la regla de foco de `tokens.css` le gana a cualquier clase, regla 9). Ganchos: `search` y `global-search` (`responsive.css`). Las reglas de `.search` que compartían las barras de filtros pasaron, iguales, a `filters.css` como `.filters .search` |
+| Campana de notificaciones | `NotificacionesBell.jsx`, `EtiquetaUrgencia.jsx` | `NotificacionesBell.css`: solo el `@keyframes` del panel. `EtiquetaUrgencia.css` se eliminó. Ganchos: `notificaciones-bell__boton`, `__cerrar`, `__push-toggle` (`responsive.css`) y `__panel` (`motion.css`) |
+| Avisos (toasts) | `ToastContainer.jsx` | `ToastContainer.css`: los `@keyframes` de entrada y la regla que oculta o deja pasar los toques de los avisos con un modal abierto (`body:has(...)`: depende del estado de otro componente). Ganchos: `toast`, `toast--{tipo}` (`ToastContainer.css`, `motion.css`) y `toast__cerrar` (`responsive.css`) |
 | Dashboard | `Dashboard.jsx` (+ `className` en `EtiquetaUrgencia.jsx`) | `Dashboard.css`: margen y letra de «Ver todos» (`.panel-head__accion`: `.link-button` va sin capa en `buttons.css`) y el relleno de la carga del gráfico (`.panel-chart-cargando .loading-bloque`: `Loading.css` va sin capa y fija el relleno). Pasan a clases cuando se migren `buttons.css` y `Loading.css` |
 
 **Sin migrar** (todo su estilo sigue en CSS):
@@ -254,8 +259,9 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
   «seguridad» del modal de cambiar contraseña. Sus reglas caen sobre el
   mismo elemento que `.modal-electro`, así que conviene migrarlas junto con el
   modal y no antes.
-- **Estructura y menú:** `AppShell.css`, `GlobalSearch.css`,
-  `NotificacionesBell.css`, `MenuAcciones.css`.
+- **`MenuAcciones.jsx` / `MenuAcciones.css`:** ninguna pantalla lo importa
+  (no entra en el build), así que no hay cómo comparar capturas antes y
+  después. Queda sin migrar; conviene borrarlo como se hizo con `Monto`.
 - **Pantallas:** `Rrhh.css`, `Operaciones.css` (+
   `EquiposCards.css`, `VehiculosCards.css`, `Asignacion.css`), `Finanzas.css`,
   `Administracion.css`.
@@ -267,13 +273,9 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
   - `Loading.css`: usa el spinner de `Carga.css` (va con `Modal.css`). Al
     migrarlo, pasar a clases la regla `.panel-chart-cargando .loading-bloque`
     que quedó en `Dashboard.css`.
-  - `EtiquetaUrgencia.css`: ya no depende de `Dashboard.css` (el margen en
-    celular de las filas es `max-md:ml-11` vía `className`); se usa también
-    en `NotificacionesBell`, que se puede migrar junto.
   - `AvisoInactividad.css`: `responsive.css` (alto táctil de 44 px de
     `.btn-seguir-conectado`) y `motion.css` (pulso con movimiento reducido).
-- **Otros:** `ToastContainer.css`. (`Monto.jsx` / `Monto.css` se borraron:
-  no se usaban.)
+- **Otros:** `Monto.jsx` / `Monto.css` se borraron: no se usaban.
 - **Globales** (`styles/`): `buttons.css`, `badges.css`, `filters.css`,
   `fichas.css`, `tarjetas.css`, `motion.css`, `responsive.css`. `tokens.css`,
   `base.css` y `etiquetas.css` no se migran: son la fuente de valores y la

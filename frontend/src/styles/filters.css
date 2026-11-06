@@ -5,6 +5,39 @@
    RRHH tenía max-width: 280px en vez de 260px, ya normalizado).
    ============================================================ */
 
+/* Caja de búsqueda (div.search con lupa + input). Antes estaba en
+   AppShell.css como ".search", compartida con el buscador del topbar, que
+   ya va con clases de Tailwind (GlobalSearch.jsx). Va antes de las reglas
+   de .filters de abajo para que, donde las dos fijan lo mismo, sigan
+   ganando esas (como antes). */
+.filters .search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  width: 260px;
+}
+
+.filters .search input {
+  border: none;
+  background: none;
+  font-size: 13px;
+  width: 100%;
+}
+
+.filters .search input:focus {
+  outline: none;
+}
+
+/* El input no dibuja su propio contorno: el foco se muestra en la caja */
+.filters .search:focus-within {
+  outline: 2px solid var(--copper);
+  outline-offset: 2px;
+}
+
 .filters {
   display: flex;
   gap: 10px;

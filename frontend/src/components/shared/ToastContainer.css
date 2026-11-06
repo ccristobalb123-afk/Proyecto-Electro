@@ -1,34 +1,10 @@
-.toast-container {
-  position: fixed;
-  bottom: max(24px, env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: var(--z-toast);
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 8px;
-  align-items: center;
-  width: 100%;
-  max-width: 440px;
-  padding: 0 16px;
-  pointer-events: none;
-  box-sizing: border-box;
-}
-
-.toast {
-  background: var(--ink);
-  border: 1px solid var(--ink-border);
-  border-radius: var(--radius-lg);
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.35);
-  width: 100%;
-  pointer-events: auto;
-  will-change: transform, opacity;
-  animation: toast-aparecer 0.22s var(--ease-out);
-}
+/* ============================================================
+   Avisos (toasts): los estilos van con clases de Tailwind en
+   ToastContainer.jsx. Acá quedan las animaciones de entrada (un @keyframes
+   no es una clase; motion.css las cambia por un fundido con movimiento
+   reducido) y la regla que mira si hay un modal abierto: depende del
+   estado de otro componente (body:has(...)), no del aviso.
+   ============================================================ */
 
 @keyframes toast-aparecer {
   from {
@@ -41,92 +17,7 @@
   }
 }
 
-.toast__icono-wrapper {
-  display: flex;
-  flex-shrink: 0;
-}
-
-.toast-icon--success {
-  color: var(--success);
-}
-
-.toast-icon--error {
-  color: var(--danger);
-}
-
-.toast-icon--info {
-  color: var(--volt);
-}
-
-.toast__mensaje {
-  flex: 1;
-  color: var(--on-ink);
-  font-size: 13.5px;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.toast__acciones {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.toast__deshacer {
-  background: none;
-  border: none;
-  color: var(--volt);
-  font-weight: 600;
-  font-size: 13.5px;
-  font-family: var(--font-body);
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 4px;
-  transition: opacity 0.15s ease;
-}
-
-@media (hover: hover) {
-  .toast__deshacer:hover {
-    opacity: 0.8;
-  }
-}
-
-.toast__cerrar {
-  background: none;
-  border: none;
-  color: var(--on-ink-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.12s ease, color 0.12s ease;
-}
-
-@media (hover: hover) {
-  .toast__cerrar:hover {
-    color: var(--on-ink);
-    background: rgba(255, 255, 255, 0.06);
-  }
-}
-
-/* Celular: arriba, justo debajo del topbar. Abajo tapaban la barra de
-   "Guardar" de los modales (un toque en "Guardar" durante esos 5 s caía
-   en el aviso); encima del topbar tapaban el botón "+". */
-@media (max-width: 640px) {
-  .toast-container {
-    bottom: auto;
-    top: calc(var(--topbar-height) + env(safe-area-inset-top) + 8px);
-    flex-direction: column;
-  }
-
-  .toast {
-    animation-name: toast-aparecer-arriba;
-  }
-}
-
+/* Celular: el aviso entra desde arriba (va debajo del topbar) */
 @keyframes toast-aparecer-arriba {
   from {
     opacity: 0;

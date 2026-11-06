@@ -7,6 +7,27 @@ import * as contratosService from "../../services/contratosService";
 import { useDebounce } from "../../hooks/useDebounce";
 import "./GlobalSearch.css";
 
+/* Estilos con Tailwind (ver docs/tailwind.md). "search" y "global-search"
+   son ganchos de responsive.css (alto táctil de 44px de la caja y del
+   campo); el "outline: none" del campo sigue en GlobalSearch.css. En
+   celular (max-md:, ≤640px) el buscador no se muestra. El foco del campo
+   se dibuja en la caja (focus-within:). */
+const CAJA = `search global-search relative flex w-[260px] items-center gap-2 rounded border border-control
+  [background:var(--paper)] px-3 py-2
+  focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-copper max-md:hidden`;
+const CAMPO = "w-full [background:none] text-[13px] [border:none]";
+const PANEL = `absolute top-[calc(100%+8px)] left-0 z-(--z-dropdown-menu) max-h-[360px] w-[320px] max-w-[88vw]
+  overflow-y-auto overscroll-contain rounded border border-border [background:var(--card)] p-2 [box-shadow:var(--shadow-md)]`;
+const VACIO = "m-0 px-2 py-2.5 text-[13px] text-muted";
+// [&+&]: un grupo que sigue a otro grupo lleva la línea de separación.
+const GRUPO = "flex flex-col [&+&]:mt-1.5 [&+&]:border-t [&+&]:border-t-border [&+&]:pt-1.5";
+const GRUPO_TITULO = "px-2 py-1 text-xs font-bold tracking-[0.04em] text-muted-2 uppercase";
+// La opción elegida con las flechas lleva el mismo fondo que hover y foco.
+const opcion = (activa) =>
+  `block w-full rounded-[6px] p-2 text-left text-[13px] text-text [border:none]
+  ${activa ? "[background:var(--paper)]" : "[background:none]"}
+  hover:[background:var(--paper)] focus-visible:[background:var(--paper)]`;
+
 // Antes esta barra era puramente decorativa (un <input> sin value ni
 // onChange, sin ningún resultado detrás) — parecía funcional pero no
 // hacía nada. Ahora busca de verdad en los 3 módulos que anuncia el
@@ -105,9 +126,10 @@ export default function GlobalSearch() {
     resultados && (resultados.equipos.length || resultados.vehiculos.length || resultados.contratos.length);
 
   return (
-    <div className="search global-search" ref={contenedorRef}>
+    <div className={CAJA} ref={contenedorRef}>
       <IconSearch width={14} height={14} aria-hidden="true" />
       <input
+        className={CAMPO}
         aria-label="Buscar contrato, equipo o camión"
         placeholder="Buscar contrato, equipo, camión..."
         value={query}
@@ -121,13 +143,13 @@ export default function GlobalSearch() {
       />
 
       {resultados && (
-        <div className="global-search-panel" id="global-search-resultados" role="listbox">
-          {buscando && <p className="global-search-vacio">Buscando...</p>}
-          {!buscando && !hayResultados && <p className="global-search-vacio">Sin resultados para "{query}"</p>}
+        <div className={PANEL} id="global-search-resultados" role="listbox">
+          {buscando && <p className={VACIO}>Buscando...</p>}
+          {!buscando && !hayResultados && <p className={VACIO}>Sin resultados para "{query}"</p>}
 
           {resultados.equipos.length > 0 && (
-            <div className="global-search-grupo">
-              <span className="global-search-grupo-titulo">Equipos</span>
+            <div className={GRUPO}>
+              <span className={GRUPO_TITULO}>Equipos</span>
               {resultados.equipos.map((eq) => {
                 const id = `gs-eq-${eq.id}`;
                 return (
@@ -137,7 +159,7 @@ export default function GlobalSearch() {
                     type="button"
                     role="option"
                     aria-selected={opciones[indiceActivo]?.id === id}
-                    className={opciones[indiceActivo]?.id === id ? "activo" : ""}
+                    className={opcion(opciones[indiceActivo]?.id === id)}
                     onClick={() => irA("/operaciones", eq.identificador)}
                   >
                     <b>{eq.identificador}</b> — {eq.categoria}
@@ -148,8 +170,8 @@ export default function GlobalSearch() {
           )}
 
           {resultados.vehiculos.length > 0 && (
-            <div className="global-search-grupo">
-              <span className="global-search-grupo-titulo">Vehículos</span>
+            <div className={GRUPO}>
+              <span className={GRUPO_TITULO}>Vehículos</span>
               {resultados.vehiculos.map((v) => {
                 const id = `gs-veh-${v.id}`;
                 return (
@@ -159,7 +181,7 @@ export default function GlobalSearch() {
                     type="button"
                     role="option"
                     aria-selected={opciones[indiceActivo]?.id === id}
-                    className={opciones[indiceActivo]?.id === id ? "activo" : ""}
+                    className={opcion(opciones[indiceActivo]?.id === id)}
                     onClick={() => irA("/operaciones", v.placa)}
                   >
                     <b>{v.placa}</b> — {v.tipoUnidad}
@@ -170,8 +192,8 @@ export default function GlobalSearch() {
           )}
 
           {resultados.contratos.length > 0 && (
-            <div className="global-search-grupo">
-              <span className="global-search-grupo-titulo">Contratos</span>
+            <div className={GRUPO}>
+              <span className={GRUPO_TITULO}>Contratos</span>
               {resultados.contratos.map((c) => {
                 const id = `gs-con-${c.id}`;
                 return (
@@ -181,7 +203,7 @@ export default function GlobalSearch() {
                     type="button"
                     role="option"
                     aria-selected={opciones[indiceActivo]?.id === id}
-                    className={opciones[indiceActivo]?.id === id ? "activo" : ""}
+                    className={opcion(opciones[indiceActivo]?.id === id)}
                     onClick={() => irA("/rrhh", c.trabajador)}
                   >
                     <b>{c.trabajador}</b> — {c.tipo}
