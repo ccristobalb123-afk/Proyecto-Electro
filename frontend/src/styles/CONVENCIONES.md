@@ -56,6 +56,10 @@ no hace falta ninguna clase extra.
 - Copiar la estructura del módulo más parecido que ya exista (por ejemplo
   `.usuario-card` para una tarjeta nueva) y usar las variables de `tokens.css`
   en vez de colores sueltos.
+- Campos de un formulario en un modal: usar las constantes de
+  `components/shared/clasesModal.js` (`CAMPO`, `FILA`, `ERROR_CAMPO`,
+  `BOTON_SECUNDARIO`…). `form-field`, `form-row` o `btn-secondary` ya no dan
+  estilo por sí solas: quedan solo como gancho de otras reglas.
 - No nombrar una clase igual que una de un framework externo (`.card`, `.btn`,
   `.badge`, `.modal`…): ya hubo un choque real con `.modal` cuando se usaba
   Bootstrap.

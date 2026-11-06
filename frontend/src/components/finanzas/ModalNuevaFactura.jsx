@@ -1,5 +1,6 @@
 import { Modal, ModalActions, CompanyChoice, AvisoVencimiento, CampoMontoConIgv, CampoDetraccion } from "../shared/Modal";
 import { BotonCarga } from "../shared/Carga";
+import { CAMPO, ERROR_CAMPO, FILA } from "../shared/clasesModal";
 
 const IGV = 0.18;
 
@@ -20,24 +21,24 @@ export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura
       onClose={onClose}
     >
       <form onSubmit={onSubmit}>
-        <fieldset className="form-field">
+        <fieldset className={CAMPO}>
           <legend>Empresa</legend>
           <CompanyChoice name="empresaFactura" value={fFactura.empresa} onChange={(v) => setFFactura({ ...fFactura, empresa: v })} />
         </fieldset>
-        <div className="form-field">
+        <div className={CAMPO}>
           <label>
             Cliente
             <input required value={fFactura.cliente} onChange={(e) => setFFactura({ ...fFactura, cliente: e.target.value })} placeholder="Ej. Tecsur S.A." />
           </label>
         </div>
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               Serie
               <input required value={fFactura.serie} onChange={(e) => setFFactura({ ...fFactura, serie: e.target.value })} placeholder="F001" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Número
               <input required inputMode="numeric" value={fFactura.numero} onChange={(e) => setFFactura({ ...fFactura, numero: e.target.value })} placeholder="00821" />
@@ -49,14 +50,14 @@ export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura
           igvIncluido={fFactura.igvIncluido}
           onChange={({ montoBase, igvIncluido }) => setFFactura({ ...fFactura, montoBase, igvIncluido })}
         />
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               Fecha de emisión
               <input required type="date" value={fFactura.fechaEmision} onChange={(e) => setFFactura({ ...fFactura, fechaEmision: e.target.value })} />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Fecha de vencimiento
               <input required type="date" value={fFactura.fechaVencimiento} onChange={(e) => setFFactura({ ...fFactura, fechaVencimiento: e.target.value })} />
@@ -72,7 +73,7 @@ export default function ModalNuevaFactura({ open, onClose, fFactura, setFFactura
           onChange={(v) => setFFactura({ ...fFactura, ...v })}
         />
         <AvisoVencimiento value={fFactura.diasAviso} onChange={(v) => setFFactura({ ...fFactura, diasAviso: v })} />
-        {error && <p className="field-error">{error}</p>}
+        {error && <p className={ERROR_CAMPO}>{error}</p>}
         <ModalActions onCancel={onClose}>
           <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
             {editando ? "Guardar cambios" : "Guardar factura"}

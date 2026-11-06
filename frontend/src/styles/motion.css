@@ -20,7 +20,6 @@
 @media (prefers-reduced-motion: reduce) {
   /* Entradas: solo opacidad, sin translate/scale */
   html .notificaciones-bell__panel,
-  html .menu-acciones__lista--portal,
   html .toast {
     animation-name: fade-in;
   }

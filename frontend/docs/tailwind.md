@@ -149,7 +149,8 @@ reglas siguen en `responsive.css`.
    |---|---|
    | `.btn-primary` (`tokens.css`) | alto, relleno, letra, color, fondo, radio, transición… |
    | `.link-button` (`buttons.css`) | color, letra, margen, subrayado |
-   | `.loading-bloque` (`Loading.css`) | relleno, separación… |
+   | `.btn-outline-sm`, `.btn-danger` (`buttons.css`) | display, alineación, separación, relleno, letra, color, borde, `:disabled`… |
+   | `.doc-chip`, `.doc-chip--opcional` (`Operaciones.css`, `Rrhh.css`) | display, letra, color, fondo, borde, relleno |
    | `input:focus-visible`, `button:focus-visible` (`tokens.css`) | contorno de foco (`outline`): a propósito, para que ninguna clase lo quite |
 
    `base.css` y las etiquetas `button`/`a` ya **no** están en esta lista:
@@ -187,10 +188,30 @@ Para que una migración quede idéntica (no solo "parecida"):
   hace falta exacto, `[border:none]` (igual `[background:none]`).
 - Respaldo `100vh` → `100dvh`: `min-h-screen supports-[min-height:100dvh]:min-h-dvh`
   (con las dos clases sueltas, gana la que Tailwind ordena último).
+- Celular en horizontal (poca altura y más de 640 px de ancho, la barra
+  fija del modal): `apaisado:` = `@media (max-height: 500px) and
+  (min-width: 641px)` (variante propia, en `tailwind.css`).
 - Anchos que no son breakpoint del tema (ej. 960 en el acceso):
   `max-[960px]:` = hasta 959 px.
 - Las clases armadas con `${…}` no existen para Tailwind: guarda la clase
   entera en una constante (ej. `components/auth/clasesAuth.js`).
+- **Especificidad.** Una clase de Tailwind vale (0-1-0). Si la regla de antes
+  estilizaba a los hijos (`.form-field label`, 0-1-1), escríbela en el
+  contenedor con el mismo selector: `[&_label]:block` también vale (0-1-1) y
+  sigue ganándole a las clases propias de cada etiqueta, igual que antes.
+  Variantes útiles: `[&_input:not([type=radio]):not([type=checkbox])]:…`
+  (0-3-1), `[fieldset&]:…` (solo si el elemento es un `<fieldset>`),
+  `[&>:is(button,a)]:…` (hijos directos).
+- **`font-mono` y `font-display` también existen sin capa** en `tokens.css`:
+  como clase le ganan a cualquier otra regla de letra de Tailwind (por
+  ejemplo a la de un contenedor `[&_input]:font-body`). Si la letra tiene que
+  poder perder, usa `[font-family:var(--font-mono)]`.
+- **Ganarle al contenedor sin `!`.** Si un hijo tiene que ganarle a esa regla
+  del contenedor (antes lo hacía por estar después en el CSS), sube su
+  especificidad con `[&&]:` (repite la clase: `.x.x`, 0-2-0). Ej. la etiqueta
+  de una opción dentro de un campo: `[&&]:flex` le gana a `[&_label]:block`.
+  Con dos reglas iguales de contenedor no hay que adivinar el orden: Tailwind
+  las ordena por propiedad y nombre, no por cómo están escritas.
 
 ## Antes de dar por migrada una pantalla
 
@@ -251,31 +272,30 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Buscador global | `GlobalSearch.jsx` | `GlobalSearch.css`: solo el `outline: none` del campo (la regla de foco de `tokens.css` le gana a cualquier clase, regla 9). Ganchos: `search` y `global-search` (`responsive.css`). Las reglas de `.search` que compartían las barras de filtros pasaron, iguales, a `filters.css` como `.filters .search` |
 | Campana de notificaciones | `NotificacionesBell.jsx`, `EtiquetaUrgencia.jsx` | `NotificacionesBell.css`: solo el `@keyframes` del panel. `EtiquetaUrgencia.css` se eliminó. Ganchos: `notificaciones-bell__boton`, `__cerrar`, `__push-toggle` (`responsive.css`) y `__panel` (`motion.css`) |
 | Avisos (toasts) | `ToastContainer.jsx` | `ToastContainer.css`: los `@keyframes` de entrada y la regla que oculta o deja pasar los toques de los avisos con un modal abierto (`body:has(...)`: depende del estado de otro componente). Ganchos: `toast`, `toast--{tipo}` (`ToastContainer.css`, `motion.css`) y `toast__cerrar` (`responsive.css`) |
-| Dashboard | `Dashboard.jsx` (+ `className` en `EtiquetaUrgencia.jsx`) | `Dashboard.css`: margen y letra de «Ver todos» (`.panel-head__accion`: `.link-button` va sin capa en `buttons.css`) y el relleno de la carga del gráfico (`.panel-chart-cargando .loading-bloque`: `Loading.css` va sin capa y fija el relleno). Pasan a clases cuando se migren `buttons.css` y `Loading.css` |
+| Dashboard | `Dashboard.jsx` (+ `className` en `EtiquetaUrgencia.jsx`) | `Dashboard.css`: margen y letra de «Ver todos» (`.panel-head__accion`: `.link-button` va sin capa en `buttons.css`). Pasa a clases cuando se migre `buttons.css`. El relleno de la carga del gráfico ya va en clases (`<Loading compacto>`) |
+| Modal compartido (contenedor, fondo, encabezado, pie, línea de tiempo y variante «seguridad» con su hoja inferior en celular) | `Modal.jsx`, `clasesModal.js` | `Modal.css`: los `@keyframes` de la variante «seguridad»; el cursor de «trabajando» sobre los campos mientras se guarda (`.modal-cuerpo:disabled :is(input, select, textarea, label)`: etiquetas de las pantallas fijan `cursor: pointer` en reglas sin capa), y lo bloqueado en los campos (fila siguiente) |
+| Campos de formulario de los modales | `clasesModal.js` (`CAMPO`, `FILA`, `ERROR_CAMPO`, `AYUDA`, `AVISO…`, `DROPZONE…`, `OPCION…`, `BOTON_SECUNDARIO`…), usadas en `Modal.jsx` (empresa, aviso de vencimiento, IGV, detracción) y en cada formulario (`ModalNuevo*`, `ModalEditar*`, `ModalInspeccion`, `ModalTiposEquipo`, `FotosEquipo`, `CamposEquipo`, `CamposDocumentosVehiculo`, `ModalDocumentos`, `Administracion.jsx`…) | `Modal.css`: la letra de los botones de archivo de Nuevo gasto y el display y la letra del adjunto de cada documento del vehículo (`.form-field label.btn-outline-sm` / `label.doc-chip`: la etiqueta de campo les ganaba por especificidad a `.btn-outline-sm` y `.doc-chip`, que no tienen capa); display, alineación, separación, relleno y letra de «Tomar foto» / «Elegir archivo» (`.foto-equipo__botones label.btn-outline-sm`, que además conserva el cursor de mano mientras se guarda: le ganaba a la regla del cursor «trabajando» por venir después) y el `display: none` de la cámara con mouse (`.foto-equipo__camara`), por `.btn-outline-sm`; alineación y letra de «Mantener la actual» (`.foto-equipo__mantener`, por `.link-button`); color, fondo y borde del adjunto opcional (`.doc-chip.doc-chip--opcional`, por `.doc-chip`). Ganchos: `form-field` (`responsive.css`, `Operaciones.css`, `Administracion.css`), `form-row` (`responsive.css`), `campo-ayuda` (`Operaciones.css`), `co-choice`, `igv-choice` (`responsive.css`, `Finanzas.css`), `aviso-input-row`, `btn-secondary` (`responsive.css`), `dropzone`, `foto-equipo-slot` (campos atenuados mientras se guarda) |
+| Botón con carga y spinner | `Carga.jsx` | `Carga.css`: el `@keyframes` del giro y, en `.boton-carga`, display, alineación, separación y el aspecto «ocupado» (`:disabled` sin atenuar): el botón lleva `.btn-primary`, `.btn-danger` o `.btn-outline-sm`, sin capa |
+| Bloque de carga | `Loading.jsx` | `Loading.css`: solo el `@keyframes` del pulso del texto |
 
 **Sin migrar** (todo su estilo sigue en CSS):
 
-- **Modal compartido** (`Modal.css`, ~20 modales), incluida la variante
-  «seguridad» del modal de cambiar contraseña. Sus reglas caen sobre el
-  mismo elemento que `.modal-electro`, así que conviene migrarlas junto con el
-  modal y no antes.
-- **`MenuAcciones.jsx` / `MenuAcciones.css`:** ninguna pantalla lo importa
-  (no entra en el build), así que no hay cómo comparar capturas antes y
-  después. Queda sin migrar; conviene borrarlo como se hizo con `Monto`.
 - **Pantallas:** `Rrhh.css`, `Operaciones.css` (+
   `EquiposCards.css`, `VehiculosCards.css`, `Asignacion.css`), `Finanzas.css`,
   `Administracion.css`.
-- **Componentes que van con `Modal.css`:** `ConfirmDialog.css`,
-  `VisorArchivo.css`, `Lightbox.css`, `SesionesModal.css`, y `Carga.css`
-  (`BotonCarga` y el spinner: `Modal.css` estiliza `.modal-actions > button`).
+- **Componentes que usan el modal** (siguiente paso): `ConfirmDialog.css`,
+  `VisorArchivo.css`, `Lightbox.css`, `SesionesModal.css`. Sus botones y
+  pies ya usan las clases del modal (`BOTON_SECUNDARIO`, `ACCIONES`), pero
+  sus propias reglas siguen en CSS.
+- **Formularios de cada pantalla:** sus campos ya usan las clases de
+  `clasesModal.js`, pero las reglas propias de la pantalla (`Rrhh.css`,
+  `Operaciones.css`, `Finanzas.css`, `Administracion.css`, `Asignacion.css`)
+  siguen en CSS hasta que se migre cada pantalla.
 - **Componentes con reglas en CSS que todavía no se migra** (se dejan para
   migrarlos junto con ese CSS):
-  - `Loading.css`: usa el spinner de `Carga.css` (va con `Modal.css`). Al
-    migrarlo, pasar a clases la regla `.panel-chart-cargando .loading-bloque`
-    que quedó en `Dashboard.css`.
   - `AvisoInactividad.css`: `responsive.css` (alto táctil de 44 px de
     `.btn-seguir-conectado`) y `motion.css` (pulso con movimiento reducido).
-- **Otros:** `Monto.jsx` / `Monto.css` se borraron: no se usaban.
+- **Otros:** `Monto.jsx` / `Monto.css` y `MenuAcciones.jsx` / `MenuAcciones.css` se borraron: no se usaban.
 - **Globales** (`styles/`): `buttons.css`, `badges.css`, `filters.css`,
   `fichas.css`, `tarjetas.css`, `motion.css`, `responsive.css`. `tokens.css`,
   `base.css` y `etiquetas.css` no se migran: son la fuente de valores y la

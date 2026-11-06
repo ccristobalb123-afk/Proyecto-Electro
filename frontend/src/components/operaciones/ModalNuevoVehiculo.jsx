@@ -2,6 +2,7 @@ import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
 import { TIPOS_UNIDAD } from "../../services/vehiculosService";
 import CamposDocumentosVehiculo from "./CamposDocumentosVehiculo";
+import { CAMPO, ERROR_CAMPO, FILA } from "../shared/clasesModal";
 
 export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehiculo, onSubmit, error, erroresDocumentos, guardando, textoGuardando }) {
   function cambiarTipoUnidad(tipoUnidad) {
@@ -14,14 +15,14 @@ export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehic
   return (
     <Modal open={open} ocupado={guardando} wide title="Nuevo vehículo" subtitle="Completa los datos del vehículo." onClose={onClose}>
       <form onSubmit={onSubmit}>
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               Placa
               <input autoCapitalize="characters" autoCorrect="off" spellCheck={false} value={fVehiculo.placa} onChange={(e) => setFVehiculo({ ...fVehiculo, placa: e.target.value })} placeholder="Ej. A7P-925" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Tipo de unidad
               <select value={fVehiculo.tipoUnidad} onChange={(e) => cambiarTipoUnidad(e.target.value)}>
@@ -33,12 +34,12 @@ export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehic
           </div>
         </div>
 
-        <fieldset className="form-field">
+        <fieldset className={CAMPO}>
           <legend>Empresa dueña</legend>
           <CompanyChoice name="empresaVehiculo" value={fVehiculo.empresa} onChange={(v) => setFVehiculo({ ...fVehiculo, empresa: v })} />
         </fieldset>
 
-        <div className="form-field">
+        <div className={CAMPO}>
           <label>
             Cuadrilla / Proyecto
             <input value={fVehiculo.cuadrilla} onChange={(e) => setFVehiculo({ ...fVehiculo, cuadrilla: e.target.value })} placeholder="Ej. Cuadrilla Yerson H." />
@@ -52,7 +53,7 @@ export default function ModalNuevoVehiculo({ open, onClose, fVehiculo, setFVehic
           errores={erroresDocumentos}
         />
 
-        {error && <p className="field-error" role="alert">{error}</p>}
+        {error && <p className={ERROR_CAMPO} role="alert">{error}</p>}
 
         <ModalActions onCancel={onClose}>
           <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>

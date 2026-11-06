@@ -5,6 +5,7 @@ import EstadoError from "../shared/EstadoError";
 import { IconAlertCircle, IconTruck, IconUser } from "../icons/Icons";
 import SelectorDestinatario from "./SelectorDestinatario";
 import "./Asignacion.css";
+import { CAMPO, ERROR_CAMPO } from "../shared/clasesModal";
 
 // Opciones del selector: camiones por placa y personas por nombre o DNI,
 // con la empresa como dato (no limita nada). Las que ya tienen un equipo
@@ -95,7 +96,7 @@ export default function ModalAsignarEquipo({
 
           {/* También cuando todos están ocupados: se ve quién tiene qué. */}
           {lista.length > 0 && (
-            <div className="form-field">
+            <div className={CAMPO}>
               <SelectorDestinatario
                 opciones={aCamion ? opcionesCamion(lista) : opcionesPersona(lista)}
                 value={destinoId}
@@ -104,13 +105,13 @@ export default function ModalAsignarEquipo({
                 placeholder={aCamion ? "Escribe la placa…" : "Escribe el nombre o DNI…"}
                 sinCoincidencias={aCamion ? "No hay camiones que coincidan con" : "No hay personas que coincidan con"}
               />
-              {error && <p className="field-error">Elige {aCamion ? "un camión" : "una persona"} antes de continuar.</p>}
+              {error && <p className={ERROR_CAMPO}>Elige {aCamion ? "un camión" : "una persona"} antes de continuar.</p>}
             </div>
           )}
         </>
       )}
 
-      {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
+      {errorServidor && <p className={ERROR_CAMPO} role="alert">{errorServidor}</p>}
       <ModalActions onCancel={onClose}>
         {listo && elegibles.length > 0 && (
           <BotonCarga cargando={guardando} textoCargando={reasignar ? "Reasignando…" : "Asignando…"} onClick={onConfirmar}>

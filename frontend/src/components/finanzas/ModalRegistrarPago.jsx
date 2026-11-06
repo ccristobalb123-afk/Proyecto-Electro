@@ -2,6 +2,7 @@ import { Modal, ModalActions, Timeline } from "../shared/Modal";
 import { totalPagado, montoNetoAPagar } from "../../services/facturasService";
 import { soles, formatFecha } from "./finanzasUtils";
 import { BotonCarga } from "../shared/Carga";
+import { CAMPO, ERROR_CAMPO } from "../shared/clasesModal";
 
 export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago, errorPago, onClose, onConfirmar, registrando }) {
   return (
@@ -18,7 +19,7 @@ export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago
     >
       {pago && (
         <>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Monto del pago
               <input
@@ -29,7 +30,7 @@ export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago
               />
             </label>
           </div>
-          {errorPago && <p className="field-error" role="alert">{errorPago}</p>}
+          {errorPago && <p className={ERROR_CAMPO} role="alert">{errorPago}</p>}
           {pago.doc.pagos.length > 0 && (
             <div className="fin-pagos-previos">
               <span className="fin-card-label">Pagos registrados</span>

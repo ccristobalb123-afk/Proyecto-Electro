@@ -2,9 +2,14 @@ import { useLayoutEffect, useRef } from "react";
 import { IconLoader } from "../icons/Icons";
 import "./Carga.css";
 
+// Con movimiento reducido no gira: el texto en gerundio ya avisa que la
+// operación está en curso, y el ícono queda quieto. El @keyframes está en
+// Carga.css.
+const GIRO = "shrink-0 animate-[spinner-girar_0.8s_linear_infinite] motion-reduce:animate-none";
+
 /** Spinner único de la app (botones, diálogos, bloques de carga). */
 export function Spinner({ tamano = 15, className = "" }) {
-  return <IconLoader className={`spinner ${className}`} width={tamano} height={tamano} aria-hidden="true" />;
+  return <IconLoader className={`${GIRO} ${className}`} width={tamano} height={tamano} aria-hidden="true" />;
 }
 
 /**
@@ -45,7 +50,7 @@ export function BotonCarga({
       ref={ref}
       style={style}
       type={type}
-      className={`${className} boton-carga`}
+      className={`${className} boton-carga justify-center`}
       disabled={disabled || cargando}
       aria-busy={cargando || undefined}
       {...resto}
@@ -53,7 +58,7 @@ export function BotonCarga({
       {cargando ? (
         <>
           <Spinner />
-          <span>{textoCargando}</span>
+          <span className="[font-variant-numeric:tabular-nums]">{textoCargando}</span>
         </>
       ) : (
         children

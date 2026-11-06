@@ -3,6 +3,18 @@ import { BotonVerArchivo } from "../shared/VisorArchivo";
 import { useConfirm } from "../../context/ConfirmContext";
 import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 import { documentosDisponibles } from "../../services/vehiculosService";
+import { AVISO, AVISO_ETIQUETA, AVISO_FILA, AVISO_INPUT, AVISO_TEXTO, AYUDA, CAMPO, ERROR_CAMPO, FILA } from "../shared/clasesModal";
+
+// Cada documento es una fila con casilla; al marcarlo se despliegan sus
+// campos. La casilla sube su especificidad con [&&]: para ganarle a la
+// etiqueta general de CAMPO (display, margen y letra), como antes hacía
+// .form-field .doc-vehiculo__check. "doc-chip" y "doc-chip--opcional" son de
+// Operaciones.css y Modal.css (regla bloqueada).
+const DOC = "rounded border [background:var(--card)]";
+const DOC_NORMAL = "border-border";
+const DOC_MARCADO = "border-copper [box-shadow:0_0_0_1px_var(--copper-tint)]";
+const DOC_CASILLA = `[&&]:m-0 [&&]:flex [&&]:text-base [&&]:font-semibold min-h-(--control-height-lg) cursor-pointer items-center gap-3
+  px-3 py-2`;
 
 /**
  * Sección "Documentos" de Nuevo / Editar vehículo. Se marcan los que
@@ -34,30 +46,30 @@ export default function CamposDocumentosVehiculo({ documentos, onChange, tipoUni
   }
 
   return (
-    <fieldset className="form-field docs-vehiculo">
+    <fieldset className={`${CAMPO} docs-vehiculo flex flex-col gap-2`}>
       <legend>Documentos</legend>
-      <p className="campo-ayuda">Marca los que tiene este vehículo. Solo esos se muestran en su ficha y generan avisos de vencimiento.</p>
+      <p className={AYUDA}>Marca los que tiene este vehículo. Solo esos se muestran en su ficha y generan avisos de vencimiento.</p>
 
       {documentosDisponibles(tipoUnidad).map((info) => {
         const d = documentos[info.clave];
         const id = `doc-${info.clave}`;
         return (
-          <div className={`doc-vehiculo ${d.marcado ? "doc-vehiculo--marcado" : ""}`} key={info.clave}>
-            <label className="doc-vehiculo__check">
-              <input type="checkbox" checked={d.marcado} onChange={(e) => alternar(info, e.target.checked)} />
+          <div className={`${DOC} ${d.marcado ? DOC_MARCADO : DOC_NORMAL}`} key={info.clave}>
+            <label className={DOC_CASILLA}>
+              <input className="h-[18px] w-[18px] shrink-0 accent-copper" type="checkbox" checked={d.marcado} onChange={(e) => alternar(info, e.target.checked)} />
               <span>{info.nombre}</span>
             </label>
 
             {d.marcado && (
-              <div className="doc-vehiculo__campos">
-                <div className="form-row">
-                  <div className="form-field">
+              <div className="border-t border-t-border px-3 pt-3 pb-1">
+                <div className={FILA}>
+                  <div className={CAMPO}>
                     <label htmlFor={`${id}-emision`}>Inspección o emisión</label>
                     <input id={`${id}-emision`} type="date" value={d.fechaEmision} onChange={(e) => actualizar(info.clave, { fechaEmision: e.target.value })} />
                   </div>
-                  <div className="form-field">
+                  <div className={CAMPO}>
                     <label htmlFor={`${id}-vence`}>
-                      Vencimiento{!info.vence && <span className="doc-vehiculo__opcional"> (opcional: puede no vencer)</span>}
+                      Vencimiento{!info.vence && <span className="font-regular text-muted"> (opcional: puede no vencer)</span>}
                     </label>
                     <input
                       id={`${id}-vence`}
@@ -69,10 +81,11 @@ export default function CamposDocumentosVehiculo({ documentos, onChange, tipoUni
                   </div>
                 </div>
 
-                <div className="aviso-field doc-vehiculo__aviso">
-                  <label htmlFor={`${id}-dias`}>Avisarme antes del vencimiento</label>
-                  <div className="aviso-input-row">
+                <div className={`${AVISO} p-3`}>
+                  <label className={AVISO_ETIQUETA} htmlFor={`${id}-dias`}>Avisarme antes del vencimiento</label>
+                  <div className={AVISO_FILA}>
                     <input
+                      className={AVISO_INPUT}
                       id={`${id}-dias`}
                       type="number"
                       inputMode="numeric"
@@ -82,13 +95,13 @@ export default function CamposDocumentosVehiculo({ documentos, onChange, tipoUni
                       value={d.diasAnticipacion}
                       onChange={(e) => actualizar(info.clave, { diasAnticipacion: e.target.value === "" ? "" : Number(e.target.value) })}
                     />
-                    <span>días antes (1 a 365)</span>
+                    <span className={AVISO_TEXTO}>días antes (1 a 365)</span>
                   </div>
                 </div>
 
-                <div className="doc-vehiculo__archivo">
+                <div className="mb-3 flex flex-wrap items-center gap-2 [&_.doc-chip]:max-w-full [&_.doc-chip]:[overflow-wrap:anywhere]">
                   {d.archivoUrl && !d.archivo && <BotonVerArchivo url={d.archivoUrl} nombre={d.archivoNombre} />}
-                  <label className={`doc-chip doc-chip--elegir ${d.archivo ? "" : "doc-chip--opcional"}`} title={AYUDA_ARCHIVO}>
+                  <label className={`doc-chip cursor-pointer ${d.archivo ? "" : "doc-chip--opcional"}`} title={AYUDA_ARCHIVO}>
                     <IconUpload width={13} height={13} />
                     {d.archivo ? d.archivo.name : d.archivoUrl ? "Reemplazar archivo" : "Adjuntar archivo (opcional)"}
                     <input
@@ -105,7 +118,7 @@ export default function CamposDocumentosVehiculo({ documentos, onChange, tipoUni
                 </div>
 
                 {errores[info.clave] && (
-                  <p className="field-error" role="alert">
+                  <p className={ERROR_CAMPO} role="alert">
                     {errores[info.clave]}
                   </p>
                 )}

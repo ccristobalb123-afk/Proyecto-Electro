@@ -1,4 +1,5 @@
 import { Modal, Timeline } from "./Modal";
+import { MENSAJE_VACIO } from "./clasesModal";
 
 function formatFechaHora(iso) {
   const f = new Date(iso);
@@ -23,7 +24,7 @@ export default function HistorialModal({ open, tituloModulo, entradas = [], carg
   return (
     <Modal open={open} title={`Historial de cambios — ${tituloModulo}`} onClose={onClose}>
       {cargando ? (
-        <p className="modal-mensaje-vacio">Cargando...</p>
+        <p className={MENSAJE_VACIO}>Cargando...</p>
       ) : (
         <Timeline items={items} />
       )}

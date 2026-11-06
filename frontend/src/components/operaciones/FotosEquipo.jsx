@@ -3,6 +3,29 @@ import { IconCamera, IconUpload } from "../icons/Icons";
 import { Spinner } from "../shared/Carga";
 import { comprimirImagen } from "../../utils/imageUtils";
 import { MANTENER } from "./camposEquipo";
+import { ERROR_CAMPO } from "../shared/clasesModal";
+
+// Cada foto: "Foto 1 · Actual/Nueva/Falta", la imagen (o el recuadro
+// punteado si falta o se está procesando) y sus botones, apilados: en 360px
+// cada columna mide ~140px.
+const CHIP = "rounded-[999px] px-2 py-px text-xs font-semibold";
+const CHIP_TONO = {
+  Actual: "[background:var(--gray-tint)] text-gray-dark",
+  Nueva: "[background:var(--success-tint)] text-success-dark",
+  Falta: "[background:var(--danger-tint)] text-danger-dark",
+};
+// Falta la foto: borde rojo y texto (no solo color). No es un botón: se
+// agrega con "Tomar foto" o "Elegir archivo".
+const VACIO = `mb-0 flex h-full w-full cursor-default flex-col items-center justify-center gap-1.5 rounded border-[1.5px] border-dashed
+  [background:var(--paper)] text-[12px] font-medium`;
+const VACIO_FALTA = "border-danger text-danger-dark";
+const VACIO_PROCESANDO = "border-border text-muted";
+// Botones "Tomar foto" / "Elegir archivo". [&&]:m-0 le gana al margen de la
+// etiqueta general de CAMPO. "foto-equipo__botones", "foto-equipo__camara" y
+// "foto-equipo-slot" quedan como gancho: Modal.css (lo que fija
+// .btn-outline-sm, sin capa, y el cursor) y los campos atenuados mientras se
+// guarda.
+const BOTON = "[&&]:m-0 justify-center whitespace-nowrap";
 
 /**
  * Las 2 fotos de un equipo — siempre 2. Compartido por "Nuevo equipo",
@@ -42,7 +65,7 @@ export default function FotosEquipo({ actuales = [], valor, onChange, onProcesan
 
   return (
     <>
-      <div className="fotos-equipo-row">
+      <div className="grid grid-cols-[1fr_1fr] gap-2.5">
         {[0, 1].map((indice) => {
           const v = valor[indice];
           const actual = actuales?.[indice];
@@ -53,33 +76,33 @@ export default function FotosEquipo({ actuales = [], valor, onChange, onProcesan
           const conFotos = (actuales || []).some(Boolean);
           const etiqueta = !v ? "Falta" : v === MANTENER ? "Actual" : conFotos ? "Nueva" : null;
           return (
-            <div className="foto-equipo" key={indice} role="group" aria-label={`Foto ${indice + 1}`}>
-              <div className="foto-equipo__cabecera">
+            <div className="flex min-w-0 flex-col gap-1.5" key={indice} role="group" aria-label={`Foto ${indice + 1}`}>
+              <div className="flex items-center justify-between gap-1.5 text-sm font-semibold text-text">
                 <span>Foto {indice + 1}</span>
-                {etiqueta && <span className={`foto-equipo__chip foto-equipo__chip--${etiqueta.toLowerCase()}`}>{etiqueta}</span>}
+                {etiqueta && <span className={`${CHIP} ${CHIP_TONO[etiqueta]}`}>{etiqueta}</span>}
               </div>
-              <div className="foto-equipo-slot">
+              <div className="foto-equipo-slot relative aspect-[4/3] overflow-hidden rounded">
                 {procesando === indice ? (
-                  <div className="foto-equipo-vacio foto-equipo-procesando" role="status">
+                  <div className={`${VACIO} ${VACIO_PROCESANDO}`} role="status">
                     <Spinner tamano={20} />
                     <span>Procesando foto…</span>
                   </div>
                 ) : src ? (
-                  <img className="foto-equipo__img" src={src} alt={`Foto ${indice + 1}${nueva ? " (nueva)" : ""}`} />
+                  <img className="block h-full w-full object-cover" src={src} alt={`Foto ${indice + 1}${nueva ? " (nueva)" : ""}`} />
                 ) : (
-                  <div className="foto-equipo-vacio foto-equipo-vacio--falta">
+                  <div className={`${VACIO} ${VACIO_FALTA}`}>
                     <IconCamera width={20} height={20} />
                     <span>Falta la foto {indice + 1}</span>
                   </div>
                 )}
               </div>
-              <div className="foto-equipo__botones">
-                <label className="btn-outline-sm foto-equipo__camara">
+              <div className="foto-equipo__botones flex flex-col gap-1.5">
+                <label className={`btn-outline-sm foto-equipo__camara ${BOTON}`}>
                   <IconCamera width={15} height={15} />
                   Tomar foto
                   <input type="file" accept="image/*" capture="environment" className="input-oculto" disabled={procesando !== null} onChange={alElegir(indice)} />
                 </label>
-                <label className="btn-outline-sm">
+                <label className={`btn-outline-sm ${BOTON}`}>
                   <IconUpload width={15} height={15} />
                   Elegir archivo
                   <input type="file" accept="image/*" className="input-oculto" disabled={procesando !== null} onChange={alElegir(indice)} />
@@ -95,7 +118,7 @@ export default function FotosEquipo({ actuales = [], valor, onChange, onProcesan
         })}
       </div>
       {error && (
-        <p className="field-error foto-equipo-error" role="alert">
+        <p className={ERROR_CAMPO} role="alert">
           {error}
         </p>
       )}

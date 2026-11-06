@@ -188,7 +188,6 @@
   /* Botones solo-ícono */
   html .icon-btn,
   html .modal-close,
-  html .menu-acciones__boton,
   html .notificaciones-bell__boton,
   html .notificaciones-bell__cerrar,
   html .hamburger-btn,
@@ -222,7 +221,6 @@
   html .btn-outline-sm,
   html .tabs button,
   html .doc-chip,
-  html .menu-acciones__item,
   html .notificaciones-bell__push-toggle,
   html .nav a,
   html .co-choice label,

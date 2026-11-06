@@ -1,5 +1,6 @@
 import { AvisoVencimiento } from "../shared/Modal";
 import { CAMPOS_EQUIPO, hoyEnPeru } from "./camposEquipo";
+import { CAMPO, FILA, NOTA_OBLIGATORIOS, OBLIGATORIO } from "../shared/clasesModal";
 
 /**
  * Campos del tipo de equipo elegido, todos obligatorios (marcados con *).
@@ -23,11 +24,11 @@ export default function CamposEquipo({ campos, valores, onChange }) {
         }
       : { type: "text", maxLength: meta.maxLength, placeholder: meta.placeholder, ...meta.props };
     return (
-      <div className="form-field" key={campo}>
+      <div className={CAMPO} key={campo}>
         <label>
           <span>
             {meta.etiqueta}
-            <span className="campo-obligatorio" aria-hidden="true"> *</span>
+            <span className={OBLIGATORIO} aria-hidden="true"> *</span>
           </span>
           <input
             {...extra}
@@ -48,11 +49,11 @@ export default function CamposEquipo({ campos, valores, onChange }) {
 
   return (
     <>
-      <p className="campos-obligatorios-nota">
-        Los campos con <span className="campo-obligatorio">*</span> son obligatorios.
+      <p className={NOTA_OBLIGATORIOS}>
+        Los campos con <span className={OBLIGATORIO}>*</span> son obligatorios.
       </p>
-      <div className="form-row">{textos.map(campoInput)}</div>
-      <div className="form-row">{fechas.map(campoInput)}</div>
+      <div className={FILA}>{textos.map(campoInput)}</div>
+      <div className={FILA}>{fechas.map(campoInput)}</div>
       {campos.includes("fechaVencimiento") && (
         <AvisoVencimiento
           hint="días antes del vencimiento de la inspección (1 a 365)"

@@ -4,6 +4,7 @@ import { IconClipboardCheck } from "../icons/Icons";
 import { BotonCarga } from "../shared/Carga";
 import FotosEquipo from "./FotosEquipo";
 import CamposEquipo from "./CamposEquipo";
+import { AYUDA, CAMPO, ERROR_CAMPO, OBLIGATORIO } from "../shared/clasesModal";
 
 // Tipos fijos (los 9 de la tabla): ya no se crean categorías desde acá.
 // Al elegir el tipo aparecen solo sus campos, todos obligatorios.
@@ -14,10 +15,10 @@ export default function ModalNuevoEquipo({ open, onClose, fEquipo, setFEquipo, o
   return (
     <Modal open={open} ocupado={guardando} title="Nuevo equipo" subtitle="Completa los datos del equipo o EPP." onClose={onClose}>
       <form onSubmit={onSubmit}>
-        <div className="form-field">
+        <div className={CAMPO}>
           <label>
             <span>
-              Tipo de equipo<span className="campo-obligatorio" aria-hidden="true"> *</span>
+              Tipo de equipo<span className={OBLIGATORIO} aria-hidden="true"> *</span>
             </span>
             <select required value={fEquipo.categoria} onChange={(e) => setFEquipo({ ...fEquipo, categoria: e.target.value })}>
               <option value="" disabled>
@@ -40,16 +41,16 @@ export default function ModalNuevoEquipo({ open, onClose, fEquipo, setFEquipo, o
           />
         )}
 
-        <fieldset className="form-field">
+        <fieldset className={CAMPO}>
           <legend>Empresa dueña</legend>
           <CompanyChoice name="empresaEquipo" value={fEquipo.empresa} onChange={(v) => setFEquipo({ ...fEquipo, empresa: v })} />
         </fieldset>
 
-        <fieldset className="form-field">
+        <fieldset className={CAMPO}>
           <legend>
-            Fotos del equipo<span className="campo-obligatorio" aria-hidden="true"> *</span>
+            Fotos del equipo<span className={OBLIGATORIO} aria-hidden="true"> *</span>
           </legend>
-          <p className="campo-ayuda">Son obligatorias las 2 fotos.</p>
+          <p className={AYUDA}>Son obligatorias las 2 fotos.</p>
           <FotosEquipo
             valor={fEquipo.fotos || [null, null]}
             onChange={(fotos) => setFEquipo((f) => ({ ...f, fotos }))}
@@ -62,7 +63,7 @@ export default function ModalNuevoEquipo({ open, onClose, fEquipo, setFEquipo, o
           Las próximas inspecciones se registran con «Actualizar inspección» en la tarjeta del equipo.
         </div>
 
-        {error && <p className="field-error" role="alert">{error}</p>}
+        {error && <p className={ERROR_CAMPO} role="alert">{error}</p>}
 
         <ModalActions onCancel={onClose}>
           <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando} disabled={procesandoFoto || !tipo}>

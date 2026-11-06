@@ -5,6 +5,7 @@ import PasswordField from "./PasswordField";
 import PasswordStrength from "./PasswordStrength";
 import { MIN_LARGO_PASSWORD } from "../../utils/password";
 import * as authService from "../../services/authService";
+import { ACCIONES, ERROR_CAMPO } from "./clasesModal";
 
 // TODO backend: POST /api/auth/cambiar-password { passwordActual, passwordNueva }
 // (o el flujo que corresponda si es un cambio obligatorio del primer login).
@@ -80,12 +81,12 @@ export default function CambiarPasswordModal({ open, obligatorio, onClose, onExi
           required
         />
         {error && (
-          <p className="field-error" role="alert">
+          <p className={ERROR_CAMPO} role="alert">
             {error}
           </p>
         )}
         {obligatorio ? (
-          <div className="modal-actions">
+          <div className={ACCIONES}>
             <BotonCarga type="submit" cargando={guardando} textoCargando="Guardando…">
               Guardar nueva contraseña
             </BotonCarga>

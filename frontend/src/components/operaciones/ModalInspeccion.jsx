@@ -4,6 +4,7 @@ import { Modal, ModalActions, AvisoVencimiento } from "../shared/Modal";
 import { IconEye, IconAlertCircle } from "../icons/Icons";
 import FotosEquipo from "./FotosEquipo";
 import { fotosQueFaltan } from "./camposEquipo";
+import { AYUDA, CAMPO, ERROR_CAMPO, FILA, TITULO_CAMPO } from "../shared/clasesModal";
 
 // Por qué se abrió para renovar fechas (equipo vencido). Sin contexto: una
 // inspección normal desde "Actualizar inspección".
@@ -45,9 +46,9 @@ export default function ModalInspeccion({ open, equipo, contexto, fInspeccion, s
           </div>
         )}
 
-        <fieldset className="form-field">
-          <legend className="form-field-heading">Fotos del equipo</legend>
-          <p className="campo-ayuda">
+        <fieldset className={CAMPO}>
+          <legend className={TITULO_CAMPO}>Fotos del equipo</legend>
+          <p className={AYUDA}>
             {faltan > 0
               ? `El equipo debe quedar con 2 fotos: falta${faltan === 1 ? " 1" : "n 2"}.`
               : "Mantén las fotos actuales o cambia la que necesites. La que cambies queda guardada en el historial."}
@@ -60,14 +61,14 @@ export default function ModalInspeccion({ open, equipo, contexto, fInspeccion, s
           />
         </fieldset>
 
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               Fecha de inspección
               <input type="date" value={fInspeccion.fechaInspeccion} onChange={(e) => setFInspeccion({ ...fInspeccion, fechaInspeccion: e.target.value })} />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Fecha de vencimiento
               <input type="date" value={fInspeccion.fechaVencimiento} onChange={(e) => setFInspeccion({ ...fInspeccion, fechaVencimiento: e.target.value })} />
@@ -81,7 +82,7 @@ export default function ModalInspeccion({ open, equipo, contexto, fInspeccion, s
           onChange={(v) => setFInspeccion({ ...fInspeccion, diasAnticipacion: v })}
         />
 
-        <div className="form-field">
+        <div className={CAMPO}>
           <label>
             Resultado
             <select value={fInspeccion.resultado} onChange={(e) => setFInspeccion({ ...fInspeccion, resultado: e.target.value })}>
@@ -114,7 +115,7 @@ export default function ModalInspeccion({ open, equipo, contexto, fInspeccion, s
           </div>
         )}
 
-        {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
+        {errorServidor && <p className={ERROR_CAMPO} role="alert">{errorServidor}</p>}
         <ModalActions onCancel={onClose} cancelLabel={contexto ? "Cancelar (sigue Vencido)" : "Cancelar"}>
           <BotonCarga type="submit" cargando={guardando} textoCargando="Guardando inspección…" disabled={procesandoFoto}>
             Guardar inspección

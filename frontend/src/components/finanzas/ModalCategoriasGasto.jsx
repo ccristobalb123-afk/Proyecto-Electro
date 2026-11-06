@@ -5,6 +5,7 @@ import { useConfirm } from "../../context/ConfirmContext";
 import { useToast } from "../../context/ToastContext";
 import { useAccion } from "../../hooks/useAccion";
 import { BotonCarga } from "../shared/Carga";
+import { ERROR_CAMPO } from "../shared/clasesModal";
 
 export default function ModalCategoriasGasto({ open, onClose, categorias, onRenombrar, onEliminar }) {
   const { confirmar } = useConfirm();
@@ -80,7 +81,7 @@ export default function ModalCategoriasGasto({ open, onClose, categorias, onReno
           </div>
         ))}
       </div>
-      {error && <p className="field-error">{error}</p>}
+      {error && <p className={ERROR_CAMPO}>{error}</p>}
       <ModalActions onCancel={onClose} cancelLabel="Cerrar" />
     </Modal>
   );

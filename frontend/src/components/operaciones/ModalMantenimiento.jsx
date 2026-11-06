@@ -1,6 +1,7 @@
 import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 import { IconAlertCircle } from "../icons/Icons";
+import { CAMPO, ERROR_CAMPO } from "../shared/clasesModal";
 
 export default function ModalMantenimiento({ open, equipo, comentario, setComentario, error, onClose, onConfirmar, guardando, errorServidor }) {
   return (
@@ -23,7 +24,7 @@ export default function ModalMantenimiento({ open, equipo, comentario, setComent
         </p>
       </div>
 
-      <div className="form-field">
+      <div className={CAMPO}>
         <label htmlFor="mantenimiento-comentario">¿Qué tiene el equipo?</label>
         <textarea
           id="mantenimiento-comentario"
@@ -32,10 +33,10 @@ export default function ModalMantenimiento({ open, equipo, comentario, setComent
           value={comentario}
           onChange={(e) => setComentario(e.target.value)}
         />
-        {error && <p className="field-error">Cuenta qué tiene el equipo antes de continuar.</p>}
+        {error && <p className={ERROR_CAMPO}>Cuenta qué tiene el equipo antes de continuar.</p>}
       </div>
 
-      {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
+      {errorServidor && <p className={ERROR_CAMPO} role="alert">{errorServidor}</p>}
       <ModalActions onCancel={onClose}>
         <BotonCarga cargando={guardando} textoCargando="Enviando…" onClick={onConfirmar}>
           Enviar a mantenimiento

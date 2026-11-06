@@ -4,6 +4,7 @@ import Lightbox from "../shared/Lightbox";
 import Loading from "../shared/Loading";
 import { IconTruck, IconUser } from "../icons/Icons";
 import "./Asignacion.css";
+import { MENSAJE_VACIO } from "../shared/clasesModal";
 
 // Quién tuvo el equipo, desde y hasta cuándo (solo equipos).
 function HistorialAsignaciones({ asignaciones }) {
@@ -11,7 +12,7 @@ function HistorialAsignaciones({ asignaciones }) {
     <section aria-labelledby="hv-asignaciones">
       <h3 className="hv-seccion-titulo" id="hv-asignaciones">Asignaciones</h3>
       {asignaciones.length === 0 ? (
-        <p className="modal-mensaje-vacio">Todavía no se ha asignado.</p>
+        <p className={MENSAJE_VACIO}>Todavía no se ha asignado.</p>
       ) : (
         <ul className="asignaciones-historial">
           {asignaciones.map((a) => (

@@ -5,9 +5,10 @@ import { BotonCarga } from "../shared/Carga";
 import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 import { useEffect, useRef } from "react";
 import SelectorPersonal from "./SelectorPersonal";
+import { AYUDA, BOTON_SECUNDARIO, CAMPO, DERIVADO, DROPZONE, DROPZONE_CON_ARCHIVO, DROPZONE_SIN_ARCHIVO, ERROR_CAMPO, FILA, NOTA_OBLIGATORIOS, OBLIGATORIO, TITULO_CAMPO } from "../shared/clasesModal";
 
 const Obligatorio = () => (
-  <span className="campo-obligatorio" aria-hidden="true">
+  <span className={OBLIGATORIO} aria-hidden="true">
     {" "}*
   </span>
 );
@@ -67,13 +68,13 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
             Completa los datos que faltan: {faltantes.join(", ")}.
           </p>
         )}
-        <p className="campos-obligatorios-nota">
-          Los campos con <span className="campo-obligatorio">*</span> son obligatorios.
+        <p className={NOTA_OBLIGATORIOS}>
+          Los campos con <span className={OBLIGATORIO}>*</span> son obligatorios.
         </p>
 
         {!persona && (
-          <div className="form-field" role="group" aria-labelledby="curso-personal-titulo">
-            <span id="curso-personal-titulo" className="form-field-heading">
+          <div className={CAMPO} role="group" aria-labelledby="curso-personal-titulo">
+            <span id="curso-personal-titulo" className={TITULO_CAMPO}>
               Personal
               <Obligatorio />
             </span>
@@ -82,7 +83,7 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
                 se hace únicamente desde Contratos. */}
             <SelectorPersonal trabajadores={trabajadoresRegistrados} value={fCurso.dni} onChange={elegirTrabajador} />
             {trabajadoresRegistrados.length === 0 && (
-              <p className="field-error" role="alert">
+              <p className={ERROR_CAMPO} role="alert">
                 Primero registra el contrato de este trabajador en la pestaña Contratos: solo aparece aquí el personal con contrato.
               </p>
             )}
@@ -90,24 +91,24 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
         )}
 
         {empresas.length === 1 && (
-          <div className="form-field">
-            <span className="form-field-heading">Empresa</span>
-            <p className="campo-derivado">
+          <div className={CAMPO}>
+            <span className={TITULO_CAMPO}>Empresa</span>
+            <p className={DERIVADO}>
               <span className={`co-badge ${empresas[0]}`}>{NOMBRE_EMPRESA[empresas[0]]}</span>
               según su contrato
             </p>
           </div>
         )}
         {empresas.length > 1 && (
-          <fieldset className="form-field">
+          <fieldset className={CAMPO}>
             <legend>Empresa</legend>
-            <p className="campo-ayuda">Tiene contrato en más de una empresa: elige a cuál corresponde.</p>
+            <p className={AYUDA}>Tiene contrato en más de una empresa: elige a cuál corresponde.</p>
             <CompanyChoice name="empresaCurso" value={fCurso.empresa} opciones={empresas} onChange={(v) => setFCurso({ ...fCurso, empresa: v })} />
           </fieldset>
         )}
 
         {!persona && (
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               <span>
                 Tipo
@@ -122,8 +123,8 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
         )}
 
         {esCurso && (
-          <div className="form-row">
-            <div className="form-field">
+          <div className={FILA}>
+            <div className={CAMPO}>
               <label>
                 <span>
                   Código del curso
@@ -142,7 +143,7 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
                 />
               </label>
             </div>
-            <div className="form-field">
+            <div className={CAMPO}>
               <label>
                 <span>
                   Curso
@@ -161,8 +162,8 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
           </div>
         )}
 
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               <span>
                 Fecha de inicio
@@ -171,7 +172,7 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
               <input required type="date" value={fCurso.fechaInicio} onChange={(e) => setFCurso({ ...fCurso, fechaInicio: e.target.value })} />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               <span>
                 Fecha de vencimiento
@@ -190,9 +191,9 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
 
         <AvisoVencimiento value={fCurso.diasAnticipacion} onChange={(v) => setFCurso({ ...fCurso, diasAnticipacion: v })} />
 
-        <div className="form-field">
-          <span className="form-field-heading">Foto o PDF {esCurso ? "del certificado" : "del EMO"} (opcional)</span>
-          <label className={`dropzone ${fCurso.archivoNombre ? "has-file" : ""}`}>
+        <div className={CAMPO}>
+          <span className={TITULO_CAMPO}>Foto o PDF {esCurso ? "del certificado" : "del EMO"} (opcional)</span>
+          <label className={`${DROPZONE} ${fCurso.archivoNombre ? DROPZONE_CON_ARCHIVO : DROPZONE_SIN_ARCHIVO}`}>
             <IconUpload width={22} height={22} />
             <p>
               {fCurso.archivoNombre ? (
@@ -207,11 +208,11 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
           </label>
         </div>
 
-        {error && <p className="field-error" role="alert">{error}</p>}
+        {error && <p className={ERROR_CAMPO} role="alert">{error}</p>}
 
         <ModalActions onCancel={onClose}>
           {persona && esCurso && !editando && (
-            <button type="submit" name="accion" value="otro" className="btn-secondary" disabled={guardando}>
+            <button type="submit" name="accion" value="otro" className={BOTON_SECUNDARIO} disabled={guardando}>
               Guardar y agregar otro
             </button>
           )}

@@ -1,6 +1,7 @@
 import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 import CamposEquipo from "./CamposEquipo";
+import { CAMPO, ERROR_CAMPO, FILA, OBLIGATORIO } from "../shared/clasesModal";
 
 // Mismos campos por tipo que al registrar. Un equipo anterior al que le
 // falte un dato obligatorio de su tipo lo muestra arriba y no se guarda
@@ -20,10 +21,10 @@ export default function ModalEditarEquipo({ open, onClose, equipo, fEquipo, setF
           </p>
         )}
 
-        <div className="form-field">
+        <div className={CAMPO}>
           <label>
             <span>
-              Tipo de equipo<span className="campo-obligatorio" aria-hidden="true"> *</span>
+              Tipo de equipo<span className={OBLIGATORIO} aria-hidden="true"> *</span>
             </span>
             <select required value={fEquipo.categoria} onChange={(e) => setFEquipo({ ...fEquipo, categoria: e.target.value })}>
               {opciones.map((t) => (
@@ -40,8 +41,8 @@ export default function ModalEditarEquipo({ open, onClose, equipo, fEquipo, setF
         )}
 
         {tipo?.antigua && (
-          <div className="form-row">
-            <div className="form-field">
+          <div className={FILA}>
+            <div className={CAMPO}>
               <label>
                 Código
                 <input
@@ -53,7 +54,7 @@ export default function ModalEditarEquipo({ open, onClose, equipo, fEquipo, setF
               </label>
             </div>
             {(tipo.camposLibres || []).map((campo) => (
-              <div className="form-field" key={campo.nombre}>
+              <div className={CAMPO} key={campo.nombre}>
                 <label>
                   {campo.nombre}
                   <input
@@ -67,7 +68,7 @@ export default function ModalEditarEquipo({ open, onClose, equipo, fEquipo, setF
           </div>
         )}
 
-        {error && <p className="field-error" role="alert">{error}</p>}
+        {error && <p className={ERROR_CAMPO} role="alert">{error}</p>}
         <ModalActions onCancel={onClose}>
           <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
             Guardar cambios

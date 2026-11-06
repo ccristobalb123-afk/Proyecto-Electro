@@ -6,6 +6,7 @@ import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import * as authService from "../../services/authService";
 import "./SesionesModal.css";
+import { ACCIONES, BOTON_SECUNDARIO, ERROR_CAMPO } from "./clasesModal";
 
 function haceCuanto(fecha) {
   const minutos = Math.round((Date.now() - new Date(fecha).getTime()) / 60_000);
@@ -87,7 +88,7 @@ function ListaSesiones({ onClose }) {
   return (
     <>
       {error && (
-        <p className="field-error" role="alert">
+        <p className={ERROR_CAMPO} role="alert">
           {error}
         </p>
       )}
@@ -123,8 +124,8 @@ function ListaSesiones({ onClose }) {
           ))}
         </ul>
       )}
-      <div className="modal-actions sesiones-acciones">
-        <button type="button" className="btn-secondary" onClick={onClose}>
+      <div className={`${ACCIONES} sesiones-acciones`}>
+        <button type="button" className={BOTON_SECUNDARIO} onClick={onClose}>
           Listo
         </button>
         <button type="button" className="btn-danger" onClick={cerrarTodas} disabled={!sesiones}>

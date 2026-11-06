@@ -10,9 +10,3 @@
   margin-top: 0;
   font-size: var(--fs-sm);
 }
-
-/* Carga del gráfico: Loading.css fija el relleno de .loading-bloque. Pasa a
-   clases cuando se migre Loading.css. */
-.panel-chart-cargando .loading-bloque {
-  padding: var(--space-6) var(--space-4);
-}

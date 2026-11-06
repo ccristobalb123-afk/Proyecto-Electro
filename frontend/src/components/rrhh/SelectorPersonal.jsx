@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { AYUDA } from "../shared/clasesModal";
 
 const normalizar = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const MAX_OPCIONES = 8;
@@ -55,9 +56,9 @@ export default function SelectorPersonal({ trabajadores, value, onChange }) {
         ))}
       </ul>
       {coincidencias.length > MAX_OPCIONES && (
-        <p className="campo-ayuda">Mostrando {MAX_OPCIONES} de {coincidencias.length}: escribe más para acotar.</p>
+        <p className={AYUDA}>Mostrando {MAX_OPCIONES} de {coincidencias.length}: escribe más para acotar.</p>
       )}
-      {coincidencias.length === 0 && <p className="campo-ayuda">No hay personal con contrato que coincida con «{texto}».</p>}
+      {coincidencias.length === 0 && <p className={AYUDA}>No hay personal con contrato que coincida con «{texto}».</p>}
     </div>
   );
 }

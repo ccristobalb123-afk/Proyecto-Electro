@@ -17,6 +17,7 @@ import Loading from "../components/shared/Loading";
 import EstadoVacio from "../components/shared/EstadoVacio";
 import EstadoError from "../components/shared/EstadoError";
 import "./Administracion.css";
+import { CAMPO, ERROR_CAMPO } from "../components/shared/clasesModal";
 
 function iniciales(nombre) {
   return nombre.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
@@ -348,25 +349,25 @@ export default function Administracion() {
       {/* ===== Modal: Nuevo usuario ===== */}
       <Modal open={modalNuevo.abierto} ocupado={guardando} title="Nuevo usuario" subtitle="El usuario recibirá una contraseña temporal en su correo." onClose={modalNuevo.cerrar}>
         <form onSubmit={handleGuardarUsuario}>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Nombre completo
               <input required value={fUsuario.nombre} onChange={(e) => setFUsuario({ ...fUsuario, nombre: e.target.value })} placeholder="Ej. Milagros Ríos" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Usuario (para iniciar sesión)
               <input required autoCapitalize="none" autoCorrect="off" spellCheck={false} value={fUsuario.usuario} onChange={(e) => setFUsuario({ ...fUsuario, usuario: e.target.value })} placeholder="Ej. mrios" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Correo (solo para recuperar la contraseña)
               <input required type="email" value={fUsuario.correo} onChange={(e) => setFUsuario({ ...fUsuario, correo: e.target.value })} placeholder="nombre@corevex.pe" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label className="superadmin-toggle">
               <input type="checkbox" checked={fUsuario.esSuperAdmin} onChange={(e) => setFUsuario({ ...fUsuario, esSuperAdmin: e.target.checked })} />
               <div>
@@ -376,7 +377,7 @@ export default function Administracion() {
             </label>
           </div>
           {!fUsuario.esSuperAdmin && (
-            <fieldset className="form-field">
+            <fieldset className={CAMPO}>
               <legend>Ventanas con acceso</legend>
               <div className="modulos-check">
                 {MODULOS_DISPONIBLES.map((m) => (
@@ -388,7 +389,7 @@ export default function Administracion() {
               </div>
             </fieldset>
           )}
-          <fieldset className="form-field">
+          <fieldset className={CAMPO}>
             <legend>Empresas con acceso</legend>
             <p className="empresas-check-hint">Puedes marcar las dos si trabaja para ambas empresas.</p>
             <div className="empresas-check">
@@ -402,7 +403,7 @@ export default function Administracion() {
               </label>
             </div>
           </fieldset>
-          {errorUsuario && <p className="field-error" role="alert">{errorUsuario}</p>}
+          {errorUsuario && <p className={ERROR_CAMPO} role="alert">{errorUsuario}</p>}
           <ModalActions onCancel={modalNuevo.cerrar}>
             <BotonCarga type="submit" cargando={guardando} textoCargando="Creando usuario…">
               Crear usuario
@@ -414,25 +415,25 @@ export default function Administracion() {
       {/* ===== Modal: Editar usuario ===== */}
       <Modal open={modalEditar.abierto} ocupado={guardando} title="Editar usuario" subtitle={modalEditar.dato ? modalEditar.dato.nombre : ""} onClose={modalEditar.cerrar}>
         <form onSubmit={handleGuardarEdicion}>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Nombre completo
               <input required value={fUsuarioEditar.nombre} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, nombre: e.target.value })} placeholder="Ej. Milagros Ríos" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Usuario (para iniciar sesión)
               <input required autoCapitalize="none" autoCorrect="off" spellCheck={false} value={fUsuarioEditar.usuario} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, usuario: e.target.value })} placeholder="Ej. mrios" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Correo (solo para recuperar la contraseña)
               <input required type="email" value={fUsuarioEditar.correo} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, correo: e.target.value })} placeholder="nombre@corevex.pe" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label className="superadmin-toggle">
               <input type="checkbox" checked={fUsuarioEditar.esSuperAdmin} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, esSuperAdmin: e.target.checked })} />
               <div>
@@ -442,7 +443,7 @@ export default function Administracion() {
             </label>
           </div>
           {!fUsuarioEditar.esSuperAdmin && (
-            <fieldset className="form-field">
+            <fieldset className={CAMPO}>
               <legend>Ventanas con acceso</legend>
               <div className="modulos-check">
                 {MODULOS_DISPONIBLES.map((m) => (
@@ -454,7 +455,7 @@ export default function Administracion() {
               </div>
             </fieldset>
           )}
-          <fieldset className="form-field">
+          <fieldset className={CAMPO}>
             <legend>Empresas con acceso</legend>
             <p className="empresas-check-hint">Puedes marcar las dos si trabaja para ambas empresas.</p>
             <div className="empresas-check">
@@ -468,7 +469,7 @@ export default function Administracion() {
               </label>
             </div>
           </fieldset>
-          {errorUsuario && <p className="field-error" role="alert">{errorUsuario}</p>}
+          {errorUsuario && <p className={ERROR_CAMPO} role="alert">{errorUsuario}</p>}
           <ModalActions onCancel={modalEditar.cerrar}>
             <BotonCarga type="submit" cargando={guardando} textoCargando="Guardando…">
               Guardar cambios
@@ -488,7 +489,7 @@ export default function Administracion() {
         <p className="usuario-modal-texto">
           {modalReset.dato?.nombre} tendrá que cambiarla la próxima vez que inicie sesión.
         </p>
-        {errorReset && <p className="field-error" role="alert">{errorReset}</p>}
+        {errorReset && <p className={ERROR_CAMPO} role="alert">{errorReset}</p>}
         <ModalActions onCancel={modalReset.cerrar}>
           <BotonCarga cargando={guardando} textoCargando="Generando…" onClick={handleConfirmarReset}>
             Generar contraseña temporal

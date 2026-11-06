@@ -3,6 +3,7 @@ import { useState } from "react";
 import { BotonCarga } from "../shared/Carga";
 import FotosEquipo from "./FotosEquipo";
 import { fotosQueFaltan } from "./camposEquipo";
+import { AYUDA, ERROR_CAMPO } from "../shared/clasesModal";
 
 /**
  * "Editar fotos": cambiar una o las dos fotos sin registrar una
@@ -22,13 +23,13 @@ export default function ModalEditarFotosEquipo({ open, equipo, fotos, setFotos, 
       subtitle={equipo ? `${equipo.identificador} — ${equipo.categoria}` : ""}
       onClose={onClose}
     >
-      <p className="campo-ayuda">
+      <p className={AYUDA}>
         {faltan > 0
           ? `El equipo debe quedar con 2 fotos: falta${faltan === 1 ? " 1" : "n 2"}.`
           : "Cambia la foto que necesites. La reemplazada queda guardada en el historial. No registra una inspección."}
       </p>
       <FotosEquipo actuales={equipo?.fotos || []} valor={fotos} onChange={setFotos} onProcesando={setProcesandoFoto} />
-      {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
+      {errorServidor && <p className={ERROR_CAMPO} role="alert">{errorServidor}</p>}
 
       <ModalActions onCancel={onClose}>
         <BotonCarga cargando={guardando} textoCargando="Guardando fotos…" disabled={procesandoFoto} onClick={onGuardar}>

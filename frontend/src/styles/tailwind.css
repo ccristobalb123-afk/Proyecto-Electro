@@ -149,3 +149,8 @@
 
   --ease-out: var(--ease-out);
 }
+
+/* ---------- Variantes propias ----------
+   apaisado: celular en horizontal (poca altura y más de 640px de ancho),
+   la misma condición que usaba Modal.css para la barra fija del modal. */
+@custom-variant apaisado (@media (max-height: 500px) and (min-width: 641px));

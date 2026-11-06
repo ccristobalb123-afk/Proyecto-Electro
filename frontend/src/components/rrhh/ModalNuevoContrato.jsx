@@ -2,13 +2,14 @@ import { Modal, ModalActions, CompanyChoice, AvisoVencimiento } from "../shared/
 import { IconUpload } from "../icons/Icons";
 import { BotonCarga } from "../shared/Carga";
 import { AYUDA_ARCHIVO } from "../../services/uploadsService";
+import { CAMPO, DROPZONE, DROPZONE_CON_ARCHIVO, DROPZONE_SIN_ARCHIVO, ERROR_CAMPO, FILA, TITULO_CAMPO } from "../shared/clasesModal";
 
 export default function ModalNuevoContrato({ open, onClose, fContrato, setFContrato, error, onArchivoChange, onSubmit, editando, guardando, textoGuardando }) {
   return (
     <Modal open={open} ocupado={guardando} title={editando ? "Editar contrato" : "Nuevo contrato"} subtitle="Completa los datos del contrato." onClose={onClose}>
       <form onSubmit={onSubmit}>
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               DNI
               <input
@@ -21,7 +22,7 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
               />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Trabajador
               {/* Contratos es el único lugar del sistema donde se registra
@@ -41,13 +42,13 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
           </div>
         </div>
 
-        <fieldset className="form-field">
+        <fieldset className={CAMPO}>
           <legend>Empresa</legend>
           <CompanyChoice name="empresaContrato" value={fContrato.empresa} onChange={(v) => setFContrato({ ...fContrato, empresa: v })} />
         </fieldset>
 
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               Tipo de contrato
               <select value={fContrato.tipo} onChange={(e) => setFContrato({ ...fContrato, tipo: e.target.value })}>
@@ -56,7 +57,7 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
               </select>
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Fecha de inicio
               <input type="date" value={fContrato.fechaInicio} onChange={(e) => setFContrato({ ...fContrato, fechaInicio: e.target.value })} />
@@ -64,7 +65,7 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
           </div>
         </div>
 
-        <div className="form-field">
+        <div className={CAMPO}>
           <label>
             Fecha de fin
             <input type="date" value={fContrato.fechaFin} onChange={(e) => setFContrato({ ...fContrato, fechaFin: e.target.value })} />
@@ -77,9 +78,9 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
           hint="días antes de la fecha de fin"
         />
 
-        <div className="form-field">
-          <span className="form-field-heading">Documento del contrato</span>
-          <label className={`dropzone ${fContrato.archivoNombre ? "has-file" : ""}`}>
+        <div className={CAMPO}>
+          <span className={TITULO_CAMPO}>Documento del contrato</span>
+          <label className={`${DROPZONE} ${fContrato.archivoNombre ? DROPZONE_CON_ARCHIVO : DROPZONE_SIN_ARCHIVO}`}>
             <IconUpload width={22} height={22} />
             <p>
               {fContrato.archivoNombre ? (
@@ -94,7 +95,7 @@ export default function ModalNuevoContrato({ open, onClose, fContrato, setFContr
           </label>
         </div>
 
-        {error && <p className="field-error">{error}</p>}
+        {error && <p className={ERROR_CAMPO}>{error}</p>}
 
         <ModalActions onCancel={onClose}>
           <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>

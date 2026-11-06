@@ -11,6 +11,7 @@ import { useAccion } from "../../hooks/useAccion";
 import * as equiposService from "../../services/equiposService";
 import { CAMPOS_EQUIPO } from "./camposEquipo";
 import "./Asignacion.css";
+import { AYUDA, CAMPO, ERROR_CAMPO, TITULO_CAMPO } from "../shared/clasesModal";
 
 // Datos que puede pedir un tipo, en el orden en que se muestran (el mismo
 // del backend). Las fechas de inspección y vencimiento se piden siempre.
@@ -209,7 +210,7 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
         onClose={() => (guardando ? null : setEditando(null))}
       >
         <form onSubmit={guardar} noValidate>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Nombre
               <input
@@ -224,8 +225,8 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
             </label>
           </div>
 
-          <fieldset className="form-field">
-            <legend className="form-field-heading">Se asigna a</legend>
+          <fieldset className={CAMPO}>
+            <legend className={TITULO_CAMPO}>Se asigna a</legend>
             <div className="destino-choice">
               {[["camion", "Camión", IconTruck], ["persona", "Persona", IconUser]].map(([valor, etiqueta, Icono]) => (
                 <label key={valor} className={f.destino === valor ? "seleccionado" : ""}>
@@ -245,7 +246,7 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
             </div>
           </fieldset>
 
-          <div className="form-field">
+          <div className={CAMPO}>
             <label className="tipo-check">
               <input type="checkbox" checked={f.variasPorDestinatario} onChange={(e) => setF({ ...f, variasPorDestinatario: e.target.checked })} />
               <span>
@@ -255,14 +256,14 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
             </label>
           </div>
 
-          <fieldset className="form-field">
-            <legend className="form-field-heading">Datos que se piden al registrar un equipo</legend>
+          <fieldset className={CAMPO}>
+            <legend className={TITULO_CAMPO}>Datos que se piden al registrar un equipo</legend>
             {camposBloqueados ? (
-              <p className="campo-ayuda">
+              <p className={AYUDA}>
                 No se pueden cambiar: este tipo ya tiene {tipoEditado.equipos} {tipoEditado.equipos === 1 ? "equipo registrado" : "equipos registrados"} con estos datos.
               </p>
             ) : (
-              <p className="campo-ayuda">Todos los que marques serán obligatorios. Elige al menos Código o Serial (son únicos dentro del tipo).</p>
+              <p className={AYUDA}>Todos los que marques serán obligatorios. Elige al menos Código o Serial (son únicos dentro del tipo).</p>
             )}
             <div className="tipo-campos">
               {CAMPOS_ELEGIBLES.map((c) => (
@@ -284,7 +285,7 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
           </fieldset>
 
           {error && (
-            <p className="field-error" role="alert">
+            <p className={ERROR_CAMPO} role="alert">
               {error}
             </p>
           )}
@@ -305,7 +306,7 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
           <IconPlus width={15} height={15} />
           Nuevo tipo
         </button>
-        {!esSuperAdmin && <p className="campo-ayuda">Corregir, desactivar o eliminar un tipo lo hace un SuperAdmin.</p>}
+        {!esSuperAdmin && <p className={AYUDA}>Corregir, desactivar o eliminar un tipo lo hace un SuperAdmin.</p>}
       </div>
       {!tipos && !errorCarga && <Loading texto="Cargando tipos…" />}
       {errorCarga && <EstadoError error={errorCarga} onReintentar={cargar} />}

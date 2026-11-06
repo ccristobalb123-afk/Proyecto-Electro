@@ -2,11 +2,12 @@ import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
 import { BotonCarga } from "../shared/Carga";
 import { IconCamera, IconUpload } from "../icons/Icons";
 import { AYUDA_ARCHIVO } from "../../services/uploadsService";
+import { CAJA_CATEGORIA, CAMPO, ERROR_CAMPO, FILA, OBLIGATORIO, OPCION, OPCION_ELEGIDA, OPCION_NORMAL, OPCION_RADIO, OPCIONES, TITULO_CAMPO } from "../shared/clasesModal";
 
 const OPCION_NUEVA = "__nueva__";
 
 const Obligatorio = () => (
-  <span className="campo-obligatorio" aria-hidden="true">
+  <span className={OBLIGATORIO} aria-hidden="true">
     {" "}*
   </span>
 );
@@ -21,8 +22,8 @@ function CampoDocumento({ archivoNombre, onElegir }) {
     if (archivo) onElegir(archivo);
   };
   return (
-    <div className="form-field">
-      <span className="form-field-heading" id="doc-gasto-titulo">
+    <div className={CAMPO}>
+      <span className={TITULO_CAMPO} id="doc-gasto-titulo">
         Foto o PDF del comprobante
         <Obligatorio />
       </span>
@@ -78,11 +79,11 @@ export default function ModalNuevoGasto({
             Faltan datos: {faltantes.join(" y ").toLowerCase()}. Complétalos para poder guardar.
           </p>
         )}
-        <fieldset className="form-field">
+        <fieldset className={CAMPO}>
           <legend>Empresa</legend>
           <CompanyChoice name="empresaGasto" value={fGasto.empresa} onChange={(v) => setFGasto({ ...fGasto, empresa: v })} />
         </fieldset>
-        <div className="form-field">
+        <div className={CAMPO}>
           <label>
             Categoría
             <select
@@ -108,8 +109,8 @@ export default function ModalNuevoGasto({
         </div>
 
         {nuevaCategoriaGasto && (
-          <div className="categoria-nueva-box">
-            <div className="form-field">
+          <div className={CAJA_CATEGORIA}>
+            <div className={CAMPO}>
               <label>
                 Nombre de la categoría nueva
                 <input
@@ -118,7 +119,7 @@ export default function ModalNuevoGasto({
                   placeholder="Ej. Peajes"
                 />
               </label>
-              {errorCategoriaGasto && <p className="field-error">{errorCategoriaGasto}</p>}
+              {errorCategoriaGasto && <p className={ERROR_CAMPO}>{errorCategoriaGasto}</p>}
             </div>
             <BotonCarga className="btn-outline-sm" cargando={creandoCategoria} textoCargando="Creando…" onClick={onAgregarCategoriaGasto}>
               Agregar categoría
@@ -126,18 +127,19 @@ export default function ModalNuevoGasto({
           </div>
         )}
 
-        <fieldset className="form-field">
+        <fieldset className={CAMPO}>
           <legend>
             Tipo de comprobante
             <Obligatorio />
           </legend>
-          <div className="igv-choice tipo-comprobante-choice">
+          <div className={`${OPCIONES} tipo-comprobante-choice`}>
             {[
               ["boleta", "Boleta"],
               ["factura", "Factura"],
             ].map(([valor, texto]) => (
-              <label key={valor} className={fGasto.tipoComprobante === valor ? "sel" : ""}>
+              <label key={valor} className={`${OPCION} ${fGasto.tipoComprobante === valor ? OPCION_ELEGIDA : OPCION_NORMAL}`}>
                 <input
+                  className={OPCION_RADIO}
                   type="radio"
                   name="tipoComprobante"
                   checked={fGasto.tipoComprobante === valor}
@@ -150,7 +152,7 @@ export default function ModalNuevoGasto({
         </fieldset>
 
         {fGasto.tipoComprobante === "factura" && (
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               <span>
                 RUC del proveedor
@@ -169,35 +171,35 @@ export default function ModalNuevoGasto({
         )}
 
         {fGasto.categoria === "Bono" ? (
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Trabajador
               <input value={fGasto.trabajador} onChange={(e) => setFGasto({ ...fGasto, trabajador: e.target.value })} placeholder="Nombre del trabajador" />
             </label>
           </div>
         ) : (
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Proveedor (opcional)
               <input value={fGasto.proveedor} onChange={(e) => setFGasto({ ...fGasto, proveedor: e.target.value })} placeholder="Ej. Grifo Primax" />
             </label>
           </div>
         )}
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               Monto
               <input required type="number" inputMode="decimal" min="0" step="0.01" value={fGasto.monto} onChange={(e) => setFGasto({ ...fGasto, monto: e.target.value })} placeholder="0.00" />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Fecha
               <input required type="date" value={fGasto.fecha} onChange={(e) => setFGasto({ ...fGasto, fecha: e.target.value })} />
             </label>
           </div>
         </div>
-        <div className="form-field">
+        <div className={CAMPO}>
           <label>
             Descripción (opcional)
             <input value={fGasto.descripcion} onChange={(e) => setFGasto({ ...fGasto, descripcion: e.target.value })} placeholder="Ej. Qué se compró" />
@@ -205,7 +207,7 @@ export default function ModalNuevoGasto({
         </div>
         <CampoDocumento archivoNombre={fGasto.archivoNombre} onElegir={onElegirArchivo} />
 
-        {error && <p className="field-error" role="alert">{error}</p>}
+        {error && <p className={ERROR_CAMPO} role="alert">{error}</p>}
         <ModalActions onCancel={onClose}>
           <BotonCarga type="submit" cargando={guardando} textoCargando={textoGuardando}>
             {editando ? "Guardar cambios" : "Guardar gasto"}

@@ -2,6 +2,62 @@ import { useEffect, useId, useRef } from "react";
 import { IconClose } from "../icons/Icons";
 import { useBloquearScroll } from "../../hooks/useBloquearScroll";
 import "./Modal.css";
+import { ACCIONES, BOTON_SECUNDARIO, MENSAJE_VACIO, CAMPO, FILA, AVISO, AVISO_RELLENO, AVISO_ETIQUETA, AVISO_FILA, AVISO_INPUT, AVISO_TEXTO, OPCIONES, OPCION, OPCION_NORMAL, OPCION_ELEGIDA, OPCION_RADIO } from "./clasesModal";
+
+// Clases que quedan como gancho de otras reglas (no dan estilo por sí solas):
+// - modal-overlay y open: ToastContainer.css (body:has(.modal-overlay.open)).
+// - modal-overlay--{variant} y modal--{variant}: VisorArchivo.css (visor) y
+//   motion.css (seguridad).
+// - modal-electro: responsive.css (.modal-electro .form-row…) y VisorArchivo.css.
+// - modal-cuerpo: Finanzas.css (.modal-cuerpo:disabled .gasto-documento label).
+
+// Fondo oscuro. En celular deja un margen alrededor del modal (y respeta la
+// muesca); en celular horizontal (apaisado:, poca altura), uno más chico.
+const FONDO = `modal-overlay open fixed inset-0 z-(--z-modal) flex items-center justify-center
+  [background:color-mix(in_srgb,var(--ink-2)_50%,transparent)]
+  max-md:px-3 max-md:pt-[max(var(--space-3),env(safe-area-inset-top))] max-md:pb-[max(var(--space-3),env(safe-area-inset-bottom))]
+  apaisado:px-2 apaisado:pt-[max(var(--space-2),env(safe-area-inset-top))] apaisado:pb-[max(var(--space-2),env(safe-area-inset-bottom))]`;
+
+// La caja del modal. En celular usa todo el ancho y el alto disponibles.
+// El ancho va en dos constantes (normal y wide) para no poner dos w- en el
+// mismo elemento.
+const CAJA = `modal-electro rounded-[14px] [background:var(--card)] max-w-[92vw] max-h-[88vh] supports-[max-height:88dvh]:max-h-[88dvh]
+  overflow-y-auto overscroll-contain px-7 py-[26px] focus:[outline:none]
+  max-md:w-full max-md:max-w-full max-md:px-4
+  apaisado:max-h-full apaisado:px-6 apaisado:py-[18px]`;
+const CAJA_MOVIL = "max-md:max-h-full max-md:py-5";
+const ANCHO = "w-[460px]";
+const ANCHO_WIDE = "w-[560px]";
+
+// Variante «seguridad» (cambio de contraseña): entra en 200ms (ease-out)
+// desde un desplazamiento corto y una línea ámbar se dibuja en el borde
+// superior, el mismo lenguaje del riel del Login. En celular pasa a hoja
+// inferior, al alcance del pulgar. Los @keyframes están en Modal.css; con
+// movimiento reducido, motion.css deja solo el fundido (gancho:
+// modal--seguridad).
+const FONDO_SEGURIDAD = "[animation:modal-seguridad-fondo_150ms_ease-out_both] max-md:items-end";
+const CAJA_SEGURIDAD = `relative [animation:modal-seguridad-entrada_200ms_var(--ease-out)_both]
+  before:absolute before:top-0 before:right-7 before:left-7 before:h-0.5 before:origin-left before:[background:var(--volt)]
+  before:[animation:modal-seguridad-trazo_300ms_var(--ease-out)_120ms_both]
+  max-md:max-h-[92vh] max-md:supports-[max-height:92dvh]:max-h-[92dvh] max-md:rounded-[16px_16px_0_0]
+  max-md:pt-5 max-md:pb-[max(26px,env(safe-area-inset-bottom))] max-md:[animation:modal-seguridad-hoja_280ms_var(--ease-out)_both]`;
+
+// Encabezado: título y botón de cerrar. modal-head y modal-close quedan como
+// gancho: VisorArchivo.css (.modal--visor .modal-head…) y responsive.css
+// (44px táctiles del botón de cerrar).
+const ENCABEZADO = "modal-head mb-1 flex items-center justify-between gap-3";
+const TITULO = "font-display min-w-0 text-[19px] font-semibold [overflow-wrap:anywhere] max-md:text-xl";
+const CERRAR = `modal-close flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded [border:none] [background:none] text-muted
+  hover:[background:var(--paper)] disabled:cursor-progress disabled:opacity-40`;
+const SUBTITULO = "mb-[22px] text-[13px] text-muted max-md:mb-4";
+
+// display: contents: no altera el layout; solo propaga "disabled" a todos
+// los campos y botones. Mientras se guarda, los campos se atenúan apenas,
+// para que se note que no se pueden tocar sin que parezca un error.
+// El cursor de "trabajando" sobre esos campos sigue en Modal.css: varias
+// etiquetas de las pantallas fijan cursor: pointer en reglas sin capa.
+const CUERPO = `modal-cuerpo contents
+  [&:disabled_:is(input,select,textarea,.dropzone,.co-choice,.igv-choice,.foto-equipo-slot)]:opacity-70`;
 
 // `ocupado`: hay una operación en curso (guardando, subiendo un
 // archivo...). Mientras dure, el modal no se puede cerrar por accidente
@@ -89,8 +145,9 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant,
   }, [open]);
 
   if (!open) return null;
+  const esSeguridad = variant === "seguridad";
   return (
-    <div className={`modal-overlay open ${variant ? `modal-overlay--${variant}` : ""}`} onClick={cerrar}>
+    <div className={`${FONDO} ${esSeguridad ? FONDO_SEGURIDAD : ""} ${variant ? `modal-overlay--${variant}` : ""}`} onClick={cerrar}>
       <div
         ref={dialogRef}
         role="dialog"
@@ -98,22 +155,21 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant,
         aria-labelledby={tituloId}
         aria-busy={ocupado || undefined}
         tabIndex={-1}
-        className={`modal-electro ${wide ? "modal-wide" : ""} ${variant ? `modal--${variant}` : ""}`}
+        className={`${CAJA} ${wide ? ANCHO_WIDE : ANCHO} ${esSeguridad ? CAJA_SEGURIDAD : CAJA_MOVIL} ${variant ? `modal--${variant}` : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-head">
-          <h2 id={tituloId} className="font-display">{title}</h2>
+        <div className={ENCABEZADO}>
+          <h2 id={tituloId} className={`${TITULO} ${esSeguridad ? "tracking-[-0.01em]" : ""}`}>{title}</h2>
           {/* Un modal sin onClose (ej. cambio de contraseña obligatorio) no se puede cerrar: sin botón */}
           {onClose && (
-            <button className="modal-close" onClick={cerrar} type="button" aria-label="Cerrar" disabled={ocupado}>
+            <button className={CERRAR} onClick={cerrar} type="button" aria-label="Cerrar" disabled={ocupado}>
               <IconClose width={16} height={16} />
             </button>
           )}
         </div>
-        {subtitle && <p className="modal-sub">{subtitle}</p>}
-        {/* display: contents — no altera el layout; solo propaga
-            "disabled" a todos los campos y botones (Cancelar incluido). */}
-        <fieldset className="modal-cuerpo" disabled={ocupado}>
+        {subtitle && <p className={SUBTITULO}>{subtitle}</p>}
+        {/* Propaga "disabled" a todos los campos y botones (Cancelar incluido). */}
+        <fieldset className={CUERPO} disabled={ocupado}>
           {children}
         </fieldset>
       </div>
@@ -123,8 +179,8 @@ export function Modal({ open, title, subtitle, onClose, children, wide, variant,
 
 export function ModalActions({ onCancel, cancelLabel = "Cancelar", children }) {
   return (
-    <div className="modal-actions">
-      <button className="btn-secondary" type="button" onClick={onCancel}>
+    <div className={ACCIONES}>
+      <button className={BOTON_SECUNDARIO} type="button" onClick={onCancel}>
         {cancelLabel}
       </button>
       {children}
@@ -136,12 +192,24 @@ export function ModalActions({ onCancel, cancelLabel = "Cancelar", children }) {
 // formularios que registran algo con empresa.
 // `opciones`: limita a ciertas empresas (ej. solo donde el trabajador
 // tiene contrato). Por defecto, las dos.
+// "co-choice" queda como gancho: responsive.css (44px táctiles) y los campos
+// atenuados mientras se guarda (CUERPO). [&&]:flex le gana al display: block
+// que CAMPO le da a toda etiqueta del campo.
+const EMPRESAS = "co-choice flex gap-2.5";
+const EMPRESA = "[&&]:flex flex-1 cursor-pointer items-center gap-2 rounded border-[1.5px] border-solid px-3 py-2.5 text-[13px] font-medium";
+const EMPRESA_NORMAL = "border-border text-muted";
+const EMPRESA_ELEGIDA = {
+  corevex: "border-copper [background:var(--copper-tint)] text-copper-dark",
+  electro: "border-electro [background:var(--electro-tint)] text-electro-dark",
+};
+
 export function CompanyChoice({ value, onChange, name, opciones = ["corevex", "electro"] }) {
   return (
-    <div className="co-choice">
+    <div className={EMPRESAS}>
       {opciones.includes("corevex") && (
-      <label className={value === "corevex" ? "sel-corevex" : ""}>
+      <label className={`${EMPRESA} ${value === "corevex" ? EMPRESA_ELEGIDA.corevex : EMPRESA_NORMAL}`}>
         <input
+          className="h-auto w-auto"
           type="radio"
           name={name}
           checked={value === "corevex"}
@@ -151,8 +219,9 @@ export function CompanyChoice({ value, onChange, name, opciones = ["corevex", "e
       </label>
       )}
       {opciones.includes("electro") && (
-      <label className={value === "electro" ? "sel-electro" : ""}>
+      <label className={`${EMPRESA} ${value === "electro" ? EMPRESA_ELEGIDA.electro : EMPRESA_NORMAL}`}>
         <input
+          className="h-auto w-auto"
           type="radio"
           name={name}
           checked={value === "electro"}
@@ -171,27 +240,31 @@ export function CompanyChoice({ value, onChange, name, opciones = ["corevex", "e
 export function AvisoVencimiento({ value, onChange, hint }) {
   const inputId = useId();
   return (
-    <div className="aviso-field">
-      <label htmlFor={inputId}>
+    <div className={`${AVISO} ${AVISO_RELLENO}`}>
+      <label className={AVISO_ETIQUETA} htmlFor={inputId}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.7 21a2 2 0 0 1-3.4 0" />
         </svg>
         Aviso de vencimiento
       </label>
-      <div className="aviso-input-row">
+      <div className={AVISO_FILA}>
         <input
+          className={AVISO_INPUT}
           id={inputId}
           type="number"
           min={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
         />
-        <span>{hint || "días antes del vencimiento"}</span>
+        <span className={AVISO_TEXTO}>{hint || "días antes del vencimiento"}</span>
       </div>
     </div>
   );
 }
+
+// Cálculo en vivo debajo del monto (total con IGV, detracción).
+const RESULTADO = "mx-0 mt-1.5 mb-0 text-[12.5px] text-muted [&_b]:text-text";
 
 // Campo de monto con selector de IGV — el usuario elige si lo que va a
 // escribir ya incluye IGV o no; si no, el sistema le suma el 18%
@@ -205,11 +278,12 @@ export function CampoMontoConIgv({ montoBase, igvIncluido, onChange }) {
 
   return (
     <>
-      <fieldset className="form-field">
+      <fieldset className={CAMPO}>
         <legend>IGV</legend>
-        <div className="igv-choice">
-          <label className={igvIncluido ? "sel" : ""}>
+        <div className={OPCIONES}>
+          <label className={`${OPCION} ${igvIncluido ? OPCION_ELEGIDA : OPCION_NORMAL}`}>
             <input
+              className={OPCION_RADIO}
               type="radio"
               name="igvIncluido"
               checked={igvIncluido}
@@ -217,8 +291,9 @@ export function CampoMontoConIgv({ montoBase, igvIncluido, onChange }) {
             />
             El monto ya incluye IGV
           </label>
-          <label className={!igvIncluido ? "sel" : ""}>
+          <label className={`${OPCION} ${!igvIncluido ? OPCION_ELEGIDA : OPCION_NORMAL}`}>
             <input
+              className={OPCION_RADIO}
               type="radio"
               name="igvIncluido"
               checked={!igvIncluido}
@@ -229,7 +304,7 @@ export function CampoMontoConIgv({ montoBase, igvIncluido, onChange }) {
         </div>
       </fieldset>
 
-      <div className="form-field">
+      <div className={CAMPO}>
         <label>
           {igvIncluido ? "Monto total" : "Monto sin IGV"}
           <input
@@ -243,7 +318,7 @@ export function CampoMontoConIgv({ montoBase, igvIncluido, onChange }) {
           />
         </label>
         {!igvIncluido && base > 0 && (
-          <p className="igv-resultado">
+          <p className={RESULTADO}>
             Total con IGV: <b>S/ {totalConIgv.toFixed(2)}</b>
           </p>
         )}
@@ -259,12 +334,12 @@ export function CampoMontoConIgv({ montoBase, igvIncluido, onChange }) {
 // equipo y la pestaña Asignaciones.
 export function MiniaturasFotos({ titulo, fotos, onVerFoto }) {
   return (
-    <div className="tl-fotos">
-      <span className="tl-fotos__titulo">{titulo}</span>
-      <div className="tl-fotos__lista">
+    <div className="mt-1.5 flex flex-col gap-1">
+      <span className="text-xs font-semibold text-muted">{titulo}</span>
+      <div className="flex flex-wrap gap-1.5">
         {fotos.map((url, i) => (
-          <button key={url} type="button" className="tl-foto" onClick={() => onVerFoto(url)} aria-label={`${titulo}: ampliar foto ${i + 1}`}>
-            <img src={url} alt="" loading="lazy" decoding="async" />
+          <button key={url} type="button" className="h-12 w-16 cursor-zoom-in overflow-hidden rounded-[6px] border border-border [background:var(--paper)] p-0" onClick={() => onVerFoto(url)} aria-label={`${titulo}: ampliar foto ${i + 1}`}>
+            <img className="block h-full w-full object-cover" src={url} alt="" loading="lazy" decoding="async" />
           </button>
         ))}
       </div>
@@ -272,18 +347,22 @@ export function MiniaturasFotos({ titulo, fotos, onVerFoto }) {
   );
 }
 
+// Punto de cada evento sobre la línea; el color del borde depende del tono.
+const PUNTO = "absolute top-0.5 left-[-22px] h-3 w-3 rounded-[50%] border-2 border-solid [background:var(--card)]";
+const PUNTO_TONO = { success: "border-success", volt: "border-volt-dark" };
+
 export function Timeline({ items, onVerFoto }) {
   if (!items || items.length === 0) {
-    return <p className="modal-mensaje-vacio">Aún no hay historial.</p>;
+    return <p className={MENSAJE_VACIO}>Aún no hay historial.</p>;
   }
   return (
-    <div className="timeline">
+    <div className="relative pl-[22px] before:absolute before:top-1 before:bottom-1 before:left-[6px] before:w-[1.5px] before:[background:var(--border)]">
       {items.map((item, i) => (
-        <div className="tl-item" key={`${item.fecha}-${item.titulo}-${i}`}>
-          <div className={`tl-dot ${item.tone || ""}`} />
+        <div className="relative flex gap-2.5 pb-5 last:pb-0" key={`${item.fecha}-${item.titulo}-${i}`}>
+          <div className={`${PUNTO} ${PUNTO_TONO[item.tone] || "border-copper"}`} />
           <div className="tl-body">
-            <div className="tl-title">{item.titulo}</div>
-            <div className="tl-meta">
+            <div className="text-[13.5px] font-medium">{item.titulo}</div>
+            <div className="mt-0.5 text-[12px] text-muted">
               {item.fecha}
               {item.actor ? ` — ${item.actor}` : ""}
             </div>
@@ -322,7 +401,7 @@ export function CampoDetraccion({ catalogo, montoTotal, catalogoDetraccionId, de
 
   return (
     <>
-      <div className="form-field">
+      <div className={CAMPO}>
         <label>
           Detracción
           <select
@@ -344,7 +423,7 @@ export function CampoDetraccion({ catalogo, montoTotal, catalogoDetraccionId, de
           </select>
         </label>
         {seleccionado && total > 0 && (
-          <p className="igv-resultado">
+          <p className={RESULTADO}>
             Detracción ({formatPorcentaje(seleccionado.porcentaje)}) sobre S/ {total.toFixed(2)}: <b>S/ {montoDetraccion.toFixed(2)}</b>
             {" · "}Neto a depositar: <b>S/ {(total - montoDetraccion).toFixed(2)}</b>
           </p>
@@ -352,8 +431,8 @@ export function CampoDetraccion({ catalogo, montoTotal, catalogoDetraccionId, de
       </div>
 
       {seleccionado && (
-        <div className="form-row">
-          <div className="form-field">
+        <div className={FILA}>
+          <div className={CAMPO}>
             <label>
               Medio de pago (opcional)
               <input
@@ -363,7 +442,7 @@ export function CampoDetraccion({ catalogo, montoTotal, catalogoDetraccionId, de
               />
             </label>
           </div>
-          <div className="form-field">
+          <div className={CAMPO}>
             <label>
               Cuenta Banco de la Nación (opcional)
               <input

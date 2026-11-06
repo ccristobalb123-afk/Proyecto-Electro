@@ -5,6 +5,7 @@ import { Spinner } from "../shared/Carga";
 import EstadoDocumento from "./EstadoDocumento";
 import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 import { fechaCorta } from "../../services/vehiculosService";
+import { AYUDA, MENSAJE_VACIO } from "../shared/clasesModal";
 
 // Una fila: nombre, estado, fechas, y ver / adjuntar / reemplazar archivo.
 function FilaDocumento({ d, subiendo, onSubirArchivo }) {
@@ -14,7 +15,7 @@ function FilaDocumento({ d, subiendo, onSubirArchivo }) {
       <div className="docs-row-main">
         <div className="docs-row-title">{d.nombre}</div>
         {!d.legado && (
-          <div className="docs-row-fechas">
+          <div className="mx-0 my-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted [font-variant-numeric:tabular-nums]">
             <EstadoDocumento documento={d} />
             <span>
               {d.fechaEmision && `Emitido ${fechaCorta(d.fechaEmision)} · `}
@@ -68,7 +69,7 @@ export default function ModalDocumentos({ open, vehiculo, onClose, onSubirArchiv
       wide
     >
       {vehiculo && vehiculo.documentos.length === 0 && (
-        <p className="modal-mensaje-vacio">Este vehículo todavía no tiene documentos marcados. Usa “Editar documentos” para indicar cuáles tiene.</p>
+        <p className={MENSAJE_VACIO}>Este vehículo todavía no tiene documentos marcados. Usa “Editar documentos” para indicar cuáles tiene.</p>
       )}
       {vehiculo?.documentos.map((d) => (
         <FilaDocumento key={d.id} d={d} subiendo={estadoDocumento?.(d.id)} onSubirArchivo={onSubirArchivo} />
@@ -76,8 +77,8 @@ export default function ModalDocumentos({ open, vehiculo, onClose, onSubirArchiv
 
       {vehiculo?.documentosAnteriores.length > 0 && (
         <>
-          <h3 className="docs-seccion-titulo">Documentos del sistema anterior</h3>
-          <p className="campo-ayuda">No tienen equivalente en el catálogo nuevo. Se conservan con su archivo, sin alertas.</p>
+          <h3 className="mx-0 mt-5 mb-1 text-md font-semibold">Documentos del sistema anterior</h3>
+          <p className={AYUDA}>No tienen equivalente en el catálogo nuevo. Se conservan con su archivo, sin alertas.</p>
           {vehiculo.documentosAnteriores.map((d) => (
             <FilaDocumento key={d.id} d={d} subiendo={estadoDocumento?.(d.id)} onSubirArchivo={onSubirArchivo} />
           ))}

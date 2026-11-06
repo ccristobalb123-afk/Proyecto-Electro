@@ -1,6 +1,7 @@
 import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 import { IconAlertCircle } from "../icons/Icons";
+import { CAMPO, ERROR_CAMPO } from "../shared/clasesModal";
 
 export default function ModalBaja({ open, equipo, motivo, setMotivo, error, onClose, onConfirmar, guardando, errorServidor }) {
   return (
@@ -12,7 +13,7 @@ export default function ModalBaja({ open, equipo, motivo, setMotivo, error, onCl
           {equipo?.responsable && ` Deja de estar asignado a ${equipo.responsable}.`}
         </p>
       </div>
-      <div className="form-field">
+      <div className={CAMPO}>
         <label>
           Motivo de la baja
           <textarea
@@ -22,9 +23,9 @@ export default function ModalBaja({ open, equipo, motivo, setMotivo, error, onCl
             onChange={(e) => setMotivo(e.target.value)}
           />
         </label>
-        {error && <p className="field-error">Escribe un motivo antes de continuar.</p>}
+        {error && <p className={ERROR_CAMPO}>Escribe un motivo antes de continuar.</p>}
       </div>
-      {errorServidor && <p className="field-error" role="alert">{errorServidor}</p>}
+      {errorServidor && <p className={ERROR_CAMPO} role="alert">{errorServidor}</p>}
       <ModalActions onCancel={onClose}>
         <BotonCarga className="btn-danger" cargando={guardando} textoCargando="Dando de baja…" onClick={onConfirmar}>
           Confirmar baja

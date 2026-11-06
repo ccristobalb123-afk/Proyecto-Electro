@@ -6,6 +6,7 @@ import EstadoError from "./EstadoError";
 import { IconExternalLink, IconFile } from "../icons/Icons";
 import { obtenerArchivo } from "../../services/uploadsService";
 import "./VisorArchivo.css";
+import { ACCIONES, BOTON_SECUNDARIO } from "./clasesModal";
 
 const EXT_IMAGEN = /\.(jpe?g|png|webp|gif)$/i;
 
@@ -86,8 +87,8 @@ export function VisorArchivo({ archivo, onClose }) {
       </div>
 
       {estado.blobUrl && (
-        <div className="modal-actions visor-acciones">
-          <a className="btn-secondary" href={estado.blobUrl} download={archivo.nombre || true}>
+        <div className={`${ACCIONES} visor-acciones`}>
+          <a className={BOTON_SECUNDARIO} href={estado.blobUrl} download={archivo.nombre || true}>
             Descargar
           </a>
           <a className="btn-primary" href={estado.blobUrl} target="_blank" rel="noreferrer">

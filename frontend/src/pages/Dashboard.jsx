@@ -28,8 +28,8 @@ const TONE_KPI = ["volt", "success", "copper", "danger"];
    - kpi-grid, cols: columnas en tablet/celular (responsive.css);
    - kpi-card, panel: color del borde suave (tarjetas.css; acá solo el ancho);
    - month-select: alto táctil de 44px (responsive.css);
-   - panel-head__accion, panel-chart-cargando: Dashboard.css (lo que fijan
-     .link-button y Loading.css, reglas sin capa, en esos elementos).
+   - panel-head__accion: Dashboard.css (lo que fija .link-button, regla sin
+     capa, en ese elemento).
    [background:…] y [box-shadow:…] en vez de bg-… / shadow-…: copian el
    "background:" abreviado y la sombra de antes, para que el estilo calculado
    quede igual. max-md: = celular (≤640px), max-lg: = tablet (≤960px). */
@@ -257,8 +257,8 @@ export default function Dashboard() {
         <div className="relative h-[320px] px-5 py-[18px] max-lg:h-[260px] max-md:h-[300px]">
           {/* Sin esto, el lienzo quedaba en blanco hasta que llegaban los datos */}
           {cargandoComparativo && (
-            <div className="panel-chart-cargando absolute inset-0 flex items-center justify-center [background:var(--card)]">
-              <Loading texto="Cargando gráfico…" />
+            <div className="absolute inset-0 flex items-center justify-center [background:var(--card)]">
+              <Loading compacto texto="Cargando gráfico…" />
             </div>
           )}
           {/* Mismo tamaño que fijará Chart.js al cargar: evita un salto de

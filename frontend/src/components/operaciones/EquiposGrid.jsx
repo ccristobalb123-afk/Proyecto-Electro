@@ -185,7 +185,7 @@ export default function EquiposGrid({
                     )}
                     {/* display: contents — deshabilita todo el pie mientras se
                         actualiza el equipo (evita un segundo cambio a la vez). */}
-                    <fieldset className="bloque-deshabilitable" disabled={equipoOcupado?.(eq.id)}>
+                    <fieldset className="contents" disabled={equipoOcupado?.(eq.id)}>
                     <div className="equipo-card-actions">
                       <button className="btn-outline-sm" type="button" onClick={() => onInspeccionar(eq)}>
                         Actualizar inspección
