@@ -1,72 +1,11 @@
-.tabs {
-  display: flex;
-  gap: 4px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 3px;
-  width: fit-content;
-  margin-bottom: 20px;
-}
+/* Operaciones: la cabecera, las pestañas y la barra de "Tipos de equipo" van
+   con clases de Tailwind (Operaciones.jsx, clasesPestanas.js), y la pestaña
+   Equipos también (clasesEquipos.js). Lo que queda acá es de Vehículos,
+   Asignaciones y de los modales, que se migran en la parte 2, o está
+   bloqueado por una regla sin capa (al final). */
 
-.tabs button {
-  border: none;
-  background: none;
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-.tabs button.active {
-  background: var(--copper-tint);
-  color: var(--copper-dark);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-thead th {
-  text-align: left;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 12px 18px;
-  background: var(--paper);
-  border-bottom: 1px solid var(--border);
-}
-
-tbody td {
-  padding: 14px 18px;
-  font-size: 13.5px;
-  border-bottom: 1px solid var(--border);
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-@media (hover: hover) {
-  tbody tr:hover {
-    background: var(--gray-tint);
-  }
-}
-
-.code {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
+/* Etiqueta de estado de los equipos en Asignaciones (la de la tarjeta de
+   Equipos ya va en clases, con la base compartida de clasesTarjeta.js). */
 .estado {
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -110,12 +49,8 @@ tbody tr:last-child td {
   color: var(--gray-dark);
 }
 
-.responsable {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
+/* Avatar de las fichas de Asignaciones: 26px. El de RRHH (clasesRrhh.js) es
+   de 30px; no se unifican porque no se ven iguales. */
 .mini-avatar {
   width: 26px;
   height: 26px;
@@ -131,11 +66,8 @@ tbody tr:last-child td {
   flex: none;
 }
 
-.sin-responsable {
-  color: var(--muted-2);
-  font-size: 12.5px;
-}
-
+/* Copia de .doc-chip de Rrhh.css para Vehículos (documentos), sin
+   "text-decoration: none". Se unifica en la parte 2: ver docs/tailwind.md. */
 .doc-chip {
   display: inline-flex;
   align-items: center;
@@ -153,11 +85,6 @@ tbody tr:last-child td {
   .doc-chip:hover {
     background: color-mix(in srgb, var(--copper-tint), var(--copper) 12%);
   }
-}
-
-.row-actions {
-  display: flex;
-  gap: 6px;
 }
 
 .checklist-note {
@@ -312,30 +239,6 @@ tbody tr:last-child td {
   font-variant-numeric: tabular-nums;
 }
 
-.tag {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 12px;
-  flex: none;
-  font-family: var(--font-mono);
-}
-
-.tag.red {
-  background: var(--danger-tint);
-  color: var(--danger-dark);
-}
-
-.tag.amber {
-  background: var(--volt-tint);
-  color: var(--volt-dark);
-}
-
-.tag.gray {
-  background: var(--paper);
-  color: var(--muted);
-}
-
 .danger-box {
   background: var(--danger-tint);
   border-radius: var(--radius);
@@ -368,36 +271,6 @@ tbody tr:last-child td {
 .danger-box.advertencia .danger-title,
 .danger-box.advertencia .danger-hint {
   color: var(--volt-dark);
-}
-
-
-.categorias-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.categorias-lista-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.categorias-lista-item span {
-  flex: 1;
-  font-size: 13px;
-}
-
-.categorias-lista-item small {
-  color: var(--muted);
-}
-
-.categorias-lista-item input {
-  flex: 1;
 }
 
 
@@ -605,19 +478,11 @@ label.tipo-check--fija {
   color: var(--danger-dark);
 }
 
-.filtros-asignaciones__tipos {
-  flex: none;
-}
-
-.equipos-barra {
-  display: flex;
-  justify-content: flex-end;
-  margin: -6px 0 14px;
-}
-
-/* Este botón queda directamente sobre --fondo-pagina: con --border
+/* "Tipos de equipo" (el contenedor va en clases, Operaciones.jsx): el botón
+   queda directamente sobre --fondo-pagina: con --border
    (1.15:1) su contorno no llegaba a 3:1. --border-control da 3.0:1; el
-   hover (--electro) da 3.3:1. */
+   hover (--electro) da 3.3:1. .btn-outline-sm (sin capa) fija el borde, así
+   que se queda acá. */
 .equipos-barra .btn-outline-sm {
   border-color: var(--border-control);
 }

@@ -2,6 +2,7 @@ import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 import CamposEquipo from "./CamposEquipo";
 import { CAMPO, ERROR_CAMPO, FILA, OBLIGATORIO } from "../shared/clasesModal";
+import { AVISO_FALTAN } from "./clasesEquipos";
 
 // Mismos campos por tipo que al registrar. Un equipo anterior al que le
 // falte un dato obligatorio de su tipo lo muestra arriba y no se guarda
@@ -16,7 +17,7 @@ export default function ModalEditarEquipo({ open, onClose, equipo, fEquipo, setF
     <Modal open={open} ocupado={guardando} title="Editar equipo" subtitle={equipo?.identificador} onClose={onClose}>
       <form onSubmit={onSubmit}>
         {equipo?.faltantes?.length > 0 && fEquipo.categoria === equipo.categoria && (
-          <p className="equipo-faltantes" role="status">
+          <p className={AVISO_FALTAN} role="status">
             Completa los datos que faltan: {equipo.faltantes.join(", ")}.
           </p>
         )}

@@ -175,18 +175,6 @@
   min-height: 44px;
 }
 
-/* ---- Tarjeta: "Asignado a" con ícono de camión o de persona ---- */
-.equipo-card-asignado-valor.con-icono {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow-wrap: anywhere;
-}
-
-.equipo-card-asignado-valor.con-icono svg {
-  flex: none;
-}
-
 /* ---- Hoja de vida: historial de asignaciones ---- */
 .hv-seccion-titulo {
   margin: 0 0 var(--space-2);

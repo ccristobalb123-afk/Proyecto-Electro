@@ -9,6 +9,7 @@ import Lightbox from "../shared/Lightbox";
 import { ESTADOS_EQUIPO as ESTADOS } from "../../services/equiposService";
 import { CAMPOS_EQUIPO } from "./camposEquipo";
 import "./Asignacion.css";
+import * as C from "./clasesEquipos";
 
 // Datos de la tarjeta según el tipo (las fechas de inspección van aparte,
 // y el campo que identifica al equipo ya está en la cabecera).
@@ -46,7 +47,7 @@ export default function EquiposGrid({
   if (error) return <EstadoError error={error} onReintentar={onReintentar} />;
 
   return (
-    <div className="equipos-por-categoria">
+    <div className={C.GRUPOS}>
       {equiposPorCategoria.length === 0 && (
         <EstadoVacio
           titulo={hayFiltrosActivos ? "No hay equipos que coincidan con el filtro" : "No hay equipos registrados todavía"}
@@ -56,52 +57,52 @@ export default function EquiposGrid({
         />
       )}
       {equiposPorCategoria.map(({ categoria, items }) => (
-        <section className="categoria-seccion" key={categoria}>
-          <div className="categoria-seccion-header">
-            <h3 className="font-display">{categoria}</h3>
-            <span className="categoria-seccion-count">{items.length}</span>
+        <section key={categoria}>
+          <div className={C.GRUPO_CABECERA}>
+            <h3 className={`font-display ${C.GRUPO_TITULO}`}>{categoria}</h3>
+            <span className={C.GRUPO_CONTADOR}>{items.length}</span>
           </div>
 
           {/* Las tarjetas de una misma fila se igualan en alto solas (align-items: stretch) */}
-          <div className="equipos-grid">
+          <div className={C.GRILLA}>
             {items.map((eq) => {
               const tipo = tipos.find((t) => t.nombre === eq.categoria);
               const campos = camposDeLaTarjeta(eq, tipo);
               const conReglas = tipo && !tipo.antigua;
               return (
-                <div key={eq.id} className="equipo-card">
-                  <div className="equipo-card-header">
+                <div key={eq.id} className={C.TARJETA}>
+                  <div className={C.CABECERA}>
                     <div>
-                      <div className="equipo-card-code">
-                        {!eq.codigo && eq.serial && <span className="equipo-card-id-tipo">Serial </span>}
+                      <div className={C.CODIGO}>
+                        {!eq.codigo && eq.serial && <span className={C.CODIGO_TIPO}>Serial </span>}
                         {eq.identificador}
                       </div>
-                      <div className="equipo-card-cat">{eq.categoria}</div>
+                      <div className={C.TIPO}>{eq.categoria}</div>
                     </div>
-                    <span className={`estado ${eq.estado}`}><i />{ESTADOS[eq.estado]}</span>
+                    <span className={C.ESTADO_EQUIPO[eq.estado]}><i className={C.ESTADO_PUNTO} />{ESTADOS[eq.estado]}</span>
                   </div>
 
-                  <div className="equipo-card-body">
-                    <div className="equipo-card-fotos-wrap">
-                      <div className="equipo-card-fotos">
+                  <div className={C.CUERPO}>
+                    <div className={C.FOTOS_CAJA}>
+                      <div className={C.FOTOS}>
                         {(eq.fotos && eq.fotos.length > 0 ? eq.fotos : [null, null]).map((foto, i) =>
                           foto ? (
                             <button
                               key={i}
                               type="button"
-                              className="equipo-card-foto-btn"
+                              className={C.FOTO_BOTON}
                               title="Ver foto en grande"
                               onClick={() => setFotoMaximizada(foto)}
                             >
-                              <img src={foto} alt={`${eq.identificador} — foto ${i + 1}`} loading="lazy" decoding="async" />
+                              <img className={C.FOTO_IMAGEN} src={foto} alt={`${eq.identificador} — foto ${i + 1}`} loading="lazy" decoding="async" />
                             </button>
                           ) : (
-                            <div key={i} className="equipo-card-foto-vacia" />
+                            <div key={i} className={C.FOTO_VACIA} />
                           )
                         )}
                       </div>
                       <button
-                        className="equipo-card-fotos-editar"
+                        className={C.FOTOS_EDITAR}
                         type="button"
                         title="Editar fotos"
                         onClick={() => onEditarFotos(eq)}
@@ -111,13 +112,13 @@ export default function EquiposGrid({
                     </div>
 
                     {eq.responsable && (
-                      <div className="equipo-card-asignado">
-                        <span className="equipo-card-label">Asignado a</span>
-                        <span className="equipo-card-asignado-valor con-icono">
+                      <div className={C.ASIGNADO}>
+                        <span className={C.ETIQUETA_ASIGNADO}>Asignado a</span>
+                        <span className={C.ASIGNADO_VALOR}>
                           {eq.asignadoA?.tipo === "persona" ? (
-                            <IconUser width={15} height={15} aria-label="Persona" aria-hidden="false" role="img" />
+                            <IconUser className="flex-none" width={15} height={15} aria-label="Persona" aria-hidden="false" role="img" />
                           ) : (
-                            <IconTruck width={15} height={15} aria-label="Camión" aria-hidden="false" role="img" />
+                            <IconTruck className="flex-none" width={15} height={15} aria-label="Camión" aria-hidden="false" role="img" />
                           )}
                           {eq.responsable}
                         </span>
@@ -126,7 +127,7 @@ export default function EquiposGrid({
 
                     {/* Vencido (pasó su fecha): bloqueado hasta renovar. */}
                     {eq.estado === "vencido" && (
-                      <div className="equipo-vencido" role="status">
+                      <div className={C.AVISO_VENCIDO} role="status">
                         <span>
                           {eq.proxInspeccion ? `Venció el ${eq.proxInspeccion}. ` : ""}
                           {eq.responsable
@@ -140,34 +141,34 @@ export default function EquiposGrid({
                     )}
 
                     {eq.estado === "mantenimiento" && eq.comentarioMantenimiento && (
-                      <div className="equipo-card-asignado advertencia">
-                        <span className="equipo-card-label">Qué tiene</span>
-                        <span className="equipo-card-asignado-valor">
+                      <div className={C.ADVERTENCIA}>
+                        <span className={C.ETIQUETA_ADVERTENCIA}>Qué tiene</span>
+                        <span className={C.ADVERTENCIA_VALOR}>
                           {eq.comentarioMantenimiento}
                         </span>
                       </div>
                     )}
 
                     {campos.length > 0 && (
-                      <div className="equipo-card-campos">
+                      <div className={C.CAMPOS}>
                         {campos.map(([campo, valor]) => (
-                          <div className="equipo-card-campo" key={campo}>
-                            <span className="equipo-card-label">{campo}</span>
-                            <span className="equipo-card-campo-valor">{valor}</span>
+                          <div className={C.CAMPO} key={campo}>
+                            <span className={C.ETIQUETA}>{campo}</span>
+                            <span className={C.CAMPO_VALOR}>{valor}</span>
                           </div>
                         ))}
                       </div>
                     )}
 
                     {(conReglas || eq.ultInspeccion || eq.proxInspeccion) && (
-                      <div className="equipo-card-inspecciones">
-                        <div><span className="equipo-card-label">Inspección</span><span>{eq.ultInspeccion || "—"}</span></div>
-                        <div><span className="equipo-card-label">Vencimiento</span><span>{eq.proxInspeccion || "—"}</span></div>
+                      <div className={C.INSPECCIONES}>
+                        <div className={C.CAMPO}><span className={C.ETIQUETA}>Inspección</span><span>{eq.ultInspeccion || "—"}</span></div>
+                        <div className={C.CAMPO}><span className={C.ETIQUETA}>Vencimiento</span><span>{eq.proxInspeccion || "—"}</span></div>
                       </div>
                     )}
 
                     {eq.faltantes?.length > 0 && (
-                      <div className="equipo-faltantes">
+                      <div className={C.AVISO_FALTAN}>
                         <span>Faltan datos: {eq.faltantes.join(", ")}.</span>
                         <button className="link-button" type="button" onClick={() => onEditar(eq)}>
                           Completar datos
@@ -176,9 +177,9 @@ export default function EquiposGrid({
                     )}
                   </div>
 
-                  <div className="equipo-card-footer">
+                  <div className={C.PIE}>
                     {equipoOcupado?.(eq.id) && (
-                      <span className="equipo-card-actualizando" role="status">
+                      <span className={C.ACTUALIZANDO} role="status">
                         <Spinner tamano={13} />
                         Actualizando…
                       </span>
@@ -186,7 +187,7 @@ export default function EquiposGrid({
                     {/* display: contents — deshabilita todo el pie mientras se
                         actualiza el equipo (evita un segundo cambio a la vez). */}
                     <fieldset className="contents" disabled={equipoOcupado?.(eq.id)}>
-                    <div className="equipo-card-actions">
+                    <div className={C.ACCIONES}>
                       <button className="btn-outline-sm" type="button" onClick={() => onInspeccionar(eq)}>
                         Actualizar inspección
                       </button>
@@ -215,9 +216,9 @@ export default function EquiposGrid({
                       </button>
                     </div>
 
-                    <label className="equipo-card-select">
+                    <label className={C.CAMBIAR_ESTADO}>
                       <span>Cambiar estado</span>
-                      <select value={eq.estado} onChange={(e) => onCambiarEstado(eq, e.target.value)}>
+                      <select className={C.CAMBIAR_ESTADO_SELECT} value={eq.estado} onChange={(e) => onCambiarEstado(eq, e.target.value)}>
                         {/* Vencido no se elige: depende de la fecha. Solo aparece
                             (sin poder elegirse) para mostrar el estado actual. */}
                         {Object.entries(ESTADOS)

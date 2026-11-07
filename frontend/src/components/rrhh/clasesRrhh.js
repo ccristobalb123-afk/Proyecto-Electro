@@ -7,24 +7,22 @@
  * - table-scroll y rrhh-cards-mobile: responsive.css (hasta 800px la tabla
  *   se oculta y se muestran las tarjetas).
  * - rrhh-mobile-card: tarjetas.css (borde suave).
- * - code: Operaciones.css define "tbody td" sin capa (13,5px) y su propio
- *   .code; si se entra a RRHH después de abrir Operaciones, sin esta clase
- *   la columna "Vence" tomaría la letra de esa regla.
  * - doc-chip y sus variantes: componente global sin capa (Rrhh.css,
  *   Operaciones.css y Modal.css; ver Rrhh.css).
  */
-import { ETIQUETA_TARJETA, TARJETA as TARJETA_BASE } from "../shared/clasesTarjeta";
+import { ESTADO_BASE, ESTADO_PUNTO, ETIQUETA_TARJETA, TARJETA as TARJETA_BASE } from "../shared/clasesTarjeta";
 
 // Trabajador: avatar con iniciales y nombre. En la tarjeta de celular el
 // nombre se parte donde haga falta.
 export const TRABAJADOR = "flex items-center gap-2.5";
 export const TRABAJADOR_TARJETA = `${TRABAJADOR} min-w-0`;
 export const TRABAJADOR_NOMBRE_TARJETA = "font-semibold wrap-anywhere";
-// Sin la clase .mini-avatar: Operaciones.css la define sin capa con 26px.
+// Sin la clase .mini-avatar: Operaciones.css la define sin capa con 26px
+// (Asignaciones).
 export const AVATAR = "flex size-[30px] flex-none items-center justify-center rounded-[50%] border border-border bg-paper text-xs font-semibold text-muted";
 
-// Estado de un contrato, curso o EMO, con su punto de color.
-const ESTADO = "inline-flex items-center gap-[5px] rounded-[12px] px-2.5 py-1 text-xs font-semibold";
+// Estado de un contrato, curso o EMO, con su punto de color (base compartida).
+const ESTADO = ESTADO_BASE;
 export const ESTADO_RRHH = {
   vigente: `${ESTADO} bg-success-tint text-success-dark`,
   porvencer: `${ESTADO} bg-volt-tint text-volt-dark`,
@@ -32,7 +30,7 @@ export const ESTADO_RRHH = {
   renovado: `${ESTADO} bg-electro-tint text-electro-dark`,
   terminado: `${ESTADO} bg-gray-tint text-gray-dark`,
 };
-export const ESTADO_PUNTO = "inline-block size-1.5 rounded-[50%] bg-current";
+export { ESTADO_PUNTO };
 
 // Tabla de Contratos (escritorio).
 export const TABLA = "w-full border-collapse overflow-hidden rounded-lg border border-border [background:var(--card)]";
@@ -40,7 +38,7 @@ export const TH = "border-b border-b-border [background:var(--paper)] px-[18px] 
 export const FILA = "[&:last-child>td]:[border-bottom:none] hover:bg-gray-tint";
 const TD = "border-b border-b-border px-[18px] py-3.5";
 export const CELDA = `${TD} text-[13.5px]`;
-export const CELDA_CODIGO = `code ${TD} [font-family:var(--font-mono)] text-[12.5px] text-muted`;
+export const CELDA_CODIGO = `${TD} [font-family:var(--font-mono)] text-[12.5px] text-muted`;
 export const TABLA_ACCIONES = "flex items-center gap-2 whitespace-nowrap";
 
 // Tarjetas de Contratos (hasta 800px). Ocultas por defecto: responsive.css

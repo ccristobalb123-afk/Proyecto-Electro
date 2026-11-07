@@ -34,7 +34,7 @@ de foco (`input/button:focus-visible`) se queda sin capa en `tokens.css`.
 ### Grillas de tarjetas
 CSS Grid con `minmax(0, 1fr)`, sin librería y con `gap: var(--space-4)`:
 - `.vehiculos-grid` (Vehículos): 1 columna, 2 desde 992px.
-- `.equipos-grid` (Equipos): 1 columna, 2 desde 576px, 3 desde 992px.
+- Equipos (`GRILLA` en `components/operaciones/clasesEquipos.js`): 1 columna, 2 desde 576px, 3 desde 992px.
 
 Las tarjetas de una misma fila se igualan en alto solas (`align-items: stretch`),
 no hace falta ninguna clase extra.

@@ -23,6 +23,11 @@ import "./Operaciones.css";
 import "../components/operaciones/EquiposCards.css";
 import "../components/operaciones/VehiculosCards.css";
 import { useLocation } from "react-router-dom";
+import { PESTANA, PESTANA_ACTIVA, PESTANA_NORMAL, PESTANAS } from "../components/shared/clasesPestanas";
+
+// "Tipos de equipo", a la derecha sobre las tarjetas. "equipos-barra" queda
+// como gancho de Operaciones.css (borde del botón: .btn-outline-sm, sin capa).
+const BARRA_EQUIPOS = "equipos-barra mx-0 -mt-1.5 mb-3.5 flex justify-end";
 
 // Si se llega con otros parámetros (?tab=…&q=…) estando ya en esta
 // página — por ejemplo, tocando un aviso en la campana —, se vuelve a
@@ -49,13 +54,13 @@ function Operaciones() {
         )
       }
     >
-      <div className="tabs" role="tablist" aria-label="Equipos, vehículos o asignaciones">
+      <div className={PESTANAS} role="tablist" aria-label="Equipos, vehículos o asignaciones">
         <button
           id="tab-equipos"
           role="tab"
           aria-selected={o.tab === "equipos"}
           aria-controls="panel-operaciones"
-          className={o.tab === "equipos" ? "active" : ""}
+          className={`${PESTANA} ${o.tab === "equipos" ? PESTANA_ACTIVA : PESTANA_NORMAL}`}
           onClick={() => o.cambiarTab("equipos")}
         >
           Equipos
@@ -65,7 +70,7 @@ function Operaciones() {
           role="tab"
           aria-selected={o.tab === "vehiculos"}
           aria-controls="panel-operaciones"
-          className={o.tab === "vehiculos" ? "active" : ""}
+          className={`${PESTANA} ${o.tab === "vehiculos" ? PESTANA_ACTIVA : PESTANA_NORMAL}`}
           onClick={() => o.cambiarTab("vehiculos")}
         >
           Vehículos
@@ -75,7 +80,7 @@ function Operaciones() {
           role="tab"
           aria-selected={o.tab === "asignaciones"}
           aria-controls="panel-operaciones"
-          className={o.tab === "asignaciones" ? "active" : ""}
+          className={`${PESTANA} ${o.tab === "asignaciones" ? PESTANA_ACTIVA : PESTANA_NORMAL}`}
           onClick={() => o.cambiarTab("asignaciones")}
         >
           Asignaciones
@@ -136,7 +141,7 @@ function Operaciones() {
       </div>
 
       {o.tab === "equipos" && (
-        <div className="equipos-barra">
+        <div className={BARRA_EQUIPOS}>
           <button className="btn-outline-sm" type="button" onClick={() => setTiposAbierto(true)}>
             Tipos de equipo
           </button>
