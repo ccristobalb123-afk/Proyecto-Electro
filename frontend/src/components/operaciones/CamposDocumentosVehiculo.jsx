@@ -4,12 +4,13 @@ import { useConfirm } from "../../context/ConfirmContext";
 import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 import { documentosDisponibles } from "../../services/vehiculosService";
 import { AVISO, AVISO_ETIQUETA, AVISO_FILA, AVISO_INPUT, AVISO_TEXTO, AYUDA, CAMPO, ERROR_CAMPO, FILA } from "../shared/clasesModal";
+import { CHIP_DOC, CHIP_DOC_OPCIONAL_VEHICULO } from "../shared/clasesDocumento";
 
 // Cada documento es una fila con casilla; al marcarlo se despliegan sus
 // campos. La casilla sube su especificidad con [&&]: para ganarle a la
 // etiqueta general de CAMPO (display, margen y letra), como antes hacía
-// .form-field .doc-vehiculo__check. "doc-chip" y "doc-chip--opcional" son de
-// Operaciones.css y Modal.css (regla bloqueada).
+// .form-field .doc-vehiculo__check. El adjunto es el chip de documento
+// compartido (clasesDocumento.js).
 const DOC = "rounded border [background:var(--card)]";
 const DOC_NORMAL = "border-border";
 const DOC_MARCADO = "border-copper [box-shadow:0_0_0_1px_var(--copper-tint)]";
@@ -101,7 +102,7 @@ export default function CamposDocumentosVehiculo({ documentos, onChange, tipoUni
 
                 <div className="mb-3 flex flex-wrap items-center gap-2 [&_.doc-chip]:max-w-full [&_.doc-chip]:[overflow-wrap:anywhere]">
                   {d.archivoUrl && !d.archivo && <BotonVerArchivo url={d.archivoUrl} nombre={d.archivoNombre} />}
-                  <label className={`doc-chip cursor-pointer ${d.archivo ? "" : "doc-chip--opcional"}`} title={AYUDA_ARCHIVO}>
+                  <label className={d.archivo ? `${CHIP_DOC} cursor-pointer` : CHIP_DOC_OPCIONAL_VEHICULO} title={AYUDA_ARCHIVO}>
                     <IconUpload width={13} height={13} />
                     {d.archivo ? d.archivo.name : d.archivoUrl ? "Reemplazar archivo" : "Adjuntar archivo (opcional)"}
                     <input

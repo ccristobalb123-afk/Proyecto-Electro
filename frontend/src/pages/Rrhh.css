@@ -1,62 +1,6 @@
 /* RRHH: los estilos van con clases de Tailwind (components/rrhh/clasesRrhh.js,
-   clasesPestanas.js, clasesTarjeta.js y cada componente). Queda lo que una
-   clase no puede cambiar (regla 9 de docs/tailwind.md). */
-
-/* ----- Chip de documento ("Ver PDF", "Adjuntar") -----
-   Componente global sin capa: lo usan también Operaciones (Operaciones.css
-   tiene su propia copia de .doc-chip), BotonVerArchivo por defecto y el
-   formulario de documentos del vehículo (Modal.css, .doc-chip.doc-chip--opcional).
-   Se migra junto con Operaciones. El cursor y los números de las variantes
-   ya van en clases (DOC_SUBIENDO, DOC_PENDIENTE, DOC_OPCIONAL). */
-.doc-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--copper-dark);
-  background: var(--copper-tint);
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: none;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-  .doc-chip:hover {
-    background: color-mix(in srgb, var(--copper-tint), var(--copper) 12%);
-  }
-}
-
-.doc-chip--subiendo {
-  color: var(--muted);
-  background: var(--gray-tint);
-}
-
-.doc-chip--pendiente {
-  color: var(--danger-dark);
-  background: var(--danger-tint);
-  border: 1px dashed var(--danger-dark);
-}
-
-@media (hover: hover) {
-  .doc-chip--pendiente:hover {
-    background: color-mix(in srgb, var(--danger-tint), var(--danger) 12%);
-  }
-}
-
-/* Documento opcional de Cursos / EMO: "Adjuntar" neutro (no en rojo). */
-.doc-chip--opcional {
-  color: var(--copper-dark);
-  background: var(--card);
-  border: 1px dashed var(--border-control);
-}
-
-@media (hover: hover) {
-  .doc-chip--opcional:hover {
-    background: var(--copper-tint);
-  }
-}
+   clasesPestanas.js, clasesTarjeta.js, clasesFicha.js, clasesDocumento.js y
+   cada componente). Queda una regla que una clase no puede expresar. */
 
 /* ----- Formulario de curso en celular -----
    "Cancelar" y "Guardar y agregar otro" en una fila y "Guardar curso" a todo

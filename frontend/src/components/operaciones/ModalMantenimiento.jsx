@@ -1,7 +1,7 @@
 import { BotonCarga } from "../shared/Carga";
 import { Modal, ModalActions } from "../shared/Modal";
 import { IconAlertCircle } from "../icons/Icons";
-import { CAMPO, ERROR_CAMPO } from "../shared/clasesModal";
+import { CAMPO, ERROR_CAMPO, RECUADRO, RECUADRO_TEXTO, RECUADRO_TITULO } from "../shared/clasesModal";
 
 export default function ModalMantenimiento({ open, equipo, comentario, setComentario, error, onClose, onConfirmar, guardando, errorServidor }) {
   return (
@@ -12,12 +12,12 @@ export default function ModalMantenimiento({ open, equipo, comentario, setComent
       subtitle={equipo ? `${equipo.identificador} — ${equipo.categoria}` : ""}
       onClose={onClose}
     >
-      <div className="danger-box advertencia">
-        <div className="danger-title">
+      <div className={RECUADRO.advertencia}>
+        <div className={RECUADRO_TITULO.advertencia}>
           <IconAlertCircle width={14} height={14} />
           Cuenta qué le pasa al equipo
         </div>
-        <p className="danger-hint">
+        <p className={RECUADRO_TEXTO.advertencia}>
           Este comentario queda guardado en la hoja de vida del equipo, para que quien lo reciba
           en mantenimiento sepa exactamente qué revisar.
           {equipo?.responsable && ` El equipo deja de estar asignado a ${equipo.responsable}.`}

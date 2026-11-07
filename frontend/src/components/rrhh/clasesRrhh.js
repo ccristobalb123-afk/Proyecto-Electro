@@ -7,19 +7,15 @@
  * - table-scroll y rrhh-cards-mobile: responsive.css (hasta 800px la tabla
  *   se oculta y se muestran las tarjetas).
  * - rrhh-mobile-card: tarjetas.css (borde suave).
- * - doc-chip y sus variantes: componente global sin capa (Rrhh.css,
- *   Operaciones.css y Modal.css; ver Rrhh.css).
  */
-import { ESTADO_BASE, ESTADO_PUNTO, ETIQUETA_TARJETA, TARJETA as TARJETA_BASE } from "../shared/clasesTarjeta";
+import { AVATAR_FORMA, ESTADO_BASE, ESTADO_PUNTO, ETIQUETA_TARJETA, TARJETA as TARJETA_BASE } from "../shared/clasesTarjeta";
 
 // Trabajador: avatar con iniciales y nombre. En la tarjeta de celular el
 // nombre se parte donde haga falta.
 export const TRABAJADOR = "flex items-center gap-2.5";
 export const TRABAJADOR_TARJETA = `${TRABAJADOR} min-w-0`;
 export const TRABAJADOR_NOMBRE_TARJETA = "font-semibold wrap-anywhere";
-// Sin la clase .mini-avatar: Operaciones.css la define sin capa con 26px
-// (Asignaciones).
-export const AVATAR = "flex size-[30px] flex-none items-center justify-center rounded-[50%] border border-border bg-paper text-xs font-semibold text-muted";
+export const AVATAR = `size-[30px] ${AVATAR_FORMA}`;
 
 // Estado de un contrato, curso o EMO, con su punto de color (base compartida).
 const ESTADO = ESTADO_BASE;
@@ -56,10 +52,6 @@ export const ETIQUETA = ETIQUETA_TARJETA;
 // Documento: "Sin adjuntar" / "Sin documento" y la celda de Cursos / EMO.
 export const SIN_ADJUNTAR = "text-[12px] text-muted-2";
 export const DOC_CELDA = "inline-flex flex-wrap items-center gap-x-2.5 gap-y-1.5";
-// Cursor y números de las variantes de doc-chip (lo demás lo fija Rrhh.css).
-export const DOC_SUBIENDO = "doc-chip doc-chip--subiendo cursor-progress tabular-nums";
-export const DOC_PENDIENTE = "doc-chip doc-chip--pendiente cursor-pointer";
-export const DOC_OPCIONAL = "doc-chip doc-chip--opcional cursor-pointer";
 
 // Avisos en amarillo (faltan datos / sin contrato) y en verde (curso guardado).
 const AVISO = "mx-0 mt-0 mb-3 rounded px-3 py-2 text-sm leading-[1.4]";

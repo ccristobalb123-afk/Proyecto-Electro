@@ -4,8 +4,11 @@ import Loading from "../shared/Loading";
 import EstadoError from "../shared/EstadoError";
 import { IconAlertCircle, IconTruck, IconUser } from "../icons/Icons";
 import SelectorDestinatario from "./SelectorDestinatario";
-import "./Asignacion.css";
-import { CAMPO, ERROR_CAMPO } from "../shared/clasesModal";
+import { CAMPO, ERROR_CAMPO, RECUADRO, RECUADRO_TEXTO, RECUADRO_TITULO } from "../shared/clasesModal";
+
+// "Ahora lo tiene …" (reasignar) y a quién se asigna este tipo, en azul.
+const ACTUAL = "mx-0 mt-0 mb-4 rounded bg-electro-tint px-3 py-2 text-[14px] text-electro-dark";
+const DESTINO_FIJO = "mx-0 mt-0 mb-3 flex items-center gap-2 rounded bg-electro-tint px-3 py-2.5 text-base font-medium text-electro-dark";
 
 // Opciones del selector: camiones por placa y personas por nombre o DNI,
 // con la empresa como dato (no limita nada). Las que ya tienen un equipo
@@ -56,7 +59,7 @@ export default function ModalAsignarEquipo({
       onClose={onClose}
     >
       {reasignar && (
-        <p className="asignar-actual">
+        <p className={ACTUAL}>
           Ahora lo tiene <b>{equipo.responsable}</b>. Al reasignarlo, esa asignación se cierra en el historial.
         </p>
       )}
@@ -66,8 +69,8 @@ export default function ModalAsignarEquipo({
 
       {listo && (
         <>
-          <p className="destino-fijo">
-            <Icono width={18} height={18} />
+          <p className={DESTINO_FIJO}>
+            <Icono className="flex-none" width={18} height={18} />
             <span>
               Los equipos de tipo <b>{destinatarios.tipoEquipo}</b> se asignan solo a {aCamion ? "camiones" : "personas"}
               {destinatarios.variasPorDestinatario ? " (puede tener varios)" : ", uno por " + (aCamion ? "camión" : "persona")}.
@@ -75,8 +78,8 @@ export default function ModalAsignarEquipo({
           </p>
 
           {elegibles.length === 0 && (
-            <div className="danger-box advertencia" role="status">
-              <div className="danger-title">
+            <div className={RECUADRO.advertencia} role="status">
+              <div className={RECUADRO_TITULO.advertencia}>
                 <IconAlertCircle width={14} height={14} />
                 {lista.length > 0
                   ? `${aCamion ? "Todos los camiones ya tienen" : "Todas las personas ya tienen"} un equipo de este tipo`
@@ -84,7 +87,7 @@ export default function ModalAsignarEquipo({
                     ? reasignar ? "No hay otro camión registrado" : "No hay camiones registrados"
                     : reasignar ? "No hay otra persona registrada" : "No hay personal registrado"}
               </div>
-              <p className="danger-hint">
+              <p className={RECUADRO_TEXTO.advertencia}>
                 {lista.length > 0
                   ? "Devuelve o reasigna uno de esos equipos para liberar a alguien."
                   : aCamion

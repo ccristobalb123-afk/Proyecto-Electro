@@ -7,27 +7,23 @@
 
 /* ----- Mientras se guarda (bloqueado) -----
    Campos con el cursor de "trabajando". Varias etiquetas fijan
-   cursor: pointer en reglas sin capa de cada pantalla (.destino-choice
-   label en Asignacion.css, label.tipo-check en Operaciones.css…), así que
-   una clase no les ganaría. */
+   cursor: pointer (clases de Tailwind o reglas sin capa como
+   .form-field label.superadmin-toggle de Administracion.css, que gana por
+   venir después); esta regla, sin capa, le gana a las clases. */
 .modal-cuerpo:disabled :is(input, select, textarea, label) {
   cursor: progress;
 }
 
 /* ----- Campos (bloqueado) -----
    La etiqueta general del campo (CAMPO, antes ".form-field label") le
-   ganaba por especificidad a .btn-outline-sm (buttons.css) y a .doc-chip
-   (Operaciones.css). Esas reglas no tienen capa, así que ahora le ganarían a
-   la clase: se deja solo lo que pisarían. Botones de archivo de Nuevo gasto
-   (letra) y adjunto de cada documento del vehículo (display y letra). */
+   ganaba por especificidad a .btn-outline-sm (buttons.css). Esa regla no
+   tiene capa, así que ahora le ganaría a la clase: se deja solo lo que
+   pisaría. Botones de archivo de Nuevo gasto (letra). (El adjunto de cada
+   documento del vehículo ya es una clase, CHIP_DOC: la etiqueta del campo le
+   gana sola.) */
 .form-field label.btn-outline-sm {
   font-size: 13px;
   font-weight: 500;
-}
-
-.form-field label.doc-chip {
-  display: block;
-  font-size: 13px;
 }
 
 /* Botones "Tomar foto" / "Elegir archivo" de las fotos del equipo:
@@ -62,15 +58,6 @@
   .foto-equipo__botones label.foto-equipo__camara {
     display: inline-flex;
   }
-}
-
-/* Adjuntar es opcional: neutro y punteado, no en rojo como un faltante.
-   .doc-chip y .doc-chip--opcional (Operaciones.css, Rrhh.css, sin capa)
-   fijan color, fondo y borde. */
-.doc-chip.doc-chip--opcional {
-  color: var(--gray-dark);
-  background: var(--card);
-  border: 1px dashed var(--border-control);
 }
 
 /* ----- Variante «seguridad» (cambio de contraseña) -----

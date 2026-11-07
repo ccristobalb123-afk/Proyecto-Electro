@@ -1,8 +1,24 @@
-/* Tarjetas de Equipos: los estilos van con clases de Tailwind
-   (clasesEquipos.js). Queda lo que una clase no puede cambiar porque
-   .link-button (buttons.css, sin capa) ya lo fija en el mismo elemento
-   (regla 9 de docs/tailwind.md): el botón "Completar datos" / "Renovar
-   fechas" dentro de los avisos, con la letra y el color del aviso. */
+/* Pestaña Equipos: los estilos van con clases de Tailwind (clasesEquipos.js,
+   Operaciones.jsx). Queda lo que una clase no puede cambiar porque otra
+   regla sin capa ya lo fija en el mismo elemento (regla 9 de
+   docs/tailwind.md). */
+
+/* "Tipos de equipo": el botón queda directamente sobre --fondo-pagina; con
+   --border (1.15:1) su contorno no llegaba a 3:1. --border-control da 3.0:1;
+   el hover (--electro) da 3.3:1. .btn-outline-sm (buttons.css) fija el
+   borde. */
+.equipos-barra .btn-outline-sm {
+  border-color: var(--border-control);
+}
+
+@media (hover: hover) {
+  .equipos-barra .btn-outline-sm:hover {
+    border-color: var(--electro);
+  }
+}
+
+/* "Completar datos" / "Renovar fechas" dentro de los avisos, con la letra y
+   el color del aviso: .link-button (buttons.css) fija margen, letra y color. */
 .equipo-faltantes .link-button {
   margin-top: 0;
   font-size: var(--fs-sm);

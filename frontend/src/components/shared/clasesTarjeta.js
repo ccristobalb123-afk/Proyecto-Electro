@@ -27,3 +27,7 @@ export const PIE_TARJETA = "mt-auto flex flex-wrap items-center gap-1.5 border-t
 // suma el fondo y el color de cada estado.
 export const ESTADO_BASE = "inline-flex items-center gap-[5px] rounded-[12px] px-2.5 py-1 text-xs font-semibold";
 export const ESTADO_PUNTO = "inline-block size-1.5 rounded-[50%] bg-current";
+
+// Avatar redondo con iniciales o ícono. Cada pantalla le pone su tamaño:
+// 30px en RRHH, 26px en Asignaciones.
+export const AVATAR_FORMA = "flex flex-none items-center justify-center rounded-[50%] border border-border bg-paper text-xs font-semibold text-muted";

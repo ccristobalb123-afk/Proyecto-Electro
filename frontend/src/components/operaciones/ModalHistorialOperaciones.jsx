@@ -3,34 +3,43 @@ import { Modal, Timeline } from "../shared/Modal";
 import Lightbox from "../shared/Lightbox";
 import Loading from "../shared/Loading";
 import { IconTruck, IconUser } from "../icons/Icons";
-import "./Asignacion.css";
 import { MENSAJE_VACIO } from "../shared/clasesModal";
+
+// Hoja de vida: títulos de sección y lista de asignaciones.
+const SECCION = "mx-0 mt-0 mb-2 text-[14px] font-semibold";
+const ASIGNACIONES = "mx-0 mt-0 mb-4 flex list-none flex-col gap-2 p-0";
+const ASIGNACION = "flex gap-2.5 rounded border border-border [background:var(--card)] px-3 py-2.5";
+const ASIGNACION_ICONO = "mt-0.5 flex-none text-electro-dark";
+const ASIGNACION_CUERPO = "flex min-w-0 flex-col gap-0.5 text-[14px]";
+const ASIGNACION_NOMBRE = "font-semibold wrap-anywhere";
+const ASIGNACION_FECHAS = "text-sm text-muted";
+const VIGENTE = "self-start rounded-[999px] bg-success-tint px-2 py-px text-xs font-semibold text-success-dark";
 
 // Quién tuvo el equipo, desde y hasta cuándo (solo equipos).
 function HistorialAsignaciones({ asignaciones }) {
   return (
     <section aria-labelledby="hv-asignaciones">
-      <h3 className="hv-seccion-titulo" id="hv-asignaciones">Asignaciones</h3>
+      <h3 className={SECCION} id="hv-asignaciones">Asignaciones</h3>
       {asignaciones.length === 0 ? (
         <p className={MENSAJE_VACIO}>Todavía no se ha asignado.</p>
       ) : (
-        <ul className="asignaciones-historial">
+        <ul className={ASIGNACIONES}>
           {asignaciones.map((a) => (
-            <li key={a.id} className="asignacion-item">
-              {a.tipo === "camion" ? <IconTruck width={18} height={18} /> : <IconUser width={18} height={18} />}
-              <div className="asignacion-item__cuerpo">
-                <span className="asignacion-item__nombre">
+            <li key={a.id} className={ASIGNACION}>
+              {a.tipo === "camion" ? <IconTruck className={ASIGNACION_ICONO} width={18} height={18} /> : <IconUser className={ASIGNACION_ICONO} width={18} height={18} />}
+              <div className={ASIGNACION_CUERPO}>
+                <span className={ASIGNACION_NOMBRE}>
                   {a.tipo === "camion" ? `Camión ${a.destinatario}` : a.destinatario}
-                  {a.dni && <span className="asignacion-item__fechas"> · DNI {a.dni}</span>}
+                  {a.dni && <span className={ASIGNACION_FECHAS}> · DNI {a.dni}</span>}
                 </span>
-                <span className="asignacion-item__fechas">Desde {a.desde}</span>
+                <span className={ASIGNACION_FECHAS}>Desde {a.desde}</span>
                 {a.hasta ? (
-                  <span className="asignacion-item__fechas">
+                  <span className={ASIGNACION_FECHAS}>
                     Hasta {a.hasta}
                     {a.motivoFin ? ` · ${a.motivoFin}` : ""}
                   </span>
                 ) : (
-                  <span className="asignacion-item__vigente">Vigente</span>
+                  <span className={VIGENTE}>Vigente</span>
                 )}
               </div>
             </li>
@@ -58,7 +67,7 @@ export default function ModalHistorialOperaciones({ open, seleccionado, cargando
           {asignaciones && (
             <>
               <HistorialAsignaciones asignaciones={asignaciones} />
-              <h3 className="hv-seccion-titulo">Hoja de vida</h3>
+              <h3 className={SECCION}>Hoja de vida</h3>
             </>
           )}
           <Timeline items={items} onVerFoto={setFoto} />

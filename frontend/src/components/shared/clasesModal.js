@@ -49,7 +49,7 @@ export const MENSAJE_VACIO = "py-5 text-[13px] text-muted";
 // que tiene que ganarle (la etiqueta de una opción, por ejemplo) sube su
 // especificidad con [&&]: (ver docs/tailwind.md).
 // "form-field" queda como gancho: responsive.css (.form-field > .link-button),
-// Operaciones.css, Administracion.css y la regla bloqueada de Modal.css.
+// Administracion.css y la regla bloqueada de Modal.css.
 export const CAMPO = `form-field mb-4
   [fieldset&]:min-w-0 [fieldset&]:[border:none] [fieldset&]:p-0
   [&_legend]:mb-1.5 [&_legend]:block [&_legend]:p-0 [&_legend]:text-[13px] [&_legend]:font-medium
@@ -71,9 +71,31 @@ export const FILA = "form-row grid grid-cols-[1fr_1fr] gap-3.5";
 // Título de un grupo de campos que no es un <label> (ej. "Documento del contrato").
 export const TITULO_CAMPO = "mb-1.5 block text-[13px] font-medium";
 
-// Ayuda debajo del título de un campo. "campo-ayuda" queda como gancho:
-// Operaciones.css (.tipos-equipo__barra .campo-ayuda).
-export const AYUDA = "campo-ayuda mx-0 -mt-1 mb-2 text-sm text-muted";
+// Ayuda debajo del título de un campo. AYUDA_TEXTO, la misma letra sin
+// márgenes (ej. junto a "Nuevo tipo" en Tipos de equipo).
+export const AYUDA_TEXTO = "text-sm text-muted";
+export const AYUDA = `mx-0 -mt-1 mb-2 ${AYUDA_TEXTO}`;
+
+// Recuadro de aviso con título e ícono: peligro (rojo: "Esta acción no se
+// puede deshacer"), advertencia (ámbar) o éxito (verde: inspección aprobada).
+// El texto de abajo es un <p>: conserva su margen de base.css.
+const RECUADRO_CAJA = "mb-4 rounded px-4 py-3.5";
+export const RECUADRO = {
+  peligro: `${RECUADRO_CAJA} bg-danger-tint`,
+  advertencia: `${RECUADRO_CAJA} bg-volt-tint`,
+  exito: `${RECUADRO_CAJA} bg-success-tint`,
+};
+const RECUADRO_TITULO_BASE = "mb-1 flex items-center gap-1.5 text-[13px] font-semibold";
+export const RECUADRO_TITULO = {
+  peligro: `${RECUADRO_TITULO_BASE} text-danger-dark`,
+  advertencia: `${RECUADRO_TITULO_BASE} text-volt-dark`,
+  exito: `${RECUADRO_TITULO_BASE} text-success-dark`,
+};
+export const RECUADRO_TEXTO = {
+  peligro: "text-xs text-danger-dark",
+  advertencia: "text-xs text-volt-dark",
+  exito: "text-xs text-success-dark",
+};
 
 // Dato que el sistema completa solo (ej. la empresa del contrato).
 export const DERIVADO = "m-0 flex flex-wrap items-center gap-2 text-base text-muted";

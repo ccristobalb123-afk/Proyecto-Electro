@@ -7,13 +7,27 @@ import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 import { fechaCorta } from "../../services/vehiculosService";
 import { AYUDA, MENSAJE_VACIO } from "../shared/clasesModal";
 
+// Una fila por documento, con línea debajo salvo la última.
+const FILA = "flex items-center gap-3 border-b border-b-border py-[11px] last:[border-bottom:none]";
+const ICONO = "flex size-8 flex-none items-center justify-center rounded bg-paper";
+const PRINCIPAL = "min-w-0 flex-1";
+const TITULO = "text-[13.5px] font-medium";
+// Archivo: nombre (enlace), "Subiendo…" o "Sin archivo adjunto".
+const ARCHIVO = "mt-0.5 text-xs";
+// Enlace (BotonVerArchivo): letra y color con [&&]: para ganarle a las clases
+// del botón. "docs-row-sub--link" queda como gancho: responsive.css
+// (subrayado continuo y 44px táctiles en celular).
+const ARCHIVO_ENLACE = "docs-row-sub--link [&&]:mt-0.5 [&&]:text-xs inline-block [&&]:text-link underline [&&]:hover:text-link-hover max-w-full truncate";
+const ARCHIVO_SUBIENDO = `${ARCHIVO} flex items-center gap-1 text-muted tabular-nums`;
+const ARCHIVO_PENDIENTE = `${ARCHIVO} text-danger-dark`;
+
 // Una fila: nombre, estado, fechas, y ver / adjuntar / reemplazar archivo.
 function FilaDocumento({ d, subiendo, onSubirArchivo }) {
   return (
-    <div className="docs-list-item">
-      <div className="docs-row-icon"><IconFile width={16} height={16} /></div>
-      <div className="docs-row-main">
-        <div className="docs-row-title">{d.nombre}</div>
+    <div className={FILA}>
+      <div className={ICONO}><IconFile className="size-4 text-copper-dark" width={16} height={16} /></div>
+      <div className={PRINCIPAL}>
+        <div className={TITULO}>{d.nombre}</div>
         {!d.legado && (
           <div className="mx-0 my-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted [font-variant-numeric:tabular-nums]">
             <EstadoDocumento documento={d} />
@@ -24,16 +38,16 @@ function FilaDocumento({ d, subiendo, onSubirArchivo }) {
           </div>
         )}
         {subiendo ? (
-          <div className="docs-row-sub docs-row-sub--subiendo" role="status">
+          <div className={ARCHIVO_SUBIENDO} role="status">
             <Spinner tamano={12} />
             {subiendo}
           </div>
         ) : d.archivo ? (
-          <BotonVerArchivo className="docs-row-sub docs-row-sub--link max-w-full truncate" url={d.archivoUrl} nombre={d.archivoNombre} icono={false}>
+          <BotonVerArchivo className={ARCHIVO_ENLACE} url={d.archivoUrl} nombre={d.archivoNombre} icono={false}>
             {d.archivoNombre || "Ver documento"}
           </BotonVerArchivo>
         ) : (
-          <div className="docs-row-sub docs-row-sub--pendiente">Sin archivo adjunto</div>
+          <div className={ARCHIVO_PENDIENTE}>Sin archivo adjunto</div>
         )}
       </div>
 

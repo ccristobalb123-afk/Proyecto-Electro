@@ -6,6 +6,9 @@ import FotosEquipo from "./FotosEquipo";
 import CamposEquipo from "./CamposEquipo";
 import { AYUDA, CAMPO, ERROR_CAMPO, OBLIGATORIO } from "../shared/clasesModal";
 
+// Nota en ámbar al pie del formulario.
+const NOTA = "mb-4 flex items-start gap-2 rounded bg-volt-tint px-3.5 py-3 text-[12.5px] text-volt-dark";
+
 // Tipos fijos (los 9 de la tabla): ya no se crean categorías desde acá.
 // Al elegir el tipo aparecen solo sus campos, todos obligatorios.
 export default function ModalNuevoEquipo({ open, onClose, fEquipo, setFEquipo, onSubmit, tipos, error, guardando, textoGuardando }) {
@@ -58,8 +61,8 @@ export default function ModalNuevoEquipo({ open, onClose, fEquipo, setFEquipo, o
           />
         </fieldset>
 
-        <div className="checklist-note">
-          <IconClipboardCheck width={15} height={15} />
+        <div className={NOTA}>
+          <IconClipboardCheck className="mt-px flex-none" width={15} height={15} />
           Las próximas inspecciones se registran con «Actualizar inspección» en la tarjeta del equipo.
         </div>
 

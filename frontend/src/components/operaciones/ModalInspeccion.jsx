@@ -4,7 +4,7 @@ import { Modal, ModalActions, AvisoVencimiento } from "../shared/Modal";
 import { IconEye, IconAlertCircle } from "../icons/Icons";
 import FotosEquipo from "./FotosEquipo";
 import { fotosQueFaltan } from "./camposEquipo";
-import { AYUDA, CAMPO, ERROR_CAMPO, FILA, TITULO_CAMPO } from "../shared/clasesModal";
+import { AYUDA, CAMPO, ERROR_CAMPO, FILA, RECUADRO, RECUADRO_TEXTO, RECUADRO_TITULO, TITULO_CAMPO } from "../shared/clasesModal";
 
 // Por qué se abrió para renovar fechas (equipo vencido). Sin contexto: una
 // inspección normal desde "Actualizar inspección".
@@ -34,12 +34,12 @@ export default function ModalInspeccion({ open, equipo, contexto, fInspeccion, s
     >
       <form onSubmit={onSubmit} noValidate>
         {contexto && (
-          <div className="consecuencia rechazado">
-            <div className="consecuencia-title">
+          <div className={RECUADRO.peligro}>
+            <div className={RECUADRO_TITULO.peligro}>
               <IconAlertCircle width={14} height={14} />
               {AVISO_VENCIDO[contexto]}
             </div>
-            <p className="consecuencia-hint">
+            <p className={RECUADRO_TEXTO.peligro}>
               {equipo?.proxInspeccion ? `Venció el ${equipo.proxInspeccion}. ` : ""}
               Para volver a usarlo registra la inspección con resultado Aprobado y una fecha de vencimiento de hoy en adelante. Si cancelas, se mantiene Vencido.
             </p>
@@ -94,21 +94,21 @@ export default function ModalInspeccion({ open, equipo, contexto, fInspeccion, s
         </div>
 
         {fInspeccion.resultado === "aprobado" ? (
-          <div className="consecuencia aprobado">
-            <div className="consecuencia-title">
+          <div className={RECUADRO.exito}>
+            <div className={RECUADRO_TITULO.exito}>
               <IconEye width={14} height={14} />
               {liberar ? `Queda Disponible y deja de estar asignado a ${equipo.responsable}` : equipo?.responsable ? `Sigue asignado a ${equipo.responsable}` : "El equipo queda Disponible"}
             </div>
-            <p className="consecuencia-hint">
+            <p className={RECUADRO_TEXTO.exito}>
               {equipo?.estado === "vencido"
                 ? "El equipo está vencido: se renuevan sus fechas, y la de vencimiento tiene que ser de hoy en adelante."
                 : "Se actualiza la próxima inspección con esta fecha de vencimiento."}
             </p>
           </div>
         ) : (
-          <div className="consecuencia rechazado">
-            <div className="consecuencia-title"><IconAlertCircle width={14} height={14} />El equipo pasa a Mantenimiento</div>
-            <p className="consecuencia-hint">
+          <div className={RECUADRO.peligro}>
+            <div className={RECUADRO_TITULO.peligro}><IconAlertCircle width={14} height={14} />El equipo pasa a Mantenimiento</div>
+            <p className={RECUADRO_TEXTO.peligro}>
               {equipo?.responsable ? `Deja de estar asignado a ${equipo.responsable}. ` : ""}
               No podrá asignarse hasta una nueva inspección con resultado Aprobado.
             </p>

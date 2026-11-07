@@ -6,17 +6,31 @@ import { MiniaturasFotos } from "../shared/Modal";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
 import { ESTADOS_EQUIPO } from "../../services/equiposService";
+import { AVATAR_FORMA } from "../shared/clasesTarjeta";
+import * as F from "../shared/clasesFicha";
+import { ESTADO_EQUIPO, ESTADO_PUNTO } from "./clasesEquipos";
+
+// Avatar de 26px con el ícono de persona o camión (el de RRHH es de 30px).
+const AVATAR = `size-[26px] ${AVATAR_FORMA}`;
+// Equipo dentro de la ficha: tipo, identificador (código o serial) y lote.
+const EQUIPO = "flex min-w-0 flex-col gap-0.5";
+const EQUIPO_TIPO = "font-semibold text-text wrap-anywhere";
+const EQUIPO_ID = "text-sm text-muted wrap-anywhere";
+const EQUIPO_ID_VALOR = "[font-family:var(--font-mono)] font-semibold text-text";
+const LOTE = "[font-family:var(--font-mono)] font-semibold wrap-anywhere";
+// Vencido: "Venció …" en rojo (el registro lleva además borde y franja roja).
+const VENCIO = "font-semibold text-danger-dark";
 
 function Resumen({ grupo }) {
   const n = grupo.equipos.length;
   return (
-    <span className="persona-cursos__resumen">
+    <span className={F.RESUMEN}>
       <span>{grupo.detalle}</span>
       <span>
         {n} {n === 1 ? "equipo" : "equipos"}
       </span>
       {grupo.vencidos > 0 && (
-        <span className="resumen-chip resumen-chip--vencido">
+        <span className={F.CHIP_VENCIDO}>
           {grupo.vencidos} {grupo.vencidos === 1 ? "vencido" : "vencidos"}
         </span>
       )}
@@ -26,27 +40,27 @@ function Resumen({ grupo }) {
 
 function EquipoAsignado({ equipo, onVerFoto }) {
   return (
-    <li className={`registro-ficha ${equipo.vencido ? "registro-ficha--vencido" : ""}`}>
-      <div className="registro-ficha__cabecera">
-        <span className="asignacion-equipo">
-          <span className="asignacion-equipo__tipo">{equipo.categoria}</span>
-          <span className="asignacion-equipo__id">
-            {equipo.campoIdentificador} <b>{equipo.identificador}</b>
+    <li className={equipo.vencido ? F.REGISTRO_VENCIDO : F.REGISTRO_NORMAL}>
+      <div className={F.REGISTRO_CABECERA}>
+        <span className={EQUIPO}>
+          <span className={EQUIPO_TIPO}>{equipo.categoria}</span>
+          <span className={EQUIPO_ID}>
+            {equipo.campoIdentificador} <b className={EQUIPO_ID_VALOR}>{equipo.identificador}</b>
           </span>
         </span>
-        <span className={`estado ${equipo.estado}`}>
-          <i />
+        <span className={ESTADO_EQUIPO[equipo.estado]}>
+          <i className={ESTADO_PUNTO} />
           {ESTADOS_EQUIPO[equipo.estado]}
         </span>
       </div>
-      <p className="registro-ficha__fechas">
-        <span className={equipo.vencido ? "asignacion-equipo__vencio" : undefined}>
+      <p className={F.REGISTRO_FECHAS}>
+        <span className={equipo.vencido ? VENCIO : undefined}>
           {equipo.vencimiento ? `${equipo.vencido ? "Venció" : "Vence"} ${equipo.vencimiento}` : "Sin fecha de vencimiento"}
         </span>
         {/* Solo los tipos que piden lote lo traen (los demás, nada). */}
         {"lote" in equipo && (
           <span>
-            Lote <b className="asignacion-equipo__lote">{equipo.lote || "—"}</b>
+            Lote <b className={LOTE}>{equipo.lote || "—"}</b>
           </span>
         )}
       </p>
@@ -88,32 +102,32 @@ export default function AsignacionesPanel({ cargando, error, onReintentar, grupo
 
   return (
     <>
-      <ul className="personas-cursos">
+      <ul className={F.FICHAS}>
         {grupos.map((g) => {
           const abierta = abiertas.has(g.clave);
           const fichaId = `ficha-asignacion-${g.clave}`;
           const Icono = g.tipo === "camion" ? IconTruck : IconUser;
           return (
-            <li key={g.clave} className={`persona-cursos ${abierta ? "persona-cursos--abierta" : ""}`}>
-              <button type="button" className="persona-cursos__cabecera" aria-expanded={abierta} aria-controls={fichaId} onClick={() => alternar(g.clave)}>
-                <span className="mini-avatar" aria-hidden="true">
+            <li key={g.clave} className={abierta ? F.FICHA_ABIERTA : F.FICHA_CERRADA}>
+              <button type="button" className={F.CABECERA} aria-expanded={abierta} aria-controls={fichaId} onClick={() => alternar(g.clave)}>
+                <span className={AVATAR} aria-hidden="true">
                   <Icono width={15} height={15} />
                 </span>
-                <span className="persona-cursos__info">
-                  <span className="persona-cursos__nombre">
+                <span className={F.INFO}>
+                  <span className={F.NOMBRE}>
                     <span className="sr-only">{g.tipo === "camion" ? "Camión " : "Persona: "}</span>
                     {g.nombre}
                   </span>
                   <Resumen grupo={g} />
                 </span>
-                <span className="persona-cursos__flecha" aria-hidden="true">
-                  <IconChevronLeft width={18} height={18} />
+                <span className={abierta ? F.FLECHA_ABIERTA : F.FLECHA_CERRADA} aria-hidden="true">
+                  <IconChevronLeft className={abierta ? F.FLECHA_ICONO_ABIERTA : F.FLECHA_ICONO_CERRADA} width={18} height={18} />
                 </span>
               </button>
 
               {abierta && (
-                <div className="persona-cursos__ficha" id={fichaId}>
-                  <ul className="registros-ficha">
+                <div className={F.DETALLE} id={fichaId}>
+                  <ul className={F.REGISTROS}>
                     {g.equipos.map((e) => (
                       <EquipoAsignado key={e.id} equipo={e} onVerFoto={setFoto} />
                     ))}

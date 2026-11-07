@@ -10,8 +10,45 @@ import { useToast } from "../../context/ToastContext";
 import { useAccion } from "../../hooks/useAccion";
 import * as equiposService from "../../services/equiposService";
 import { CAMPOS_EQUIPO } from "./camposEquipo";
-import "./Asignacion.css";
-import { AYUDA, CAMPO, ERROR_CAMPO, TITULO_CAMPO } from "../shared/clasesModal";
+import { AYUDA, AYUDA_TEXTO, CAMPO, ERROR_CAMPO, TITULO_CAMPO } from "../shared/clasesModal";
+
+// ---------- Lista de tipos ----------
+const BARRA = "mb-4 flex flex-wrap items-center gap-x-3 gap-y-2";
+const LISTA = "mx-0 mt-0 mb-2 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-3 p-0";
+// Desactivado o heredado: fondo gris y nombre atenuado (con su etiqueta).
+const TIPO = "flex min-w-0 flex-col gap-2 rounded border border-border px-4 py-3";
+const TIPO_ACTIVO = `${TIPO} [background:var(--card)]`;
+const TIPO_INACTIVO = `${TIPO} [background:var(--gray-tint)]`;
+const TIPO_CABECERA = "flex flex-wrap items-center justify-between gap-x-2.5 gap-y-1.5";
+const NOMBRE = "text-md font-semibold wrap-anywhere";
+const CHIPS = "flex flex-wrap gap-1.5";
+const CHIP = "inline-flex items-center gap-1 rounded-[999px] px-2 py-0.5 text-xs font-semibold";
+const CHIP_NORMAL = `${CHIP} bg-copper-tint text-copper-dark`;
+const CHIP_DESTINO = `${CHIP} bg-electro-tint text-electro-dark`;
+const CHIP_APAGADO = `${CHIP} [border:1px_dashed_var(--border-control)] [background:var(--card)] text-gray-dark`;
+const DATOS = "m-0 text-sm text-muted";
+const CONTEO = `${DATOS} tabular-nums`;
+const ACCIONES = "mt-auto flex flex-wrap gap-2";
+const ACCION = "btn-outline-sm flex-auto justify-center";
+
+// ---------- Formulario ----------
+// Las etiquetas van dentro de CAMPO, cuya regla [&_label] (0-1-1) les ganaría
+// el display, el margen y la letra: por eso [&&]: (0-2-0).
+const DESTINO = "flex gap-2.5";
+const DESTINO_OPCION = "[&&]:flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded border-[1.5px] px-3 py-2 [&&]:text-[15px] font-medium";
+const DESTINO_NORMAL = `${DESTINO_OPCION} border-border text-muted`;
+const DESTINO_ELEGIDO = `${DESTINO_OPCION} border-copper bg-copper-tint text-copper-dark`;
+const DESTINO_RADIO = "m-0 h-auto w-auto";
+const CHECK = "[&&]:m-0 [&&]:flex gap-2.5 [&&]:text-base font-medium";
+const CHECK_SIMPLE = `${CHECK} cursor-pointer items-start text-text`;
+// Casillas en caja (datos que se piden): marcada en cobre; las fechas, fijas y en gris.
+const CHECK_CAJA = `${CHECK} min-h-11 items-center rounded border-[1.5px] px-3 py-2`;
+const CHECK_CAJA_NORMAL = `${CHECK_CAJA} cursor-pointer border-border text-text`;
+const CHECK_CAJA_ELEGIDA = `${CHECK_CAJA} cursor-pointer border-copper bg-copper-tint text-copper-dark`;
+const CHECK_CAJA_FIJA = `${CHECK_CAJA} cursor-default border-border bg-gray-tint text-muted`;
+const CHECK_CASILLA = "mt-0.5 size-4 flex-none";
+const CHECK_DETALLE = "block text-sm font-regular text-muted";
+const CAMPOS = "grid grid-cols-[repeat(auto-fill,minmax(min(100%,170px),1fr))] gap-2";
 
 // Datos que puede pedir un tipo, en el orden en que se muestran (el mismo
 // del backend). Las fechas de inspección y vencimiento se piden siempre.
@@ -30,33 +67,33 @@ function errorDelForm(f) {
 
 function FilaTipo({ tipo, esSuperAdmin, onEditar, onActivar, onEliminar, ocupado }) {
   return (
-    <li className={`tipo-equipo ${tipo.activo ? "" : "tipo-equipo--inactivo"}`}>
-      <div className="tipo-equipo__cabecera">
-        <span className="tipo-equipo__nombre">{tipo.nombre}</span>
-        <span className="tipo-equipo__chips">
-          <span className="tipo-chip tipo-chip--destino">
+    <li className={tipo.activo ? TIPO_ACTIVO : TIPO_INACTIVO}>
+      <div className={TIPO_CABECERA}>
+        <span className={`${NOMBRE} ${tipo.activo ? "text-text" : "text-muted"}`}>{tipo.nombre}</span>
+        <span className={CHIPS}>
+          <span className={CHIP_DESTINO}>
             {tipo.destino === "camion" ? <IconTruck width={13} height={13} /> : <IconUser width={13} height={13} />}
             {tipo.destino === "camion" ? "Camión" : "Persona"}
           </span>
-          {tipo.variasPorDestinatario && <span className="tipo-chip">Varias por {tipo.destino === "camion" ? "camión" : "persona"}</span>}
-          {tipo.antigua ? <span className="tipo-chip tipo-chip--apagado">Heredado</span> : !tipo.activo && <span className="tipo-chip tipo-chip--apagado">Desactivado</span>}
+          {tipo.variasPorDestinatario && <span className={CHIP_NORMAL}>Varias por {tipo.destino === "camion" ? "camión" : "persona"}</span>}
+          {tipo.antigua ? <span className={CHIP_APAGADO}>Heredado</span> : !tipo.activo && <span className={CHIP_APAGADO}>Desactivado</span>}
         </span>
       </div>
-      <p className="tipo-equipo__datos">
+      <p className={DATOS}>
         {tipo.antigua
           ? "Tipo de la versión anterior: no se registran equipos nuevos."
           : `Pide: ${tipo.camposRequeridos.map((c) => CAMPOS_EQUIPO[c].etiqueta).join(", ")}, fechas de inspección y vencimiento.`}
       </p>
-      <p className="tipo-equipo__conteo">
+      <p className={CONTEO}>
         {tipo.equipos} {tipo.equipos === 1 ? "equipo" : "equipos"}
         {tipo.asignados > 0 && ` · ${tipo.asignados} ${tipo.asignados === 1 ? "asignado" : "asignados"}`}
       </p>
       {esSuperAdmin && (
-        <div className="tipo-equipo__acciones">
-          <button className="btn-outline-sm" type="button" disabled={ocupado} onClick={() => onEditar(tipo)}>
+        <div className={ACCIONES}>
+          <button className={ACCION} type="button" disabled={ocupado} onClick={() => onEditar(tipo)}>
             Corregir
           </button>
-          <button className="btn-outline-sm" type="button" disabled={ocupado} onClick={() => onActivar(tipo)}>
+          <button className={ACCION} type="button" disabled={ocupado} onClick={() => onActivar(tipo)}>
             {tipo.activo ? "Desactivar" : "Reactivar"}
           </button>
           <button
@@ -227,10 +264,11 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
 
           <fieldset className={CAMPO}>
             <legend className={TITULO_CAMPO}>Se asigna a</legend>
-            <div className="destino-choice">
+            <div className={DESTINO}>
               {[["camion", "Camión", IconTruck], ["persona", "Persona", IconUser]].map(([valor, etiqueta, Icono]) => (
-                <label key={valor} className={f.destino === valor ? "seleccionado" : ""}>
+                <label key={valor} className={f.destino === valor ? DESTINO_ELEGIDO : DESTINO_NORMAL}>
                   <input
+                    className={DESTINO_RADIO}
                     type="radio"
                     name="tipo-destino"
                     checked={f.destino === valor}
@@ -247,11 +285,11 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
           </fieldset>
 
           <div className={CAMPO}>
-            <label className="tipo-check">
-              <input type="checkbox" checked={f.variasPorDestinatario} onChange={(e) => setF({ ...f, variasPorDestinatario: e.target.checked })} />
+            <label className={CHECK_SIMPLE}>
+              <input className={CHECK_CASILLA} type="checkbox" checked={f.variasPorDestinatario} onChange={(e) => setF({ ...f, variasPorDestinatario: e.target.checked })} />
               <span>
                 Permite varias unidades por destinatario
-                <small>Apagado: cada {f.destino === "camion" ? "camión" : f.destino === "persona" ? "persona" : "persona o camión"} tiene a lo sumo un equipo de este tipo.</small>
+                <small className={CHECK_DETALLE}>Apagado: cada {f.destino === "camion" ? "camión" : f.destino === "persona" ? "persona" : "persona o camión"} tiene a lo sumo un equipo de este tipo.</small>
               </span>
             </label>
           </div>
@@ -265,19 +303,19 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
             ) : (
               <p className={AYUDA}>Todos los que marques serán obligatorios. Elige al menos Código o Serial (son únicos dentro del tipo).</p>
             )}
-            <div className="tipo-campos">
+            <div className={CAMPOS}>
               {CAMPOS_ELEGIBLES.map((c) => (
-                <label key={c} className={`tipo-check tipo-check--caja ${f.camposRequeridos.includes(c) ? "seleccionado" : ""}`}>
-                  <input type="checkbox" checked={f.camposRequeridos.includes(c)} disabled={camposBloqueados} onChange={() => alternarCampo(c)} />
+                <label key={c} className={f.camposRequeridos.includes(c) ? CHECK_CAJA_ELEGIDA : CHECK_CAJA_NORMAL}>
+                  <input className={CHECK_CASILLA} type="checkbox" checked={f.camposRequeridos.includes(c)} disabled={camposBloqueados} onChange={() => alternarCampo(c)} />
                   <span>{CAMPOS_EQUIPO[c].etiqueta}</span>
                 </label>
               ))}
               {["fechaInspeccion", "fechaVencimiento"].map((c) => (
-                <label key={c} className="tipo-check tipo-check--caja tipo-check--fija">
-                  <input type="checkbox" checked disabled />
+                <label key={c} className={CHECK_CAJA_FIJA}>
+                  <input className={CHECK_CASILLA} type="checkbox" checked disabled />
                   <span>
                     {CAMPOS_EQUIPO[c].etiqueta}
-                    <small>Siempre</small>
+                    <small className={CHECK_DETALLE}>Siempre</small>
                   </span>
                 </label>
               ))}
@@ -301,17 +339,17 @@ export default function ModalTiposEquipo({ open, onClose, onCambio }) {
 
   return (
     <Modal open={open} wide title="Tipos de equipo" subtitle="A quién se asigna cada tipo y qué datos se piden al registrar sus equipos." onClose={onClose}>
-      <div className="tipos-equipo__barra">
+      <div className={BARRA}>
         <button className="btn-primary" type="button" onClick={abrirNuevo}>
           <IconPlus width={15} height={15} />
           Nuevo tipo
         </button>
-        {!esSuperAdmin && <p className={AYUDA}>Corregir, desactivar o eliminar un tipo lo hace un SuperAdmin.</p>}
+        {!esSuperAdmin && <p className={`m-0 ${AYUDA_TEXTO}`}>Corregir, desactivar o eliminar un tipo lo hace un SuperAdmin.</p>}
       </div>
       {!tipos && !errorCarga && <Loading texto="Cargando tipos…" />}
       {errorCarga && <EstadoError error={errorCarga} onReintentar={cargar} />}
       {tipos && (
-        <ul className="tipos-equipo">
+        <ul className={LISTA}>
           {tipos.map((t) => (
             <FilaTipo key={t.id} tipo={t} esSuperAdmin={esSuperAdmin} onEditar={abrirCorregir} onActivar={activar} onEliminar={eliminar} ocupado={guardando} />
           ))}

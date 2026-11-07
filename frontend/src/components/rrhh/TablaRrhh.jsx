@@ -4,7 +4,8 @@ import { Spinner } from "../shared/Carga";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
-import { AVATAR, CELDA, CELDA_CODIGO, DOC_PENDIENTE, DOC_SUBIENDO, ESTADO_PUNTO, ESTADO_RRHH, ETIQUETA, FILA, TABLA, TABLA_ACCIONES, TARJETA, TARJETA_ACCIONES, TARJETA_ARRIBA, TARJETA_DATOS, TARJETA_DOCUMENTO, TARJETA_ETIQUETAS, TARJETA_VALOR, TARJETAS, TH, TRABAJADOR, TRABAJADOR_NOMBRE_TARJETA, TRABAJADOR_TARJETA } from "./clasesRrhh";
+import { CHIP_DOC_PENDIENTE, CHIP_DOC_SUBIENDO } from "../shared/clasesDocumento";
+import { AVATAR, CELDA, CELDA_CODIGO, ESTADO_PUNTO, ESTADO_RRHH, ETIQUETA, FILA, TABLA, TABLA_ACCIONES, TARJETA, TARJETA_ACCIONES, TARJETA_ARRIBA, TARJETA_DATOS, TARJETA_DOCUMENTO, TARJETA_ETIQUETAS, TARJETA_VALOR, TARJETAS, TH, TRABAJADOR, TRABAJADOR_NOMBRE_TARJETA, TRABAJADOR_TARJETA } from "./clasesRrhh";
 
 // "Ver PDF / Ver imagen" si ya tiene archivo, o "Adjuntar" si no —
 // igual en Contratos y en Cursos / EMO.
@@ -12,7 +13,7 @@ function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
   const subiendo = estadoAdjunto?.(item.id);
   if (subiendo) {
     return (
-      <span className={DOC_SUBIENDO} role="status">
+      <span className={CHIP_DOC_SUBIENDO} role="status">
         <Spinner tamano={13} />
         {subiendo}
       </span>
@@ -23,7 +24,7 @@ function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
   }
   const titulo = tab === "contratos" ? "Adjuntar el documento del contrato" : `Adjuntar foto o PDF del ${item.tipo.toLowerCase()}`;
   return (
-    <label className={DOC_PENDIENTE} title={titulo}>
+    <label className={CHIP_DOC_PENDIENTE} title={titulo}>
       <IconUpload width={13} height={13} />
       Adjuntar
       <input

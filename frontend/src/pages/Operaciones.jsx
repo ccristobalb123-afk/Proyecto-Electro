@@ -19,14 +19,12 @@ import ModalEditarFotosEquipo from "../components/operaciones/ModalEditarFotosEq
 import ModalDocumentos from "../components/operaciones/ModalDocumentos";
 import ModalTiposEquipo from "../components/operaciones/ModalTiposEquipo";
 import AsignacionesPanel from "../components/operaciones/AsignacionesPanel";
-import "./Operaciones.css";
 import "../components/operaciones/EquiposCards.css";
-import "../components/operaciones/VehiculosCards.css";
 import { useLocation } from "react-router-dom";
 import { PESTANA, PESTANA_ACTIVA, PESTANA_NORMAL, PESTANAS } from "../components/shared/clasesPestanas";
 
 // "Tipos de equipo", a la derecha sobre las tarjetas. "equipos-barra" queda
-// como gancho de Operaciones.css (borde del botón: .btn-outline-sm, sin capa).
+// como gancho de EquiposCards.css (borde del botón: .btn-outline-sm, sin capa).
 const BARRA_EQUIPOS = "equipos-barra mx-0 -mt-1.5 mb-3.5 flex justify-end";
 
 // Si se llega con otros parámetros (?tab=…&q=…) estando ya en esta

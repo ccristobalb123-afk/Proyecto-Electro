@@ -7,6 +7,7 @@ import { IconExternalLink, IconFile } from "../icons/Icons";
 import { obtenerArchivo } from "../../services/uploadsService";
 import "./VisorArchivo.css";
 import { ACCIONES_VISOR, BOTON_SECUNDARIO } from "./clasesModal";
+import { CHIP_DOC_BOTON } from "./clasesDocumento";
 
 const EXT_IMAGEN = /\.(jpe?g|png|webp|gif)$/i;
 
@@ -23,9 +24,9 @@ const ENLACE = "inline-flex items-center justify-center gap-1.5";
 
 // Botón "Ver PDF / Ver imagen" (antes era un <a>): sin fondo, borde ni
 // relleno de botón nativo, con la letra y el color del texto que lo rodea.
-// Quien lo usa le pasa la clase de su pantalla: las que no tienen capa
-// (.doc-chip…) mandan en color, fondo, relleno y letra; las de Tailwind
-// (ARCHIVO_VER de Finanzas) suben su especificidad con [&&]: donde chocan.
+// Quien lo usa le pasa la clase de su pantalla; por defecto, el chip de
+// documento (CHIP_DOC_BOTON). Esas clases suben su especificidad con [&&]:
+// donde chocan con estas (letra, fondo, borde, relleno, color).
 const BOTON_VER = "[font:inherit] text-left [border:none] [background:none] p-0 [color:inherit]";
 
 const ETIQUETA_VER = { imagen: "Ver imagen", pdf: "Ver PDF", archivo: "Ver archivo" };
@@ -117,7 +118,7 @@ export function VisorArchivo({ archivo, onClose }) {
  * Botón "Ver PDF / Ver imagen" que abre el visor. `className` permite
  * conservar el estilo de chip o enlace de cada pantalla.
  */
-export function BotonVerArchivo({ url, nombre, className = "doc-chip", children, icono = true }) {
+export function BotonVerArchivo({ url, nombre, className = CHIP_DOC_BOTON, children, icono = true }) {
   const [abierto, setAbierto] = useState(false);
   return (
     <>

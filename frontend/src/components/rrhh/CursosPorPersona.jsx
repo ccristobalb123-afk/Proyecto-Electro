@@ -4,25 +4,22 @@ import { Spinner } from "../shared/Carga";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
-import { AVATAR, AVISO_FALTAN, DOC_CELDA, DOC_OPCIONAL, DOC_SUBIENDO, ESTADO_PUNTO, ESTADO_RRHH, SIN_ADJUNTAR, TARJETA_ACCIONES } from "./clasesRrhh";
+import { AVATAR, AVISO_FALTAN, DOC_CELDA, ESTADO_PUNTO, ESTADO_RRHH, SIN_ADJUNTAR, TARJETA_ACCIONES } from "./clasesRrhh";
+import { CHIP_DOC_OPCIONAL, CHIP_DOC_SUBIENDO } from "../shared/clasesDocumento";
+import * as F from "../shared/clasesFicha";
 
 const NOMBRE_EMPRESA_CORTO = { corevex: "Corevex", electro: "Electro" };
 
-// La ficha (persona-cursos, registro-ficha, resumen-chip…) es compartida con
-// Operaciones > Asignaciones y sigue en styles/fichas.css. Acá va lo que solo
-// usa RRHH.
+// La ficha es compartida con Operaciones > Asignaciones (shared/clasesFicha.js).
+// Acá va lo que solo usa RRHH.
 const EMPRESAS = "flex flex-wrap gap-1.5";
 const EMO = "inline-flex items-center gap-1";
-const RESUMEN_POR_VENCER = "resumen-chip bg-volt-tint text-volt-dark";
 // "persona-cursos__acciones" queda como gancho de fichas.css (display,
 // alineación, separación y letra de los botones: .btn-primary y
 // .btn-outline-sm no tienen capa).
 const ACCIONES = "persona-cursos__acciones flex flex-wrap gap-2";
 const ACCION = "min-h-11";
 const VACIO = "m-0 text-sm text-muted";
-// El registro que coincide con la búsqueda: borde y fondo en fichas.css
-// (.registro-ficha, sin capa, también los fija); acá el halo.
-const COINCIDE = "registro-ficha--coincide [box-shadow:0_0_0_2px_var(--copper-tint)]";
 const CURSO = "inline-flex min-w-0 flex-col items-start gap-0.5";
 const CURSO_NOMBRE = "font-semibold text-text wrap-anywhere";
 const CURSO_CODIGO = "[font-family:var(--font-mono)] text-xs text-muted wrap-anywhere";
@@ -35,7 +32,7 @@ function Documento({ item, onAdjuntarArchivo, estadoAdjunto }) {
   const subiendo = estadoAdjunto?.(item.id);
   if (subiendo) {
     return (
-      <span className={DOC_SUBIENDO} role="status">
+      <span className={CHIP_DOC_SUBIENDO} role="status">
         <Spinner tamano={13} />
         {subiendo}
       </span>
@@ -45,7 +42,7 @@ function Documento({ item, onAdjuntarArchivo, estadoAdjunto }) {
   return (
     <span className={DOC_CELDA}>
       <span className={SIN_ADJUNTAR}>Sin documento</span>
-      <label className={DOC_OPCIONAL} title={`Adjuntar foto o PDF del ${item.tipo === "EMO" ? "EMO" : "curso"}`}>
+      <label className={CHIP_DOC_OPCIONAL} title={`Adjuntar foto o PDF del ${item.tipo === "EMO" ? "EMO" : "curso"}`}>
         <IconUpload width={13} height={13} />
         Adjuntar
         <input
@@ -66,16 +63,16 @@ function Documento({ item, onAdjuntarArchivo, estadoAdjunto }) {
 function Resumen({ resumen, estadoLabel }) {
   const { cursos, vencidos, porVencer, emo } = resumen;
   return (
-    <span className="persona-cursos__resumen">
+    <span className={F.RESUMEN}>
       <span>
         {cursos} {cursos === 1 ? "curso" : "cursos"}
       </span>
       {vencidos > 0 && (
-        <span className="resumen-chip resumen-chip--vencido">
+        <span className={F.CHIP_VENCIDO}>
           {vencidos} {vencidos === 1 ? "vencido" : "vencidos"}
         </span>
       )}
-      {porVencer > 0 && <span className={RESUMEN_POR_VENCER}>{porVencer} por vencer</span>}
+      {porVencer > 0 && <span className={F.CHIP_POR_VENCER}>{porVencer} por vencer</span>}
       <span className={EMO}>
         EMO:{" "}
         {emo ? (
@@ -95,9 +92,9 @@ function Registro({ item, coincide, mostrarEmpresa, estadoLabel, onEditar, onVer
   const esCurso = item.tipo === "Curso";
   const historico = item.tipo === "Fotocheck";
   return (
-    <li className={`registro-ficha ${coincide ? COINCIDE : ""}`}>
+    <li className={coincide ? F.REGISTRO_COINCIDE : F.REGISTRO_NORMAL}>
       {coincide && <span className="sr-only">Coincide con la búsqueda. </span>}
-      <div className="registro-ficha__cabecera">
+      <div className={F.REGISTRO_CABECERA}>
         <span className={CURSO}>
           <span className={CURSO_NOMBRE}>{esCurso ? item.nombreCurso || "—" : item.tipo}</span>
           {esCurso && <span className={CURSO_CODIGO}>{item.codigoCurso || "—"}</span>}
@@ -108,7 +105,7 @@ function Registro({ item, coincide, mostrarEmpresa, estadoLabel, onEditar, onVer
           {estadoLabel[item.estado]}
         </span>
       </div>
-      <p className="registro-ficha__fechas">
+      <p className={F.REGISTRO_FECHAS}>
         <span>Inicio {item.inicio}</span>
         <span>Vence {item.vence}</span>
         {/* La empresa del registro, solo si la persona tiene más de una */}
@@ -168,7 +165,7 @@ export default function CursosPorPersona({
   }
 
   return (
-    <ul className="personas-cursos">
+    <ul className={F.FICHAS}>
       {grupos.map((g) => {
         const abierta = fichaAbierta(g.dni);
         const fichaId = `ficha-cursos-${g.dni}`;
@@ -176,11 +173,11 @@ export default function CursosPorPersona({
         const emos = g.registros.filter((r) => r.tipo === "EMO").length;
         const tieneEmo = emos >= Math.max(1, g.empresasContrato.length);
         return (
-          <li key={g.dni} className={`persona-cursos ${abierta ? "persona-cursos--abierta" : ""}`}>
-            <button type="button" className="persona-cursos__cabecera" aria-expanded={abierta} aria-controls={fichaId} onClick={() => fijarFicha(g.dni, !abierta)}>
+          <li key={g.dni} className={abierta ? F.FICHA_ABIERTA : F.FICHA_CERRADA}>
+            <button type="button" className={F.CABECERA} aria-expanded={abierta} aria-controls={fichaId} onClick={() => fijarFicha(g.dni, !abierta)}>
               <span className={AVATAR} aria-hidden="true">{g.iniciales}</span>
-              <span className="persona-cursos__info">
-                <span className="persona-cursos__nombre">{g.nombre}</span>
+              <span className={F.INFO}>
+                <span className={F.NOMBRE}>{g.nombre}</span>
                 <span className={EMPRESAS}>
                   {g.empresas.map((e) => (
                     <span key={e} className={`co-badge ${e}`}>{NOMBRE_EMPRESA_CORTO[e]}</span>
@@ -188,13 +185,13 @@ export default function CursosPorPersona({
                 </span>
                 <Resumen resumen={g.resumen} estadoLabel={estadoLabel} />
               </span>
-              <span className="persona-cursos__flecha" aria-hidden="true">
-                <IconChevronLeft width={18} height={18} />
+              <span className={abierta ? F.FLECHA_ABIERTA : F.FLECHA_CERRADA} aria-hidden="true">
+                <IconChevronLeft className={abierta ? F.FLECHA_ICONO_ABIERTA : F.FLECHA_ICONO_CERRADA} width={18} height={18} />
               </span>
             </button>
 
             {abierta && (
-              <div className="persona-cursos__ficha" id={fichaId}>
+              <div className={F.DETALLE} id={fichaId}>
                 {g.tieneContrato ? (
                   <div className={ACCIONES}>
                     <button type="button" className={`btn-primary ${ACCION}`} onClick={() => onAgregar(g, "Curso")}>
@@ -214,7 +211,7 @@ export default function CursosPorPersona({
                 {g.registros.length === 0 ? (
                   <p className={VACIO}>Todavía no tiene cursos ni EMO registrados.</p>
                 ) : (
-                  <ul className="registros-ficha">
+                  <ul className={F.REGISTROS}>
                     {g.registros.map((item) => (
                       <Registro
                         key={item.id}

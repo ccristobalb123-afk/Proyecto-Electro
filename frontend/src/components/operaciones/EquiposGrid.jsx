@@ -8,7 +8,6 @@ import Lightbox from "../shared/Lightbox";
 
 import { ESTADOS_EQUIPO as ESTADOS } from "../../services/equiposService";
 import { CAMPOS_EQUIPO } from "./camposEquipo";
-import "./Asignacion.css";
 import * as C from "./clasesEquipos";
 
 // Datos de la tarjeta según el tipo (las fechas de inspección van aparte,
