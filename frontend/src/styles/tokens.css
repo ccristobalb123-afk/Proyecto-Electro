@@ -171,10 +171,10 @@
 
 /* Las reglas de etiqueta globales (*, html/body/#root, body, button, a)
    ya no están acá: viven en styles/etiquetas.css, dentro de la capa
-   "base" de Tailwind (ver docs/tailwind.md). Lo que queda en este
-   archivo sigue sin capa y le gana a cualquier clase: .font-display,
-   .font-mono, .btn-primary, la regla de foco, .pantalla-cargando-sesion
-   y .sr-only. */
+   "base" de Tailwind, y .btn-primary está en styles/buttons.css, en la
+   capa "components" (ver docs/tailwind.md). Lo que queda en este archivo
+   sigue sin capa y le gana a cualquier clase: .font-display, .font-mono,
+   la regla de foco, .pantalla-cargando-sesion y .sr-only. */
 
 .font-display {
   font-family: var(--font-display);
@@ -182,40 +182,6 @@
 
 .font-mono {
   font-family: var(--font-mono);
-}
-
-.btn-primary {
-  height: 42px;
-  padding: 0 18px;
-  background: var(--copper);
-  color: var(--on-accent);
-  border: none;
-  border-radius: var(--radius);
-  font-size: 13.5px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: var(--shadow-boton);
-  transition: background 0.15s ease;
-}
-
-@media (hover: hover) {
-  .btn-primary:hover {
-    background: var(--copper-dark);
-  }
-}
-
-/* Presionado: el tono oscuro y sin sombra (en el Login, además, se achica) */
-.btn-primary:active:not(:disabled) {
-  background: var(--copper-dark);
-  box-shadow: none;
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
 }
 
 /* Anillo de foco: a propósito SIN capa (no va a etiquetas.css). Es la

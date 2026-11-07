@@ -1,6 +1,8 @@
 /* ============================================================
    Barra de filtros — compartida por Operaciones, RRHH,
-   Administración y Finanzas. Antes estaba copiada y pegada,
+   Administración y Finanzas. Va en la capa "components" de Tailwind (lo
+   importa tailwind.css). El "outline: none" del campo del buscador está en
+   foco.css, sin capa (ver ahí). Antes estaba copiada y pegada,
    casi idéntica, en los 4 archivos (con una pequeña divergencia:
    RRHH tenía max-width: 280px en vez de 260px, ya normalizado).
    ============================================================ */
@@ -26,10 +28,6 @@
   background: none;
   font-size: 13px;
   width: 100%;
-}
-
-.filters .search input:focus {
-  outline: none;
 }
 
 /* El input no dibuja su propio contorno: el foco se muestra en la caja */

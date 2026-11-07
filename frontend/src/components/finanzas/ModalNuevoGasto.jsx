@@ -16,7 +16,9 @@ const DOCUMENTO_ESTADO = "m-0 text-[13px] wrap-anywhere";
 // de Finanzas.css (separación de los botones y la cámara solo en pantallas
 // táctiles: .btn-outline-sm, sin capa, fija display y gap).
 const BOTONES = "gasto-documento__botones flex flex-wrap gap-2";
-const BOTON_ARCHIVO = "btn-outline-sm cursor-pointer justify-center [flex:1_1_140px]";
+// [&&]:inline-flex: la etiqueta general del campo (CAMPO, [&_label]:block)
+// ahora le gana a .btn-outline-sm, que está en la capa "components".
+const BOTON_ARCHIVO = "btn-outline-sm [&&]:inline-flex cursor-pointer justify-center [flex:1_1_140px]";
 const FALTANTES = "mx-0 mt-0 mb-4 rounded bg-volt-tint px-3 py-2 text-[13px] leading-[1.4] text-volt-dark";
 
 const OPCION_NUEVA = "__nueva__";

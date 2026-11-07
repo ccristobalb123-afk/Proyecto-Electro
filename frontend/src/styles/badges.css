@@ -1,5 +1,6 @@
 /* ============================================================
    Badges — estilos compartidos por todos los módulos.
+   Va en la capa "components" de Tailwind (lo importa tailwind.css).
    Antes .co-badge (y sus variantes .corevex/.electro) estaban
    copiados y pegados, idénticos, en los 4 módulos.
    ============================================================ */

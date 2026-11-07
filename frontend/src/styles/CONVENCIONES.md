@@ -6,11 +6,25 @@ El proyecto **no usa Bootstrap ni `react-bootstrap`**. Todo el estilo sale de
 `tokens.css` (colores, espaciados, tipografía, sombras), `base.css`, `etiquetas.css`, `buttons.css`,
 `badges.css`, `filters.css`, `responsive.css` y el CSS de cada módulo.
 
-### Tailwind (migración gradual)
-Tailwind 4 está instalado, sin preflight y en capas. El CSS sin capa
-(`tokens.css`, `responsive.css` y el CSS de cada módulo) siempre le gana a las
-clases; `base.css` y `etiquetas.css` no, porque van en la capa `base`. Uso, tabla token → clase,
-breakpoints y reglas de convivencia en `frontend/docs/tailwind.md`.
+### Tailwind y capas
+Tailwind 4 está instalado, sin preflight y en capas. Orden, de menor a mayor
+prioridad:
+
+1. `base`: `base.css` y después `etiquetas.css` (estilos de etiqueta).
+2. `components`: `buttons.css` (con `.btn-primary`), `badges.css` y
+   `filters.css`, en ese orden. Las clases de Tailwind les ganan.
+3. `utilities`: las clases de Tailwind.
+4. Sin capa (siempre gana): las variables y la regla de foco de
+   `tokens.css`, las excepciones de foco en `foco.css`, `responsive.css`
+   (celular y 44 px táctiles), `motion.css` (movimiento reducido),
+   `tarjetas.css` (borde de tarjetas), `fichas.css` y lo que queda en el CSS
+   de cada módulo (cada regla dice por qué no es una clase).
+
+Los cuatro archivos sin capa a propósito (`foco.css`, `responsive.css`,
+`motion.css`, `tarjetas.css`) son "ajustes que ganan siempre": si una regla
+de ahí toca una propiedad, ninguna clase la puede cambiar. Uso, tabla token →
+clase, breakpoints, reglas de convivencia y la lista completa de lo que queda
+sin capa en `frontend/docs/tailwind.md`.
 
 ### `base.css`
 Conserva únicamente las reglas del antiguo "reboot" de Bootstrap que la interfaz

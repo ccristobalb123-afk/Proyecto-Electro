@@ -7,10 +7,8 @@ import "./styles/tokens.css";
 // el CSS sin capa de arriba y de cada módulo le gana siempre). base.css ya
 // no se importa acá: entra por tailwind.css. Ver docs/tailwind.md.
 import "./styles/tailwind.css";
+import "./styles/foco.css";
 import "./styles/motion.css";
-import "./styles/buttons.css";
-import "./styles/badges.css";
-import "./styles/filters.css";
 import "./styles/fichas.css";
 import "./styles/responsive.css";
 import "./styles/tarjetas.css";

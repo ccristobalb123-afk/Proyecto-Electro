@@ -11,8 +11,10 @@
        después para que su letra de button le gane al "inherit" de
        base.css). Al estar en capa, cualquier clase de Tailwind les
        gana, y también cualquier regla sin capa.
+     · components: styles/buttons.css (con .btn-primary), badges.css y
+       filters.css. Las clases de Tailwind y el CSS sin capa les ganan.
      · El resto del CSS de la app (variables y clases de tokens.css,
-       responsive.css, el .css de cada módulo) no está en capa y
+       foco.css, responsive.css, el .css de cada módulo) no está en capa y
        SIEMPRE le gana a lo que sí, sin
        importar la especificidad ni el orden. Si una clase de Tailwind y
        una de esas reglas tocan la misma propiedad del mismo elemento,
@@ -30,6 +32,11 @@
 @layer theme, base, components, utilities;
 @import "./base.css" layer(base);
 @import "./etiquetas.css" layer(base);
+/* components: clases globales de componente (botones, badges, barra de
+   filtros). En el mismo orden en que se cargaban antes, sin capa. */
+@import "./buttons.css" layer(components);
+@import "./badges.css" layer(components);
+@import "./filters.css" layer(components);
 
 @import "tailwindcss/theme.css" layer(theme);
 /* source(none) + @source: solo se buscan clases en src/ (no en docs/,

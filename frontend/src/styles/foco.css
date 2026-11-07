@@ -1,0 +1,16 @@
+/* ============================================================
+   Foco — reglas que quedan SIN capa a propósito, junto a la regla global
+   de foco (input/button:focus-visible, en tokens.css, también sin capa).
+   Esa regla es la red de seguridad del anillo de foco de teclado: ninguna
+   clase de Tailwind ni regla en capa puede quitarlo. Las excepciones que sí
+   deben cambiarlo tienen que estar sin capa también; se juntan acá.
+   ============================================================ */
+
+/* Buscador de las barras de filtros: el campo no dibuja su propio
+   contorno, el foco se muestra en la caja (.filters .search:focus-within,
+   filters.css). filters.css está en la capa "components": en capa, este
+   "outline: none" perdería contra la regla global de foco y el buscador
+   mostraría dos anillos. */
+.filters .search input:focus {
+  outline: none;
+}

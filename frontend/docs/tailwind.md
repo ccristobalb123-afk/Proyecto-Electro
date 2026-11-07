@@ -91,9 +91,15 @@ reglas siguen en `responsive.css`.
 1. **Sin preflight.** No se carga el "reinicio" de Tailwind. Los elementos
    siguen con los estilos del navegador + `base.css`. Consecuencia: `border`
    no pone color (usa el del texto); escribe siempre `border border-control`.
-2. **El CSS sin capa gana; la capa `base` no.** El orden de las capas, de
-   menor a mayor prioridad, es `theme → base → components → utilities → CSS
-   sin capa`.
+2. **El CSS sin capa gana; las capas `base` y `components` no.** El orden de
+   las capas, de menor a mayor prioridad, es `theme → base → components →
+   utilities → CSS sin capa`.
+   - En la capa `components` van, en este orden, `buttons.css` (con
+     `.btn-primary` primero, que antes estaba en `tokens.css`), `badges.css`
+     y `filters.css` (los importa `tailwind.css` con `layer(components)`,
+     en el mismo orden relativo que tenían sin capa). Las clases de Tailwind
+     y el CSS sin capa les ganan; entre ellas mandan la especificidad y el
+     orden de siempre.
    - En la capa `base` van, en este orden, `base.css` y `etiquetas.css` (los
      importa `tailwind.css` con `layer(base)`): **cualquier clase de Tailwind
      les gana**. Un `<h2>` o un `<p>` aceptan clases de tamaño, peso y margen
@@ -110,7 +116,7 @@ reglas siguen en `responsive.css`.
      le gana a esas etiquetas. Pasó con el botón de `VisorArchivo` (ver
      regla 10).
    - El resto del CSS de la app (variables y clases de `tokens.css`,
-     `responsive.css`, el `.css` de cada módulo) no está en capa, y lo que
+     `foco.css`, `responsive.css`, el `.css` de cada módulo) no está en capa, y lo que
      no está en capa le gana a lo que sí, sin importar la especificidad ni
      el orden de carga. Si un elemento
      tiene `.equipo-card { padding: 16px }` y le agregas `p-2`, **sigue con
@@ -123,15 +129,21 @@ reglas siguen en `responsive.css`.
    - La regla global de foco de `tokens.css`
      (`input:focus-visible, button:focus-visible`) queda a propósito fuera de
      capa: es la red de seguridad del anillo de foco y ninguna clase debe
-     poder quitarlo.
+     poder quitarlo. Las excepciones que sí lo cambian tienen que estar sin
+     capa también y se juntan en `styles/foco.css` (hoy: el `outline: none`
+     del campo del buscador de las barras de filtros, cuyo foco se dibuja en
+     la caja; en capa perdería y se verían dos anillos).
 3. **Cómo migrar una regla:** pasa la propiedad a clases de Tailwind y
    **bórrala** del CSS antiguo en el mismo cambio. Si dejas las dos, gana la
    antigua (y la clase nueva parece "no funcionar").
 4. **No uses `!`** (`p-2!`, el `!important` de Tailwind) para ganarle al CSS
    antiguo: rompe la regla 2 y después nadie sabe qué manda.
-5. **No toques** las reglas globales de campos, combos, botones ni los 44 px
-   táctiles (`responsive.css`, `filters.css`, `buttons.css`): siguen igual y
-   le ganan a cualquier clase.
+5. **No toques** las reglas globales de los 44 px táctiles y del
+   movimiento reducido (`responsive.css`, `motion.css`), ni las de borde de
+   tarjeta (`tarjetas.css`): siguen sin capa y le ganan a cualquier clase.
+   Los botones, badges y la barra de filtros (`buttons.css`, `badges.css`,
+   `filters.css`) están en la capa `components`: una clase de Tailwind en el
+   mismo elemento les gana.
 6. **Nombres que ya existen:** `.sr-only` y `.font-display` son de la app
    (en `tokens.css`). Tailwind no genera `sr-only` (está excluida en
    `tailwind.css`) y su `font-display` da el mismo valor.
@@ -141,16 +153,22 @@ reglas siguen en `responsive.css`.
    inútil, se excluye en `@source not inline(...)` de `tailwind.css`.
 8. **CSP:** todo queda en el archivo `.css` del build (`style-src 'self'`),
    sin estilos en línea. No hay que tocar la política.
-9. **Componentes globales sin capa:** si un elemento lleva una clase o
-   etiqueta que otra regla sin capa ya estiliza, esas propiedades **no** se
+9. **Reglas sin capa que bloquean clases:** si un elemento lleva una clase o
+   etiqueta que una regla sin capa ya estiliza, esas propiedades **no** se
    pueden pasar a clases (se quedan en el `.css` del módulo). Hoy:
 
    | Regla sin capa | Propiedades que fija |
    |---|---|
-   | `.btn-primary` (`tokens.css`) | alto, relleno, letra, color, fondo, radio, transición… |
-   | `.link-button` (`buttons.css`) | color, letra, margen, subrayado |
-   | `.btn-outline-sm`, `.btn-danger` (`buttons.css`) | display, alineación, separación, relleno, letra, color, borde, `:disabled`… |
    | `input:focus-visible`, `button:focus-visible` (`tokens.css`) | contorno de foco (`outline`): a propósito, para que ninguna clase lo quite |
+   | `responsive.css` (táctil, celular), `motion.css`, `tarjetas.css` | lo que fija cada regla (ej. `html .link-button` en táctil: relleno y margen vertical) |
+   | `.sr-only`, `.font-display`, `.font-mono`, `.pantalla-cargando-sesion` (`tokens.css`) | posición y recorte; letra; la pantalla de carga |
+
+   `.btn-primary`, `.btn-outline-sm`, `.btn-danger`, `.icon-btn`,
+   `.link-button` (`buttons.css`), `.co-badge` (`badges.css`) y la barra de
+   filtros (`filters.css`) ya **no** están en esta lista: van en la capa
+   `components`, así que una clase les gana. Los residuos que habían quedado
+   por ellas siguen en su `.css` y se pasan a clases en un paso aparte (ver
+   «Estado de la migración»).
 
    `base.css` y las etiquetas `button`/`a` ya **no** están en esta lista:
    desde que van en la capa `base`, sus propiedades (márgenes y tamaños de
@@ -240,10 +258,46 @@ Para que una migración quede idéntica (no solo "parecida"):
 
 **Capa base:** hecha. En `@layer base` (desde `tailwind.css`) están
 `base.css` y `etiquetas.css` (las reglas de etiqueta `*`, `html/body/#root`,
-`body`, `button` y `a`, que antes estaban en `tokens.css`). Quedan sin capa a
-propósito, en `tokens.css`: la regla de foco y las clases globales
-`.btn-primary`, `.sr-only`, `.font-display`, `.font-mono` y
-`.pantalla-cargando-sesion`.
+`body`, `button` y `a`, que antes estaban en `tokens.css`).
+
+**Capa components:** hecha. En `@layer components` (desde `tailwind.css`, en
+este orden) están `buttons.css` (con `.btn-primary`, que salió de
+`tokens.css`), `badges.css` y `filters.css`. Se midió que nada cambia en
+todas las pantallas. Dos ajustes en el mismo cambio, porque en capa el
+resultado habría cambiado:
+- el `outline: none` del campo del buscador de las barras de filtros pasó a
+  `styles/foco.css`, sin capa (en capa perdía contra la regla global de foco
+  y se veían dos anillos);
+- «Tomar foto» / «Elegir archivo» de Nuevo gasto llevan `[&&]:inline-flex`
+  (la etiqueta general del campo, `[&_label]:block`, ahora le gana a
+  `.btn-outline-sm`).
+
+**Qué queda sin capa y por qué:**
+
+| Archivo | Qué | Por qué |
+|---|---|---|
+| `tokens.css` | variables (`:root`) | son la fuente de valores, no reglas |
+| `tokens.css` | regla de foco (`input/button:focus-visible`) | red de seguridad del foco de teclado: ninguna clase debe poder quitarlo |
+| `foco.css` | excepciones a la regla de foco | para cambiar el foco hay que estar sin capa, como la regla |
+| `tokens.css` | `.sr-only`, `.font-display`, `.font-mono`, `.pantalla-cargando-sesion` | pendientes (paso 3 del cierre) |
+| `responsive.css`, `motion.css`, `tarjetas.css` | ajustes de celular/táctil, movimiento reducido y borde de tarjeta | ajustes que ganan siempre, a propósito |
+| `.css` de cada módulo | lo anotado en cada fila de «Migrado» | bloqueado por las reglas de arriba, `@keyframes` o selectores que una clase no puede expresar |
+
+**Residuos desbloqueados por la capa `components`** (siguen en CSS hasta el
+paso 2 del cierre): `AppShell.css` (`.topbar-right .btn-primary`),
+`AuthForm.css` (`.auth-form .btn-primary`), `Carga.css` (`.boton-carga`),
+`fichas.css` (`.persona-cursos__acciones :is(…)`), `EquiposCards.css`
+(`.equipos-barra .btn-outline-sm` y los botones de los avisos), `Finanzas.css`
+(botones del documento de Nuevo gasto), `Modal.css` (`.form-field
+label.btn-outline-sm`, botones de foto, «Mantener la actual») y
+`Dashboard.css` (`.panel-head__accion`). Se quedan en CSS aunque estén
+desbloqueados:
+- el `margin-top: 0` de «Completar datos» y «Renovar fechas» (`EquiposCards.css`):
+  hoy le gana por especificidad a la regla táctil de `responsive.css`
+  (`html .link-button`, margen vertical de −12 px); como clase perdería
+  contra ella y en pantallas táctiles el botón subiría 12 px;
+- el cursor de mano de «Tomar foto» mientras se guarda (`Modal.css`): le
+  gana por orden a la regla del cursor «trabajando», también sin capa.
 
 **Restos de `base.css`:** migrados. Lo que `base.css` (y después
 `etiquetas.css`) bloqueaba cuando estaba sin capa pasó a clases en el mismo
@@ -303,8 +357,9 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
   - `AvisoInactividad.css`: `responsive.css` (alto táctil de 44 px de
     `.btn-seguir-conectado`) y `motion.css` (pulso con movimiento reducido).
 - **Otros:** `Monto.jsx` / `Monto.css` y `MenuAcciones.jsx` / `MenuAcciones.css` se borraron: no se usaban.
-- **Globales** (`styles/`): `buttons.css`, `badges.css`, `filters.css`,
+- **Globales** (`styles/`): `buttons.css`, `badges.css` y `filters.css`
+  siguen como CSS, pero en la capa `components` (ver arriba).
   `fichas.css` (solo lo bloqueado; ver la fila de Operaciones, parte 2),
-  `tarjetas.css`, `motion.css`, `responsive.css`. `tokens.css`,
-  `base.css` y `etiquetas.css` no se migran: son la fuente de valores y la
-  base.
+  `foco.css`, `tarjetas.css`, `motion.css` y `responsive.css` quedan sin
+  capa. `tokens.css`, `base.css` y `etiquetas.css` no se migran: son la
+  fuente de valores y la base.
