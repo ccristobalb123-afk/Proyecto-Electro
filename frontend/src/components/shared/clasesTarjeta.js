@@ -1,7 +1,8 @@
 /**
- * Tarjetas de lista con encabezado, cuerpo y pie (Administración y
- * Finanzas). Cada pantalla les suma su clase gancho: usuario-card /
- * fin-card (tarjetas.css pone el borde suave), usuarios-grid / fin-grid y
+ * Tarjetas de lista con encabezado, cuerpo y pie (Administración, Finanzas
+ * y las de celular de RRHH). Cada pantalla les suma su clase gancho:
+ * usuario-card / fin-card / rrhh-mobile-card (tarjetas.css pone el borde
+ * suave), usuarios-grid / fin-grid y
  * usuario-card-footer / fin-card-footer (responsive.css: una columna y las
  * acciones en cuadrícula en celular).
  */

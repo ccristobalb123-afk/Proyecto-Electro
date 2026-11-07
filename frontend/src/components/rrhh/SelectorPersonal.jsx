@@ -4,6 +4,16 @@ import { AYUDA } from "../shared/clasesModal";
 const normalizar = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const MAX_OPCIONES = 8;
 
+// "selector-personal__lista" queda como gancho: responsive.css (44px
+// táctiles y tamaño de letra de los campos).
+const LISTA = "selector-personal__lista mx-0 mt-1.5 mb-0 max-h-[264px] list-none overflow-y-auto overscroll-contain rounded border border-border p-0";
+// Cada persona: borde inferior salvo en la última. [&&]: para que el borde
+// inferior le gane a [border:0] sin depender del orden de las clases.
+const OPCION = `flex min-h-11 w-full cursor-pointer items-center justify-between gap-2.5 [border:0] [&&]:[border-bottom:1px_solid_var(--border)]
+  [li:last-child>&]:[border-bottom:0] [background:var(--card)] px-3 py-2 text-left [font:inherit] text-text hover:[background:var(--copper-tint)]`;
+const DNI = "flex-none [font-family:var(--font-mono)] text-xs text-muted";
+const ELEGIDO = "flex flex-wrap items-center justify-between gap-2 rounded border border-border bg-paper px-3 py-2";
+
 /**
  * Elegir a una persona escribiendo su nombre o DNI ("Nuevo registro" de
  * Cursos / EMO). Cada persona aparece una sola vez, aunque tenga
@@ -16,9 +26,9 @@ export default function SelectorPersonal({ trabajadores, value, onChange }) {
 
   if (elegido) {
     return (
-      <div className="selector-personal__elegido">
+      <div className={ELEGIDO}>
         <span>
-          <b>{elegido.nombre}</b> <span className="selector-personal__dni">{elegido.dni}</span>
+          <b>{elegido.nombre}</b> <span className={DNI}>{elegido.dni}</span>
         </span>
         <button type="button" className="btn-outline-sm" onClick={() => onChange("")}>
           Cambiar
@@ -32,8 +42,9 @@ export default function SelectorPersonal({ trabajadores, value, onChange }) {
   const coincidencias = unicos.filter((t) => !q || normalizar(t.nombre).includes(q) || t.dni.includes(q));
 
   return (
-    <div className="selector-personal">
+    <div>
       <input
+        className="w-full"
         type="search"
         role="combobox"
         aria-expanded="true"
@@ -45,12 +56,12 @@ export default function SelectorPersonal({ trabajadores, value, onChange }) {
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
       />
-      <ul className="selector-personal__lista" id={listaId} role="listbox" aria-label="Personal">
+      <ul className={LISTA} id={listaId} role="listbox" aria-label="Personal">
         {coincidencias.slice(0, MAX_OPCIONES).map((t) => (
           <li key={t.dni} role="option" aria-selected="false">
-            <button type="button" onClick={() => onChange(t.dni)}>
+            <button type="button" className={OPCION} onClick={() => onChange(t.dni)}>
               <span>{t.nombre}</span>
-              <span className="selector-personal__dni">{t.dni}</span>
+              <span className={DNI}>{t.dni}</span>
             </button>
           </li>
         ))}

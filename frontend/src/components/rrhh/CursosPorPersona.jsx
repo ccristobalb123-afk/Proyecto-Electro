@@ -4,8 +4,30 @@ import { Spinner } from "../shared/Carga";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
+import { AVATAR, AVISO_FALTAN, DOC_CELDA, DOC_OPCIONAL, DOC_SUBIENDO, ESTADO_PUNTO, ESTADO_RRHH, SIN_ADJUNTAR, TARJETA_ACCIONES } from "./clasesRrhh";
 
 const NOMBRE_EMPRESA_CORTO = { corevex: "Corevex", electro: "Electro" };
+
+// La ficha (persona-cursos, registro-ficha, resumen-chip…) es compartida con
+// Operaciones > Asignaciones y sigue en styles/fichas.css. Acá va lo que solo
+// usa RRHH.
+const EMPRESAS = "flex flex-wrap gap-1.5";
+const EMO = "inline-flex items-center gap-1";
+const RESUMEN_POR_VENCER = "resumen-chip bg-volt-tint text-volt-dark";
+// "persona-cursos__acciones" queda como gancho de fichas.css (display,
+// alineación, separación y letra de los botones: .btn-primary y
+// .btn-outline-sm no tienen capa).
+const ACCIONES = "persona-cursos__acciones flex flex-wrap gap-2";
+const ACCION = "min-h-11";
+const VACIO = "m-0 text-sm text-muted";
+// El registro que coincide con la búsqueda: borde y fondo en fichas.css
+// (.registro-ficha, sin capa, también los fija); acá el halo.
+const COINCIDE = "registro-ficha--coincide [box-shadow:0_0_0_2px_var(--copper-tint)]";
+const CURSO = "inline-flex min-w-0 flex-col items-start gap-0.5";
+const CURSO_NOMBRE = "font-semibold text-text wrap-anywhere";
+const CURSO_CODIGO = "[font-family:var(--font-mono)] text-xs text-muted wrap-anywhere";
+const FALTAN = "rounded-[999px] bg-volt-tint px-2 py-px text-xs font-semibold text-volt-dark";
+const PIE = "flex flex-wrap items-center justify-between gap-2";
 
 // Documento de un curso/EMO: "Ver" si tiene; si no, "Sin documento" y la
 // opción de adjuntarlo (es opcional, no se marca en rojo).
@@ -13,7 +35,7 @@ function Documento({ item, onAdjuntarArchivo, estadoAdjunto }) {
   const subiendo = estadoAdjunto?.(item.id);
   if (subiendo) {
     return (
-      <span className="doc-chip doc-chip--subiendo" role="status">
+      <span className={DOC_SUBIENDO} role="status">
         <Spinner tamano={13} />
         {subiendo}
       </span>
@@ -21,9 +43,9 @@ function Documento({ item, onAdjuntarArchivo, estadoAdjunto }) {
   }
   if (item.archivo) return <BotonVerArchivo url={item.archivoUrl} nombre={item.archivoNombre} />;
   return (
-    <span className="doc-celda">
-      <span className="sin-adjuntar">Sin documento</span>
-      <label className="doc-chip doc-chip--opcional" title={`Adjuntar foto o PDF del ${item.tipo === "EMO" ? "EMO" : "curso"}`}>
+    <span className={DOC_CELDA}>
+      <span className={SIN_ADJUNTAR}>Sin documento</span>
+      <label className={DOC_OPCIONAL} title={`Adjuntar foto o PDF del ${item.tipo === "EMO" ? "EMO" : "curso"}`}>
         <IconUpload width={13} height={13} />
         Adjuntar
         <input
@@ -53,16 +75,16 @@ function Resumen({ resumen, estadoLabel }) {
           {vencidos} {vencidos === 1 ? "vencido" : "vencidos"}
         </span>
       )}
-      {porVencer > 0 && <span className="resumen-chip resumen-chip--porvencer">{porVencer} por vencer</span>}
-      <span className="persona-cursos__emo">
+      {porVencer > 0 && <span className={RESUMEN_POR_VENCER}>{porVencer} por vencer</span>}
+      <span className={EMO}>
         EMO:{" "}
         {emo ? (
-          <span className={`estado ${emo}`}>
-            <i />
+          <span className={ESTADO_RRHH[emo]}>
+            <i className={ESTADO_PUNTO} />
             {estadoLabel[emo]}
           </span>
         ) : (
-          <span className="sin-adjuntar">sin registrar</span>
+          <span className={SIN_ADJUNTAR}>sin registrar</span>
         )}
       </span>
     </span>
@@ -73,16 +95,16 @@ function Registro({ item, coincide, mostrarEmpresa, estadoLabel, onEditar, onVer
   const esCurso = item.tipo === "Curso";
   const historico = item.tipo === "Fotocheck";
   return (
-    <li className={`registro-ficha ${coincide ? "registro-ficha--coincide" : ""}`}>
+    <li className={`registro-ficha ${coincide ? COINCIDE : ""}`}>
       {coincide && <span className="sr-only">Coincide con la búsqueda. </span>}
       <div className="registro-ficha__cabecera">
-        <span className="registro-curso">
-          <span className="registro-curso__nombre">{esCurso ? item.nombreCurso || "—" : item.tipo}</span>
-          {esCurso && <span className="registro-curso__codigo">{item.codigoCurso || "—"}</span>}
-          {item.faltantes?.length > 0 && <span className="rrhh-faltan-chip">Faltan datos</span>}
+        <span className={CURSO}>
+          <span className={CURSO_NOMBRE}>{esCurso ? item.nombreCurso || "—" : item.tipo}</span>
+          {esCurso && <span className={CURSO_CODIGO}>{item.codigoCurso || "—"}</span>}
+          {item.faltantes?.length > 0 && <span className={FALTAN}>Faltan datos</span>}
         </span>
-        <span className={`estado ${item.estado}`}>
-          <i />
+        <span className={ESTADO_RRHH[item.estado]}>
+          <i className={ESTADO_PUNTO} />
           {estadoLabel[item.estado]}
         </span>
       </div>
@@ -92,9 +114,9 @@ function Registro({ item, coincide, mostrarEmpresa, estadoLabel, onEditar, onVer
         {/* La empresa del registro, solo si la persona tiene más de una */}
         {mostrarEmpresa && <span className={`co-badge ${item.empresa}`}>{NOMBRE_EMPRESA_CORTO[item.empresa]}</span>}
       </p>
-      <div className="registro-ficha__pie">
+      <div className={PIE}>
         <Documento item={item} onAdjuntarArchivo={onAdjuntarArchivo} estadoAdjunto={estadoAdjunto} />
-        <div className="rrhh-mobile-card-acciones">
+        <div className={TARJETA_ACCIONES}>
           <button
             className="btn-outline-sm"
             type="button"
@@ -156,10 +178,10 @@ export default function CursosPorPersona({
         return (
           <li key={g.dni} className={`persona-cursos ${abierta ? "persona-cursos--abierta" : ""}`}>
             <button type="button" className="persona-cursos__cabecera" aria-expanded={abierta} aria-controls={fichaId} onClick={() => fijarFicha(g.dni, !abierta)}>
-              <span className="mini-avatar" aria-hidden="true">{g.iniciales}</span>
+              <span className={AVATAR} aria-hidden="true">{g.iniciales}</span>
               <span className="persona-cursos__info">
                 <span className="persona-cursos__nombre">{g.nombre}</span>
-                <span className="persona-cursos__empresas">
+                <span className={EMPRESAS}>
                   {g.empresas.map((e) => (
                     <span key={e} className={`co-badge ${e}`}>{NOMBRE_EMPRESA_CORTO[e]}</span>
                   ))}
@@ -174,23 +196,23 @@ export default function CursosPorPersona({
             {abierta && (
               <div className="persona-cursos__ficha" id={fichaId}>
                 {g.tieneContrato ? (
-                  <div className="persona-cursos__acciones">
-                    <button type="button" className="btn-primary" onClick={() => onAgregar(g, "Curso")}>
+                  <div className={ACCIONES}>
+                    <button type="button" className={`btn-primary ${ACCION}`} onClick={() => onAgregar(g, "Curso")}>
                       <IconPlus width={13} height={13} /> Agregar curso
                     </button>
                     {!tieneEmo && (
-                      <button type="button" className="btn-outline-sm btn-outline-sm--primario" onClick={() => onAgregar(g, "EMO")}>
+                      <button type="button" className={`btn-outline-sm btn-outline-sm--primario ${ACCION}`} onClick={() => onAgregar(g, "EMO")}>
                         <IconPlus width={13} height={13} /> Registrar EMO
                       </button>
                     )}
                   </div>
                 ) : (
-                  <p className="rrhh-faltantes" role="status">
+                  <p className={AVISO_FALTAN} role="status">
                     {g.nombre} no tiene un contrato registrado, así que no se puede saber a qué empresa corresponden sus cursos. Registra primero su contrato en la pestaña Contratos.
                   </p>
                 )}
                 {g.registros.length === 0 ? (
-                  <p className="persona-cursos__vacio">Todavía no tiene cursos ni EMO registrados.</p>
+                  <p className={VACIO}>Todavía no tiene cursos ni EMO registrados.</p>
                 ) : (
                   <ul className="registros-ficha">
                     {g.registros.map((item) => (

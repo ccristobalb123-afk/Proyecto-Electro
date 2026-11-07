@@ -6,6 +6,7 @@ import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 import { useEffect, useRef } from "react";
 import SelectorPersonal from "./SelectorPersonal";
 import { AYUDA, BOTON_SECUNDARIO, CAMPO, DERIVADO, DROPZONE, DROPZONE_CON_ARCHIVO, DROPZONE_SIN_ARCHIVO, ERROR_CAMPO, FILA, NOTA_OBLIGATORIOS, OBLIGATORIO, TITULO_CAMPO } from "../shared/clasesModal";
+import { AVISO_FALTAN, AVISO_GUARDADO } from "./clasesRrhh";
 
 const Obligatorio = () => (
   <span className={OBLIGATORIO} aria-hidden="true">
@@ -59,12 +60,12 @@ export default function ModalNuevoCurso({ open, onClose, fCurso, setFCurso, erro
     >
       <form onSubmit={onSubmit}>
         {aviso && (
-          <p className="rrhh-guardado" role="status">
+          <p className={AVISO_GUARDADO} role="status">
             {aviso}
           </p>
         )}
         {editando && faltantes.length > 0 && esCurso && (
-          <p className="rrhh-faltantes" role="status">
+          <p className={AVISO_FALTAN} role="status">
             Completa los datos que faltan: {faltantes.join(", ")}.
           </p>
         )}

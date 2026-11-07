@@ -1,136 +1,13 @@
-.tabs {
-  display: flex;
-  gap: 4px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 3px;
-  width: fit-content;
-  margin-bottom: 20px;
-}
+/* RRHH: los estilos van con clases de Tailwind (components/rrhh/clasesRrhh.js,
+   clasesPestanas.js, clasesTarjeta.js y cada componente). Queda lo que una
+   clase no puede cambiar (regla 9 de docs/tailwind.md). */
 
-.tabs button {
-  border: none;
-  background: none;
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-.tabs button.active {
-  background: var(--copper-tint);
-  color: var(--copper-dark);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-thead th {
-  text-align: left;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 12px 18px;
-  background: var(--paper);
-  border-bottom: 1px solid var(--border);
-}
-
-tbody td {
-  padding: 14px 18px;
-  font-size: 13.5px;
-  border-bottom: 1px solid var(--border);
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-@media (hover: hover) {
-  tbody tr:hover {
-    background: var(--gray-tint);
-  }
-}
-
-.worker {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.mini-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--muted);
-  flex: none;
-}
-
-.code {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-.estado {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.estado i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  display: inline-block;
-}
-
-.estado.vigente {
-  background: var(--success-tint);
-  color: var(--success-dark);
-}
-
-.estado.porvencer {
-  background: var(--volt-tint);
-  color: var(--volt-dark);
-}
-
-.estado.vencido {
-  background: var(--danger-tint);
-  color: var(--danger-dark);
-}
-
-.estado.renovado {
-  background: var(--electro-tint);
-  color: var(--electro-dark);
-}
-
-.estado.terminado {
-  background: var(--gray-tint);
-  color: var(--gray-dark);
-}
-
+/* ----- Chip de documento ("Ver PDF", "Adjuntar") -----
+   Componente global sin capa: lo usan también Operaciones (Operaciones.css
+   tiene su propia copia de .doc-chip), BotonVerArchivo por defecto y el
+   formulario de documentos del vehículo (Modal.css, .doc-chip.doc-chip--opcional).
+   Se migra junto con Operaciones. El cursor y los números de las variantes
+   ya van en clases (DOC_SUBIENDO, DOC_PENDIENTE, DOC_OPCIONAL). */
 .doc-chip {
   display: inline-flex;
   align-items: center;
@@ -154,14 +31,11 @@ tbody tr:last-child td {
 .doc-chip--subiendo {
   color: var(--muted);
   background: var(--gray-tint);
-  cursor: progress;
-  font-variant-numeric: tabular-nums;
 }
 
 .doc-chip--pendiente {
   color: var(--danger-dark);
   background: var(--danger-tint);
-  cursor: pointer;
   border: 1px dashed var(--danger-dark);
 }
 
@@ -171,142 +45,8 @@ tbody tr:last-child td {
   }
 }
 
-.sin-adjuntar {
-  font-size: 12px;
-  color: var(--muted-2);
-}
-
-/* ===== Modal: detalle de contrato/curso ===== */
-.detalle-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px 18px;
-  margin-top: 4px;
-}
-
-.detalle-grid > div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.detalle-grid .equipo-card-label {
-  display: block;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted-2);
-}
-
-.detalle-grid p {
-  margin: 0;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-/* ===== Vista de tarjetas para celular (reemplaza a la tabla) =====
-   Oculta por defecto — responsive.css la muestra y esconde la tabla
-   por debajo de los 640px. */
-.rrhh-cards-mobile {
-  display: none;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.rrhh-mobile-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 14px 16px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.rrhh-mobile-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.rrhh-mobile-card-acciones {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.rrhh-tabla-acciones {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.rrhh-mobile-card-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.rrhh-mobile-card-datos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-}
-
-.rrhh-mobile-label {
-  display: block;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted-2);
-}
-
-.rrhh-mobile-card-datos p {
-  margin: 4px 0 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.rrhh-mobile-card-doc {
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.rrhh-mobile-card .worker {
-  min-width: 0;
-}
-
-.rrhh-mobile-card .worker span {
-  font-weight: var(--fw-semibold);
-  overflow-wrap: anywhere;
-}
-
-/* ===== Cursos / EMO ===== */
-/* Documento opcional: "Sin documento" + "Adjuntar" neutro (no en rojo) */
-.doc-celda {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-}
-
+/* Documento opcional de Cursos / EMO: "Adjuntar" neutro (no en rojo). */
 .doc-chip--opcional {
-  cursor: pointer;
   color: var(--copper-dark);
   background: var(--card);
   border: 1px dashed var(--border-control);
@@ -318,132 +58,11 @@ tbody tr:last-child td {
   }
 }
 
-/* Nombre y código de cada curso */
-.registro-curso {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  min-width: 0;
-}
-
-.registro-curso__nombre {
-  font-weight: 600;
-  color: var(--text);
-  overflow-wrap: anywhere;
-}
-
-.registro-curso__codigo {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-
-/* Curso registrado antes de esta versión sin código o nombre */
-.rrhh-faltan-chip {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--volt-dark);
-  background: var(--volt-tint);
-  border-radius: 999px;
-  padding: 1px 8px;
-}
-
-.rrhh-faltantes {
-  background: var(--volt-tint);
-  color: var(--volt-dark);
-  border-radius: var(--radius);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--fs-sm);
-  line-height: 1.4;
-  margin: 0 0 var(--space-3);
-}
-
-/* En la tarjeta de celular el nombre del curso ocupa todo el ancho */
-.rrhh-mobile-dato-ancho {
-  grid-column: 1 / -1;
-}
-
-/* Cursos / EMO agrupados por persona: estilos compartidos en
-   styles/fichas.css (también los usa Operaciones > Asignaciones). */
-
-/* ===== Selector de personal con buscador ("Nuevo registro") ===== */
-.selector-personal input {
-  width: 100%;
-}
-
-.selector-personal__lista {
-  list-style: none;
-  margin: 6px 0 0;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  max-height: 264px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.selector-personal__lista button {
-  width: 100%;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 12px;
-  background: var(--card);
-  border: 0;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  font: inherit;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.selector-personal__lista li:last-child button {
-  border-bottom: 0;
-}
-
-@media (hover: hover) {
-  .selector-personal__lista button:hover {
-    background: var(--copper-tint);
-  }
-}
-
-.selector-personal__dni {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--muted);
-  flex: none;
-}
-
-.selector-personal__elegido {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--paper);
-}
-
-/* "Curso X guardado. Agrega el siguiente…" (Guardar y agregar otro) */
-.rrhh-guardado {
-  background: var(--success-tint);
-  color: var(--success-dark);
-  border-radius: var(--radius);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--fs-sm);
-  line-height: 1.4;
-  margin: 0 0 var(--space-3);
-}
-
-/* Formulario de la ficha en celular: "Cancelar" y "Guardar y agregar
-   otro" en una fila y "Guardar curso" a todo el ancho debajo (apilados
-   los 3 le quitaban ~170px al formulario). */
+/* ----- Formulario de curso en celular -----
+   "Cancelar" y "Guardar y agregar otro" en una fila y "Guardar curso" a todo
+   el ancho debajo (apilados los 3 le quitaban ~170px al formulario).
+   "Cancelar" lo pone ModalActions (compartido, sin forma de recibir clases)
+   y la regla depende de qué botones hay (:has), así que se queda acá. */
 @media (max-width: 640px) {
   .modal-actions:has(> button[value="otro"]) > button {
     flex: 1 1 calc(50% - 5px);

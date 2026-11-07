@@ -2,7 +2,8 @@
    Fichas desplegables por persona o camión — compartidas por
    RRHH > Cursos / EMO y Operaciones > Asignaciones. Cada fila es un
    bloque que se abre al tocarlo y muestra sus registros adentro.
-   (Movido sin cambios desde pages/Rrhh.css.)
+   Lo que solo usa RRHH ya va en clases (CursosPorPersona.jsx); acá queda
+   lo compartido con Asignaciones, que se migra con Operaciones.
    ============================================================ */
 
 .personas-cursos,
@@ -74,12 +75,6 @@
   overflow-wrap: anywhere;
 }
 
-.persona-cursos__empresas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
 .persona-cursos__resumen {
   display: flex;
   flex-wrap: wrap;
@@ -87,12 +82,6 @@
   gap: 4px 10px;
   font-size: var(--fs-sm);
   color: var(--muted);
-}
-
-.persona-cursos__emo {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .resumen-chip {
@@ -105,11 +94,6 @@
 .resumen-chip--vencido {
   color: var(--danger-dark);
   background: var(--danger-tint);
-}
-
-.resumen-chip--porvencer {
-  color: var(--volt-dark);
-  background: var(--volt-tint);
 }
 
 /* El chevron se ve como un botón (toda la fila es el botón real). */
@@ -160,24 +144,14 @@
   gap: 12px;
 }
 
-.persona-cursos__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
+/* Botones de la ficha de RRHH ("Agregar curso", "Registrar EMO"): .btn-primary
+   y .btn-outline-sm (sin capa) fijan display, alineación, separación y letra.
+   El contenedor y el alto mínimo van en clases (CursosPorPersona.jsx). */
 .persona-cursos__acciones :is(.btn-primary, .btn-outline-sm) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
   font-size: 13.5px;
-}
-
-.persona-cursos__vacio {
-  margin: 0;
-  font-size: var(--fs-sm);
-  color: var(--muted);
 }
 
 .registros-ficha {
@@ -195,10 +169,11 @@
   min-width: 0;
 }
 
-/* El registro que coincide con la búsqueda (código, curso o "EMO"). */
+/* El registro que coincide con la búsqueda (código, curso o "EMO", solo
+   RRHH): borde y fondo quedan acá porque .registro-ficha (sin capa) también
+   los fija; el halo va en clases (CursosPorPersona.jsx). */
 .registro-ficha--coincide {
   border-color: var(--copper);
-  box-shadow: 0 0 0 2px var(--copper-tint);
   background: color-mix(in srgb, var(--copper-tint) 35%, var(--card));
 }
 
@@ -218,13 +193,5 @@
   gap: 4px 12px;
   font-size: var(--fs-sm);
   color: var(--text);
-}
-
-.registro-ficha__pie {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
 }
 

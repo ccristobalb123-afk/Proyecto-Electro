@@ -8,6 +8,13 @@ import CursosPorPersona from "../components/rrhh/CursosPorPersona";
 import ModalNuevoContrato from "../components/rrhh/ModalNuevoContrato";
 import ModalNuevoCurso from "../components/rrhh/ModalNuevoCurso";
 import "./Rrhh.css";
+import { PESTANA, PESTANA_ACTIVA, PESTANA_NORMAL, PESTANAS } from "../components/shared/clasesPestanas";
+import { ETIQUETA_TARJETA } from "../components/shared/clasesTarjeta";
+
+// Detalle de un contrato o curso: datos en 2 columnas.
+const DETALLE = "mt-1 grid grid-cols-[repeat(2,1fr)] gap-x-[18px] gap-y-3.5";
+const DETALLE_DATO = "flex flex-col gap-[3px]";
+const DETALLE_VALOR = "m-0 text-[13.5px] font-semibold text-text";
 import { useLocation } from "react-router-dom";
 
 // Si se llega con otros parámetros (?tab=…&q=…) estando ya en esta
@@ -31,13 +38,13 @@ function Rrhh() {
         </button>
       }
     >
-      <div className="tabs" role="tablist" aria-label="Módulo de RRHH">
+      <div className={PESTANAS} role="tablist" aria-label="Módulo de RRHH">
         <button
           id="tab-contratos"
           role="tab"
           aria-selected={r.tab === "contratos"}
           aria-controls="panel-rrhh"
-          className={r.tab === "contratos" ? "active" : ""}
+          className={`${PESTANA} ${r.tab === "contratos" ? PESTANA_ACTIVA : PESTANA_NORMAL}`}
           onClick={() => r.cambiarTab("contratos")}
         >
           Contratos
@@ -47,7 +54,7 @@ function Rrhh() {
           role="tab"
           aria-selected={r.tab === "cursos"}
           aria-controls="panel-rrhh"
-          className={r.tab === "cursos" ? "active" : ""}
+          className={`${PESTANA} ${r.tab === "cursos" ? PESTANA_ACTIVA : PESTANA_NORMAL}`}
           onClick={() => r.cambiarTab("cursos")}
         >
           Cursos / EMO
@@ -156,44 +163,44 @@ function Rrhh() {
         onClose={r.modalDetalle.cerrar}
       >
         {r.modalDetalle.dato && (
-          <div className="detalle-grid">
-            <div>
-              <span className="equipo-card-label">Empresa</span>
-              <p>{r.modalDetalle.dato.empresa === "corevex" ? "CorevexSAC" : "ElectroSAC"}</p>
+          <div className={DETALLE}>
+            <div className={DETALLE_DATO}>
+              <span className={ETIQUETA_TARJETA}>Empresa</span>
+              <p className={DETALLE_VALOR}>{r.modalDetalle.dato.empresa === "corevex" ? "CorevexSAC" : "ElectroSAC"}</p>
             </div>
-            <div>
-              <span className="equipo-card-label">Tipo</span>
-              <p>{r.modalDetalle.dato.tipo}</p>
+            <div className={DETALLE_DATO}>
+              <span className={ETIQUETA_TARJETA}>Tipo</span>
+              <p className={DETALLE_VALOR}>{r.modalDetalle.dato.tipo}</p>
             </div>
             {r.tab === "cursos" && r.modalDetalle.dato.tipo === "Curso" && (
               <>
-                <div>
-                  <span className="equipo-card-label">Curso</span>
-                  <p>{r.modalDetalle.dato.nombreCurso || "—"}</p>
+                <div className={DETALLE_DATO}>
+                  <span className={ETIQUETA_TARJETA}>Curso</span>
+                  <p className={DETALLE_VALOR}>{r.modalDetalle.dato.nombreCurso || "—"}</p>
                 </div>
-                <div>
-                  <span className="equipo-card-label">Código</span>
-                  <p>{r.modalDetalle.dato.codigoCurso || "—"}</p>
+                <div className={DETALLE_DATO}>
+                  <span className={ETIQUETA_TARJETA}>Código</span>
+                  <p className={DETALLE_VALOR}>{r.modalDetalle.dato.codigoCurso || "—"}</p>
                 </div>
               </>
             )}
             {r.tab === "cursos" && (
-              <div>
-                <span className="equipo-card-label">Inicio</span>
-                <p>{r.modalDetalle.dato.inicio}</p>
+              <div className={DETALLE_DATO}>
+                <span className={ETIQUETA_TARJETA}>Inicio</span>
+                <p className={DETALLE_VALOR}>{r.modalDetalle.dato.inicio}</p>
               </div>
             )}
-            <div>
-              <span className="equipo-card-label">Vence</span>
-              <p>{r.modalDetalle.dato.vence}</p>
+            <div className={DETALLE_DATO}>
+              <span className={ETIQUETA_TARJETA}>Vence</span>
+              <p className={DETALLE_VALOR}>{r.modalDetalle.dato.vence}</p>
             </div>
-            <div>
-              <span className="equipo-card-label">Estado</span>
-              <p>{ESTADO_LABEL[r.modalDetalle.dato.estado]}</p>
+            <div className={DETALLE_DATO}>
+              <span className={ETIQUETA_TARJETA}>Estado</span>
+              <p className={DETALLE_VALOR}>{ESTADO_LABEL[r.modalDetalle.dato.estado]}</p>
             </div>
-            <div>
-              <span className="equipo-card-label">Documento</span>
-              <p>
+            <div className={DETALLE_DATO}>
+              <span className={ETIQUETA_TARJETA}>Documento</span>
+              <p className={DETALLE_VALOR}>
                 {r.modalDetalle.dato.archivo ? (
                   <BotonVerArchivo url={r.modalDetalle.dato.archivoUrl} nombre={r.modalDetalle.dato.archivoNombre} />
                 ) : r.tab === "cursos" ? (

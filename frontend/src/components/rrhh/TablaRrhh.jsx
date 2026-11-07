@@ -4,6 +4,7 @@ import { Spinner } from "../shared/Carga";
 import Loading from "../shared/Loading";
 import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
+import { AVATAR, CELDA, CELDA_CODIGO, DOC_PENDIENTE, DOC_SUBIENDO, ESTADO_PUNTO, ESTADO_RRHH, ETIQUETA, FILA, TABLA, TABLA_ACCIONES, TARJETA, TARJETA_ACCIONES, TARJETA_ARRIBA, TARJETA_DATOS, TARJETA_DOCUMENTO, TARJETA_ETIQUETAS, TARJETA_VALOR, TARJETAS, TH, TRABAJADOR, TRABAJADOR_NOMBRE_TARJETA, TRABAJADOR_TARJETA } from "./clasesRrhh";
 
 // "Ver PDF / Ver imagen" si ya tiene archivo, o "Adjuntar" si no —
 // igual en Contratos y en Cursos / EMO.
@@ -11,7 +12,7 @@ function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
   const subiendo = estadoAdjunto?.(item.id);
   if (subiendo) {
     return (
-      <span className="doc-chip doc-chip--subiendo" role="status">
+      <span className={DOC_SUBIENDO} role="status">
         <Spinner tamano={13} />
         {subiendo}
       </span>
@@ -22,7 +23,7 @@ function CeldaDocumento({ item, tab, onAdjuntarArchivo, estadoAdjunto }) {
   }
   const titulo = tab === "contratos" ? "Adjuntar el documento del contrato" : `Adjuntar foto o PDF del ${item.tipo.toLowerCase()}`;
   return (
-    <label className="doc-chip doc-chip--pendiente" title={titulo}>
+    <label className={DOC_PENDIENTE} title={titulo}>
       <IconUpload width={13} height={13} />
       Adjuntar
       <input
@@ -57,47 +58,47 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
   return (
     <>
       <div className="table-scroll">
-        <table>
+        <table className={TABLA}>
           <thead>
             <tr>
-              <th scope="col">Trabajador</th>
-              <th scope="col">Empresa</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Vence</th>
-              <th scope="col">Documento</th>
-              <th scope="col">Estado</th>
-              <th scope="col">
+              <th className={TH} scope="col">Trabajador</th>
+              <th className={TH} scope="col">Empresa</th>
+              <th className={TH} scope="col">Tipo</th>
+              <th className={TH} scope="col">Vence</th>
+              <th className={TH} scope="col">Documento</th>
+              <th className={TH} scope="col">Estado</th>
+              <th className={TH} scope="col">
                 <span className="sr-only">Acciones</span>
               </th>
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
-              <tr key={item.id}>
-                <td>
-                  <div className="worker">
-                    <div className="mini-avatar">{item.iniciales}</div>
+              <tr className={FILA} key={item.id}>
+                <td className={CELDA}>
+                  <div className={TRABAJADOR}>
+                    <div className={AVATAR}>{item.iniciales}</div>
                     <span>{item.trabajador}</span>
                   </div>
                 </td>
-                <td>
+                <td className={CELDA}>
                   <span className={`co-badge ${item.empresa}`}>
                     {item.empresa === "corevex" ? "Corevex" : "Electro"}
                   </span>
                 </td>
-                <td>{item.tipo}</td>
-                <td className="code">{item.vence}</td>
-                <td>
+                <td className={CELDA}>{item.tipo}</td>
+                <td className={CELDA_CODIGO}>{item.vence}</td>
+                <td className={CELDA}>
                   <CeldaDocumento item={item} tab={tab} onAdjuntarArchivo={onAdjuntarArchivo} estadoAdjunto={estadoAdjunto} />
                 </td>
-                <td>
-                  <span className={`estado ${item.estado}`}>
-                    <i />
+                <td className={CELDA}>
+                  <span className={ESTADO_RRHH[item.estado]}>
+                    <i className={ESTADO_PUNTO} />
                     {estadoLabel[item.estado]}
                   </span>
                 </td>
-                <td>
-                  <div className="rrhh-tabla-acciones">
+                <td className={CELDA}>
+                  <div className={TABLA_ACCIONES}>
                     <button
                   className="btn-outline-sm"
                   type="button"
@@ -125,42 +126,42 @@ export default function TablaRrhh({ cargando, error, onReintentar, items, tab, e
           la tabla se oculta en pantallas de celular (ver responsive.css)
           y esta lista de tarjetas la reemplaza, porque una tabla de 6-7
           columnas con scroll horizontal es incómoda de leer en un celular. */}
-      <div className="rrhh-cards-mobile">
+      <div className={TARJETAS}>
         {items.map((item) => (
-          <div className="rrhh-mobile-card" key={item.id}>
-            <div className="rrhh-mobile-card-top">
-              <div className="worker">
-                <div className="mini-avatar">{item.iniciales}</div>
-                <span>{item.trabajador}</span>
+          <div className={TARJETA} key={item.id}>
+            <div className={TARJETA_ARRIBA}>
+              <div className={TRABAJADOR_TARJETA}>
+                <div className={AVATAR}>{item.iniciales}</div>
+                <span className={TRABAJADOR_NOMBRE_TARJETA}>{item.trabajador}</span>
               </div>
             </div>
 
-            <div className="rrhh-mobile-card-badges">
+            <div className={TARJETA_ETIQUETAS}>
               <span className={`co-badge ${item.empresa}`}>
                 {item.empresa === "corevex" ? "Corevex" : "Electro"}
               </span>
-              <span className={`estado ${item.estado}`}>
-                <i />
+              <span className={ESTADO_RRHH[item.estado]}>
+                <i className={ESTADO_PUNTO} />
                 {estadoLabel[item.estado]}
               </span>
             </div>
 
-            <div className="rrhh-mobile-card-datos">
+            <div className={TARJETA_DATOS}>
               <div>
-                <span className="rrhh-mobile-label">Tipo</span>
-                <p>{item.tipo}</p>
+                <span className={ETIQUETA}>Tipo</span>
+                <p className={TARJETA_VALOR}>{item.tipo}</p>
               </div>
               <div>
-                <span className="rrhh-mobile-label">Vence</span>
-                <p>{item.vence}</p>
+                <span className={ETIQUETA}>Vence</span>
+                <p className={TARJETA_VALOR}>{item.vence}</p>
               </div>
             </div>
 
             {/* Documento y acciones al pie: arriba las 3 acciones le dejaban
                 al nombre del trabajador ~70px en un celular de 360px. */}
-            <div className="rrhh-mobile-card-doc">
+            <div className={TARJETA_DOCUMENTO}>
               <CeldaDocumento item={item} tab={tab} onAdjuntarArchivo={onAdjuntarArchivo} estadoAdjunto={estadoAdjunto} />
-              <div className="rrhh-mobile-card-acciones">
+              <div className={TARJETA_ACCIONES}>
                 <button
                   className="btn-outline-sm"
                   type="button"
