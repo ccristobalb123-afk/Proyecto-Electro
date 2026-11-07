@@ -9,8 +9,8 @@
    Campos con el cursor de "trabajando". Varias etiquetas fijan
    cursor: pointer en reglas sin capa de cada pantalla (.gasto-documento__botones
    label en Finanzas.css, .destino-choice label en Asignacion.css,
-   label.tipo-check en Operaciones.css, las de Administracion.css…), así que
-   una clase no les ganaría. */
+   label.tipo-check en Operaciones.css…), así que una clase no les
+   ganaría. */
 .modal-cuerpo:disabled :is(input, select, textarea, label) {
   cursor: progress;
 }

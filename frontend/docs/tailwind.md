@@ -289,15 +289,15 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Visor de archivos | `VisorArchivo.jsx`, variante «visor» de `Modal.jsx` (`FONDO_VISOR`, `CAJA_VISOR`, `TITULO_VISOR`), `ACCIONES_VISOR` en `clasesModal.js` | `VisorArchivo.css`: solo los `@keyframes` de entrada del fondo y del visor. El botón «Ver archivo» (`BotonVerArchivo`) ya no usa la regla `:where(...)` (regla 10) |
 | Foto ampliada | `Lightbox.jsx` | ninguno (`Lightbox.css` se eliminó). Gancho: `lightbox-close` (`responsive.css`) |
 | Sesiones y dispositivos | `SesionesModal.jsx` | ninguno (`SesionesModal.css` se eliminó) |
+| Administración (lista de usuarios, tarjetas, formulario de usuario y contraseña generada) | `Administracion.jsx`, `ModalPasswordGenerada.jsx` | `Administracion.css`: solo el cursor de mano de la casilla SuperAdmin mientras se guarda (`.form-field label.superadmin-toggle`: le gana a la regla del cursor «trabajando» de `Modal.css`, sin capa y con la misma especificidad, por venir después; una clase perdería). Se borraron reglas sin uso (`.rol-choice`, `.rol-generico`, `.rol-hint`). Ganchos: `usuarios-grid`, `usuario-card-footer`, `usuario-tu-tag`, `modulos-check`, `empresas-check` (`responsive.css`), `usuario-card` (`tarjetas.css`: el borde suave sigue ahí) y `superadmin-toggle`. El texto del botón «Nuevo usuario» (`.topbar-accion-texto`) sigue en `AppShell.css`: lo comparten las demás pantallas |
 
 **Sin migrar** (todo su estilo sigue en CSS):
 
 - **Pantallas:** `Rrhh.css`, `Operaciones.css` (+
-  `EquiposCards.css`, `VehiculosCards.css`, `Asignacion.css`), `Finanzas.css`,
-  `Administracion.css`.
+  `EquiposCards.css`, `VehiculosCards.css`, `Asignacion.css`), `Finanzas.css`.
 - **Formularios de cada pantalla:** sus campos ya usan las clases de
   `clasesModal.js`, pero las reglas propias de la pantalla (`Rrhh.css`,
-  `Operaciones.css`, `Finanzas.css`, `Administracion.css`, `Asignacion.css`)
+  `Operaciones.css`, `Finanzas.css`, `Asignacion.css`)
   siguen en CSS hasta que se migre cada pantalla.
 - **Componentes con reglas en CSS que todavía no se migra** (se dejan para
   migrarlos junto con ese CSS):

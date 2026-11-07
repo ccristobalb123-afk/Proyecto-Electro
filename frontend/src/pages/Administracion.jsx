@@ -19,6 +19,56 @@ import EstadoError from "../components/shared/EstadoError";
 import "./Administracion.css";
 import { CAMPO, ERROR_CAMPO } from "../components/shared/clasesModal";
 
+// ---------- Tarjetas de usuario ----------
+// Ganchos que se quedan con su nombre: usuarios-grid (responsive.css: una
+// columna en celular), usuario-card (tarjetas.css: el borde suave lo pone
+// ahí), usuario-card-footer y usuario-tu-tag (responsive.css: acciones en
+// cuadrícula de 2 columnas en celular). En celular (max-md:) el usuario y el
+// correo se leen completos: "SuperAdmin" baja debajo del nombre, alineado con
+// él (avatar 38px + 10px de separación = 48px).
+const GRILLA = "usuarios-grid grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4";
+const TARJETA = "usuario-card flex flex-col rounded-lg border border-border [background:var(--card)] [box-shadow:var(--shadow-sm)]";
+const TARJETA_INACTIVA = "opacity-60";
+const TARJETA_ARRIBA = "flex items-start gap-2.5 px-4 pt-4 pb-3.5 max-md:flex-wrap max-md:gap-y-2";
+const AVATAR = "flex size-[38px] shrink-0 items-center justify-center rounded-[50%] bg-copper-tint text-[13px] font-bold text-copper-dark";
+const INFO = "min-w-0 flex-1 max-md:basis-[calc(100%-48px)]";
+const NOMBRE = "text-[14px] font-bold text-text";
+const CORREO = "mt-0.5 truncate text-[12px] text-muted max-md:whitespace-normal max-md:wrap-anywhere";
+const MARCA_SUPERADMIN = "whitespace-nowrap rounded-[999px] bg-copper-tint px-[9px] py-1 text-xs font-bold uppercase tracking-[0.02em] text-copper-dark max-md:ml-12";
+// En celular, empresas y ventanas quedan a 6px entre sí (como entre líneas de
+// ventanas), en vez de leerse como dos bloques.
+const CUERPO = "mt-0.5 flex flex-1 flex-col gap-2 border-t border-t-border px-4 pt-3 pb-3.5 max-md:gap-1.5";
+const ETIQUETA = "block text-xs font-semibold uppercase tracking-[0.05em] text-muted-2";
+const EMPRESAS = "flex flex-wrap gap-1.5";
+const MODULOS = "mt-2 flex flex-wrap gap-1.5 max-md:mt-0";
+const PILDORA = "rounded-[999px] border border-border bg-paper px-[9px] py-[3px] text-xs font-medium text-text";
+const INACTIVO = "self-start rounded-[999px] bg-danger-tint px-[9px] py-[3px] text-xs font-semibold text-danger-dark";
+const PIE = "usuario-card-footer mt-auto flex flex-wrap items-center gap-1.5 border-t border-t-border bg-paper px-4 py-3";
+const TU_CUENTA = "usuario-tu-tag ml-auto text-xs font-semibold text-muted";
+
+// ---------- Formulario de usuario ----------
+// La casilla de SuperAdmin y las de ventanas y empresas van dentro de CAMPO,
+// cuya regla [&_label]:block (0-1-1) les ganaría el display: por eso
+// [&&]:flex (0-2-0). Ganchos: modulos-check y empresas-check (responsive.css:
+// 44px táctiles) y superadmin-toggle (Administracion.css: su cursor).
+const SUPERADMIN = "superadmin-toggle [&&]:flex items-center gap-2.5 rounded border border-border px-3 py-2.5";
+const SUPERADMIN_CASILLA = "h-auto w-auto shrink-0";
+const SUPERADMIN_TEXTO = "flex flex-col";
+const SUPERADMIN_TITULO = "text-[13px]";
+const SUPERADMIN_DETALLE = "text-xs text-muted";
+// En celular, las ventanas van en 2 columnas parejas.
+const VENTANAS = "modulos-check flex flex-wrap gap-2 max-md:grid max-md:grid-cols-2";
+const CASILLA = "[&&]:flex cursor-pointer items-center gap-[7px] rounded border text-[13px]";
+const VENTANA = `${CASILLA} px-3 py-2`;
+const EMPRESAS_CHECK = "empresas-check flex gap-2.5";
+const EMPRESA = `${CASILLA} px-3.5 py-2`;
+const NO_ELEGIDA = "border-border";
+// Elegida: cobre (ventanas y Corevex) o azul de Electro.
+const ELEGIDA = "border-copper bg-copper-tint text-copper-dark";
+const ELEGIDA_ELECTRO = "border-electro bg-electro-tint text-electro-dark";
+const EMPRESAS_AYUDA = "mx-0 mt-0 mb-2 text-[12px] text-muted";
+const TEXTO_MODAL = "mb-1 text-[13.5px] leading-[1.5] text-text";
+
 function iniciales(nombre) {
   return nombre.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 }
@@ -282,34 +332,34 @@ export default function Administracion() {
           onAccion={abrirNuevo}
         />
       ) : (
-        <div className="usuarios-grid">
+        <div className={GRILLA}>
           {usuariosFiltrados.map((u) => (
-            <div className={`usuario-card ${!u.activo ? "usuario-card--inactivo" : ""}`} key={u.id}>
-              <div className="usuario-card-top">
-                <div className="usuario-avatar">{iniciales(u.nombre)}</div>
-                <div className="usuario-card-info">
-                  <div className="usuario-card-nombre">{u.nombre}</div>
-                  <div className="usuario-card-correo">@{u.usuario} · {u.correo}</div>
+            <div className={`${TARJETA} ${!u.activo ? TARJETA_INACTIVA : ""}`} key={u.id}>
+              <div className={TARJETA_ARRIBA}>
+                <div className={AVATAR}>{iniciales(u.nombre)}</div>
+                <div className={INFO}>
+                  <div className={NOMBRE}>{u.nombre}</div>
+                  <div className={CORREO}>@{u.usuario} · {u.correo}</div>
                 </div>
-                {u.esSuperAdmin && <span className="rol-badge rol-superadmin">SuperAdmin</span>}
+                {u.esSuperAdmin && <span className={MARCA_SUPERADMIN}>SuperAdmin</span>}
               </div>
 
-              <div className="usuario-card-body">
-                <span className="usuario-card-label">Acceso a</span>
-                <div className="usuario-card-empresas">
+              <div className={CUERPO}>
+                <span className={ETIQUETA}>Acceso a</span>
+                <div className={EMPRESAS}>
                   {u.empresas.map((e) => (
                     <span key={e} className={`co-badge ${e}`}>{e === "corevex" ? "Corevex" : "Electro"}</span>
                   ))}
                 </div>
-                <div className="usuario-card-modulos">
+                <div className={MODULOS}>
                   {u.modulos.map((m) => (
-                    <span key={m} className="modulo-pill">{nombreModulo(m)}</span>
+                    <span key={m} className={PILDORA}>{nombreModulo(m)}</span>
                   ))}
                 </div>
-                {!u.activo && <span className="usuario-inactivo-tag">Acceso desactivado</span>}
+                {!u.activo && <span className={INACTIVO}>Acceso desactivado</span>}
               </div>
 
-              <div className="usuario-card-footer">
+              <div className={PIE}>
                 {puedeRestablecer(u) && (
                   <button className="btn-outline-sm" type="button" onClick={() => { setErrorReset(""); modalReset.abrir(u); }}>
                     Restablecer contraseña
@@ -339,7 +389,7 @@ export default function Administracion() {
                     </button>
                   </>
                 )}
-                {usuarioActual?.id === u.id && <span className="usuario-tu-tag">Tu cuenta</span>}
+                {usuarioActual?.id === u.id && <span className={TU_CUENTA}>Tu cuenta</span>}
               </div>
             </div>
           ))}
@@ -368,20 +418,20 @@ export default function Administracion() {
             </label>
           </div>
           <div className={CAMPO}>
-            <label className="superadmin-toggle">
-              <input type="checkbox" checked={fUsuario.esSuperAdmin} onChange={(e) => setFUsuario({ ...fUsuario, esSuperAdmin: e.target.checked })} />
-              <div>
-                <strong>SuperAdmin</strong>
-                <span>Control total del sistema — acceso a todas las ventanas y pide código de verificación (MFA)</span>
+            <label className={SUPERADMIN}>
+              <input className={SUPERADMIN_CASILLA} type="checkbox" checked={fUsuario.esSuperAdmin} onChange={(e) => setFUsuario({ ...fUsuario, esSuperAdmin: e.target.checked })} />
+              <div className={SUPERADMIN_TEXTO}>
+                <strong className={SUPERADMIN_TITULO}>SuperAdmin</strong>
+                <span className={SUPERADMIN_DETALLE}>Control total del sistema — acceso a todas las ventanas y pide código de verificación (MFA)</span>
               </div>
             </label>
           </div>
           {!fUsuario.esSuperAdmin && (
             <fieldset className={CAMPO}>
               <legend>Ventanas con acceso</legend>
-              <div className="modulos-check">
+              <div className={VENTANAS}>
                 {MODULOS_DISPONIBLES.map((m) => (
-                  <label key={m.id} className={fUsuario.modulos.includes(m.id) ? "sel" : ""}>
+                  <label key={m.id} className={`${VENTANA} ${fUsuario.modulos.includes(m.id) ? ELEGIDA : NO_ELEGIDA}`}>
                     <input type="checkbox" checked={fUsuario.modulos.includes(m.id)} onChange={() => toggleModulo(m.id)} />
                     {m.nombre}
                   </label>
@@ -391,13 +441,13 @@ export default function Administracion() {
           )}
           <fieldset className={CAMPO}>
             <legend>Empresas con acceso</legend>
-            <p className="empresas-check-hint">Puedes marcar las dos si trabaja para ambas empresas.</p>
-            <div className="empresas-check">
-              <label className={fUsuario.empresas.includes("corevex") ? "sel-corevex" : ""}>
+            <p className={EMPRESAS_AYUDA}>Puedes marcar las dos si trabaja para ambas empresas.</p>
+            <div className={EMPRESAS_CHECK}>
+              <label className={`${EMPRESA} ${fUsuario.empresas.includes("corevex") ? ELEGIDA : NO_ELEGIDA}`}>
                 <input type="checkbox" checked={fUsuario.empresas.includes("corevex")} onChange={() => toggleEmpresa("corevex")} />
                 CorevexSAC
               </label>
-              <label className={fUsuario.empresas.includes("electro") ? "sel-electro" : ""}>
+              <label className={`${EMPRESA} ${fUsuario.empresas.includes("electro") ? ELEGIDA_ELECTRO : NO_ELEGIDA}`}>
                 <input type="checkbox" checked={fUsuario.empresas.includes("electro")} onChange={() => toggleEmpresa("electro")} />
                 ElectroSAC
               </label>
@@ -434,20 +484,20 @@ export default function Administracion() {
             </label>
           </div>
           <div className={CAMPO}>
-            <label className="superadmin-toggle">
-              <input type="checkbox" checked={fUsuarioEditar.esSuperAdmin} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, esSuperAdmin: e.target.checked })} />
-              <div>
-                <strong>SuperAdmin</strong>
-                <span>Control total del sistema — acceso a todas las ventanas y pide código de verificación (MFA)</span>
+            <label className={SUPERADMIN}>
+              <input className={SUPERADMIN_CASILLA} type="checkbox" checked={fUsuarioEditar.esSuperAdmin} onChange={(e) => setFUsuarioEditar({ ...fUsuarioEditar, esSuperAdmin: e.target.checked })} />
+              <div className={SUPERADMIN_TEXTO}>
+                <strong className={SUPERADMIN_TITULO}>SuperAdmin</strong>
+                <span className={SUPERADMIN_DETALLE}>Control total del sistema — acceso a todas las ventanas y pide código de verificación (MFA)</span>
               </div>
             </label>
           </div>
           {!fUsuarioEditar.esSuperAdmin && (
             <fieldset className={CAMPO}>
               <legend>Ventanas con acceso</legend>
-              <div className="modulos-check">
+              <div className={VENTANAS}>
                 {MODULOS_DISPONIBLES.map((m) => (
-                  <label key={m.id} className={fUsuarioEditar.modulos.includes(m.id) ? "sel" : ""}>
+                  <label key={m.id} className={`${VENTANA} ${fUsuarioEditar.modulos.includes(m.id) ? ELEGIDA : NO_ELEGIDA}`}>
                     <input type="checkbox" checked={fUsuarioEditar.modulos.includes(m.id)} onChange={() => toggleModuloEditar(m.id)} />
                     {m.nombre}
                   </label>
@@ -457,13 +507,13 @@ export default function Administracion() {
           )}
           <fieldset className={CAMPO}>
             <legend>Empresas con acceso</legend>
-            <p className="empresas-check-hint">Puedes marcar las dos si trabaja para ambas empresas.</p>
-            <div className="empresas-check">
-              <label className={fUsuarioEditar.empresas.includes("corevex") ? "sel-corevex" : ""}>
+            <p className={EMPRESAS_AYUDA}>Puedes marcar las dos si trabaja para ambas empresas.</p>
+            <div className={EMPRESAS_CHECK}>
+              <label className={`${EMPRESA} ${fUsuarioEditar.empresas.includes("corevex") ? ELEGIDA : NO_ELEGIDA}`}>
                 <input type="checkbox" checked={fUsuarioEditar.empresas.includes("corevex")} onChange={() => toggleEmpresaEditar("corevex")} />
                 CorevexSAC
               </label>
-              <label className={fUsuarioEditar.empresas.includes("electro") ? "sel-electro" : ""}>
+              <label className={`${EMPRESA} ${fUsuarioEditar.empresas.includes("electro") ? ELEGIDA_ELECTRO : NO_ELEGIDA}`}>
                 <input type="checkbox" checked={fUsuarioEditar.empresas.includes("electro")} onChange={() => toggleEmpresaEditar("electro")} />
                 ElectroSAC
               </label>
@@ -486,7 +536,7 @@ export default function Administracion() {
         subtitle={modalReset.dato ? `Se generará una contraseña temporal para ${modalReset.dato.nombre}.` : ""}
         onClose={modalReset.cerrar}
       >
-        <p className="usuario-modal-texto">
+        <p className={TEXTO_MODAL}>
           {modalReset.dato?.nombre} tendrá que cambiarla la próxima vez que inicie sesión.
         </p>
         {errorReset && <p className={ERROR_CAMPO} role="alert">{errorReset}</p>}
