@@ -18,6 +18,7 @@ import EstadoVacio from "../components/shared/EstadoVacio";
 import EstadoError from "../components/shared/EstadoError";
 import "./Administracion.css";
 import { CAMPO, ERROR_CAMPO } from "../components/shared/clasesModal";
+import { CABECERA_TARJETA, ETIQUETA_TARJETA, GRILLA_TARJETAS, PIE_TARJETA, TARJETA as TARJETA_BASE } from "../components/shared/clasesTarjeta";
 
 // ---------- Tarjetas de usuario ----------
 // Ganchos que se quedan con su nombre: usuarios-grid (responsive.css: una
@@ -26,10 +27,10 @@ import { CAMPO, ERROR_CAMPO } from "../components/shared/clasesModal";
 // cuadrícula de 2 columnas en celular). En celular (max-md:) el usuario y el
 // correo se leen completos: "SuperAdmin" baja debajo del nombre, alineado con
 // él (avatar 38px + 10px de separación = 48px).
-const GRILLA = "usuarios-grid grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4";
-const TARJETA = "usuario-card flex flex-col rounded-lg border border-border [background:var(--card)] [box-shadow:var(--shadow-sm)]";
+const GRILLA = `usuarios-grid ${GRILLA_TARJETAS}`;
+const TARJETA = `usuario-card ${TARJETA_BASE}`;
 const TARJETA_INACTIVA = "opacity-60";
-const TARJETA_ARRIBA = "flex items-start gap-2.5 px-4 pt-4 pb-3.5 max-md:flex-wrap max-md:gap-y-2";
+const TARJETA_ARRIBA = `${CABECERA_TARJETA} max-md:flex-wrap max-md:gap-y-2`;
 const AVATAR = "flex size-[38px] shrink-0 items-center justify-center rounded-[50%] bg-copper-tint text-[13px] font-bold text-copper-dark";
 const INFO = "min-w-0 flex-1 max-md:basis-[calc(100%-48px)]";
 const NOMBRE = "text-[14px] font-bold text-text";
@@ -38,12 +39,12 @@ const MARCA_SUPERADMIN = "whitespace-nowrap rounded-[999px] bg-copper-tint px-[9
 // En celular, empresas y ventanas quedan a 6px entre sí (como entre líneas de
 // ventanas), en vez de leerse como dos bloques.
 const CUERPO = "mt-0.5 flex flex-1 flex-col gap-2 border-t border-t-border px-4 pt-3 pb-3.5 max-md:gap-1.5";
-const ETIQUETA = "block text-xs font-semibold uppercase tracking-[0.05em] text-muted-2";
+const ETIQUETA = ETIQUETA_TARJETA;
 const EMPRESAS = "flex flex-wrap gap-1.5";
 const MODULOS = "mt-2 flex flex-wrap gap-1.5 max-md:mt-0";
 const PILDORA = "rounded-[999px] border border-border bg-paper px-[9px] py-[3px] text-xs font-medium text-text";
 const INACTIVO = "self-start rounded-[999px] bg-danger-tint px-[9px] py-[3px] text-xs font-semibold text-danger-dark";
-const PIE = "usuario-card-footer mt-auto flex flex-wrap items-center gap-1.5 border-t border-t-border bg-paper px-4 py-3";
+const PIE = `usuario-card-footer ${PIE_TARJETA}`;
 const TU_CUENTA = "usuario-tu-tag ml-auto text-xs font-semibold text-muted";
 
 // ---------- Formulario de usuario ----------

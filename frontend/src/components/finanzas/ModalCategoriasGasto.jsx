@@ -7,6 +7,11 @@ import { useAccion } from "../../hooks/useAccion";
 import { BotonCarga } from "../shared/Carga";
 import { ERROR_CAMPO } from "../shared/clasesModal";
 
+const LISTA = "mb-2.5 flex flex-col gap-2";
+const ITEM = "flex items-center gap-2 rounded border border-border px-2.5 py-2";
+const ITEM_NOMBRE = "flex-1 text-[13px]";
+const ITEM_CAMPO = "flex-1";
+
 export default function ModalCategoriasGasto({ open, onClose, categorias, onRenombrar, onEliminar }) {
   const { confirmar } = useConfirm();
   const { mostrarToast } = useToast();
@@ -52,12 +57,13 @@ export default function ModalCategoriasGasto({ open, onClose, categorias, onReno
 
   return (
     <Modal ocupado={renombrando} open={open} title="Gestionar categorías de gasto" onClose={onClose}>
-      <div className="categorias-gasto-lista">
+      <div className={LISTA}>
         {categorias.map((nombre) => (
-          <div className="categorias-gasto-item" key={nombre}>
+          <div className={ITEM} key={nombre}>
             {editando === nombre ? (
               <>
                 <input
+                  className={ITEM_CAMPO}
                   autoFocus
                   aria-label={`Nuevo nombre para la categoría ${nombre}`}
                   value={nombreNuevo}
@@ -71,7 +77,7 @@ export default function ModalCategoriasGasto({ open, onClose, categorias, onReno
               </>
             ) : (
               <>
-                <span>{nombre}</span>
+                <span className={ITEM_NOMBRE}>{nombre}</span>
                 <button className="btn-outline-sm" type="button" onClick={() => abrirEdicion(nombre)}>Renombrar</button>
                 <button className="icon-btn icon-btn--peligro" type="button" title="Eliminar categoría" aria-label={`Eliminar la categoría ${nombre}`} onClick={() => eliminar(nombre)}>
                   <IconTrash width={15} height={15} />

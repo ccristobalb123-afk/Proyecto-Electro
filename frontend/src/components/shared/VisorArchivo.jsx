@@ -23,8 +23,9 @@ const ENLACE = "inline-flex items-center justify-center gap-1.5";
 
 // Botón "Ver PDF / Ver imagen" (antes era un <a>): sin fondo, borde ni
 // relleno de botón nativo, con la letra y el color del texto que lo rodea.
-// Quien lo usa le pasa la clase de su pantalla (.doc-chip, .fin-card-archivo
-// --link…), que no tiene capa y manda en color, fondo, relleno y letra.
+// Quien lo usa le pasa la clase de su pantalla: las que no tienen capa
+// (.doc-chip…) mandan en color, fondo, relleno y letra; las de Tailwind
+// (ARCHIVO_VER de Finanzas) suben su especificidad con [&&]: donde chocan.
 const BOTON_VER = "[font:inherit] text-left [border:none] [background:none] p-0 [color:inherit]";
 
 const ETIQUETA_VER = { imagen: "Ver imagen", pdf: "Ver PDF", archivo: "Ver archivo" };

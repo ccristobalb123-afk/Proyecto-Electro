@@ -109,10 +109,12 @@ export const DROPZONE = `dropzone mb-5 cursor-pointer rounded border-[1.5px] p-[
 export const DROPZONE_SIN_ARCHIVO = "border-dashed border-border hover:border-copper hover:[background:var(--gray-tint)] [&_p]:text-muted";
 export const DROPZONE_CON_ARCHIVO = "border-solid border-success [background:var(--success-tint)] [&_p]:text-success-dark";
 
-// Opciones lado a lado (IGV incluido/agregar, Boleta/Factura). En celular,
-// una debajo de la otra. "igv-choice" queda como gancho: responsive.css
-// (44px táctiles), Finanzas.css y Modal.jsx (campos atenuados).
-export const OPCIONES = "igv-choice flex gap-2.5 max-md:flex-col";
+// Opciones lado a lado (IGV incluido/agregar, Boleta/Factura). Con OPCIONES,
+// en celular una debajo de la otra; con OPCIONES_FILA, siempre lado a lado
+// (Boleta / Factura de Nuevo gasto caben aun en 360px). "igv-choice" queda
+// como gancho: responsive.css (44px táctiles) y Modal.jsx (campos atenuados).
+export const OPCIONES_FILA = "igv-choice flex gap-2.5";
+export const OPCIONES = `${OPCIONES_FILA} max-md:flex-col`;
 export const OPCION = "[&&]:flex flex-1 cursor-pointer items-center gap-2 rounded border px-3 py-2.5 text-[13px]";
 export const OPCION_NORMAL = "border-border text-muted";
 export const OPCION_ELEGIDA = "border-copper [background:var(--copper-tint)] text-copper-dark";

@@ -2,7 +2,22 @@ import { Modal, ModalActions, CompanyChoice } from "../shared/Modal";
 import { BotonCarga } from "../shared/Carga";
 import { IconCamera, IconUpload } from "../icons/Icons";
 import { AYUDA_ARCHIVO } from "../../services/uploadsService";
-import { CAJA_CATEGORIA, CAMPO, ERROR_CAMPO, FILA, OBLIGATORIO, OPCION, OPCION_ELEGIDA, OPCION_NORMAL, OPCION_RADIO, OPCIONES, TITULO_CAMPO } from "../shared/clasesModal";
+import { CAJA_CATEGORIA, CAMPO, ERROR_CAMPO, FILA, OBLIGATORIO, OPCION, OPCION_ELEGIDA, OPCION_NORMAL, OPCION_RADIO, OPCIONES_FILA, TITULO_CAMPO } from "../shared/clasesModal";
+
+// Recuadro del documento: punteado sin archivo, verde con archivo. Mientras
+// se guarda, sus botones se atenúan y no responden (modal-cuerpo es el
+// <fieldset> del modal, que se deshabilita).
+const DOCUMENTO = `flex flex-col gap-2.5 rounded border-[1.5px] p-3.5
+  [.modal-cuerpo:disabled_&_label]:pointer-events-none [.modal-cuerpo:disabled_&_label]:opacity-60`;
+const DOCUMENTO_SIN = "border-dashed border-border";
+const DOCUMENTO_CON = "border-solid border-success bg-success-tint";
+const DOCUMENTO_ESTADO = "m-0 text-[13px] wrap-anywhere";
+// "gasto-documento__botones" y "gasto-documento__camara" quedan como gancho
+// de Finanzas.css (separación de los botones y la cámara solo en pantallas
+// táctiles: .btn-outline-sm, sin capa, fija display y gap).
+const BOTONES = "gasto-documento__botones flex flex-wrap gap-2";
+const BOTON_ARCHIVO = "btn-outline-sm cursor-pointer justify-center [flex:1_1_140px]";
+const FALTANTES = "mx-0 mt-0 mb-4 rounded bg-volt-tint px-3 py-2 text-[13px] leading-[1.4] text-volt-dark";
 
 const OPCION_NUEVA = "__nueva__";
 
@@ -27,17 +42,17 @@ function CampoDocumento({ archivoNombre, onElegir }) {
         Foto o PDF del comprobante
         <Obligatorio />
       </span>
-      <div className={`gasto-documento ${archivoNombre ? "has-file" : ""}`} aria-labelledby="doc-gasto-titulo">
-        <p className="gasto-documento__estado" aria-live="polite">
+      <div className={`${DOCUMENTO} ${archivoNombre ? DOCUMENTO_CON : DOCUMENTO_SIN}`} aria-labelledby="doc-gasto-titulo">
+        <p className={`${DOCUMENTO_ESTADO} ${archivoNombre ? "text-success-dark" : "text-muted"}`} aria-live="polite">
           {archivoNombre ? <b>{archivoNombre}</b> : <>Sin documento — {AYUDA_ARCHIVO}</>}
         </p>
-        <div className="gasto-documento__botones">
-          <label className="btn-outline-sm gasto-documento__camara">
+        <div className={BOTONES}>
+          <label className={`${BOTON_ARCHIVO} gasto-documento__camara`}>
             <IconCamera width={15} height={15} />
             {archivoNombre ? "Tomar otra foto" : "Tomar foto"}
             <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="input-oculto" onChange={alElegir} />
           </label>
-          <label className="btn-outline-sm">
+          <label className={BOTON_ARCHIVO}>
             <IconUpload width={15} height={15} />
             {archivoNombre ? "Reemplazar archivo" : "Elegir archivo"}
             <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" className="input-oculto" onChange={alElegir} />
@@ -75,7 +90,7 @@ export default function ModalNuevoGasto({
       <form onSubmit={onSubmit}>
         {/* Gasto anterior al tipo y documento obligatorios: se piden ahora. */}
         {editando && faltantes.length > 0 && (
-          <p className="fin-faltantes" role="status">
+          <p className={FALTANTES} role="status">
             Faltan datos: {faltantes.join(" y ").toLowerCase()}. Complétalos para poder guardar.
           </p>
         )}
@@ -132,7 +147,7 @@ export default function ModalNuevoGasto({
             Tipo de comprobante
             <Obligatorio />
           </legend>
-          <div className={`${OPCIONES} tipo-comprobante-choice`}>
+          <div className={OPCIONES_FILA}>
             {[
               ["boleta", "Boleta"],
               ["factura", "Factura"],

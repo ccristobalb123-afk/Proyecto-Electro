@@ -2,6 +2,7 @@ import { IconUpload } from "../icons/Icons";
 import { BotonVerArchivo } from "../shared/VisorArchivo";
 import { Spinner } from "../shared/Carga";
 import { AYUDA_ARCHIVO } from "../../services/uploadsService";
+import { ARCHIVO_ADJUNTAR, ARCHIVO_SUBIENDO, ARCHIVO_VER } from "./clasesFinanzas";
 
 /**
  * Comprobante de una factura, factura por pagar o gasto: "Ver
@@ -11,7 +12,7 @@ import { AYUDA_ARCHIVO } from "../../services/uploadsService";
 export default function CampoComprobante({ item, estado, onSubir }) {
   if (estado) {
     return (
-      <span className="fin-card-archivo fin-card-archivo--subiendo" role="status">
+      <span className={ARCHIVO_SUBIENDO} role="status">
         <Spinner tamano={13} />
         {estado}
       </span>
@@ -19,13 +20,13 @@ export default function CampoComprobante({ item, estado, onSubir }) {
   }
   if (item.archivo) {
     return (
-      <BotonVerArchivo className="fin-card-archivo fin-card-archivo--link" url={item.archivoUrl} nombre={item.archivoNombre}>
+      <BotonVerArchivo className={ARCHIVO_VER} url={item.archivoUrl} nombre={item.archivoNombre}>
         Ver comprobante
       </BotonVerArchivo>
     );
   }
   return (
-    <label className="fin-card-archivo" title={AYUDA_ARCHIVO}>
+    <label className={ARCHIVO_ADJUNTAR} title={AYUDA_ARCHIVO}>
       <IconUpload width={13} height={13} /> Adjuntar comprobante
       <input
         type="file"

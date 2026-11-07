@@ -3,6 +3,9 @@ import { totalPagado, montoNetoAPagar } from "../../services/facturasService";
 import { soles, formatFecha } from "./finanzasUtils";
 import { BotonCarga } from "../shared/Carga";
 import { CAMPO, ERROR_CAMPO } from "../shared/clasesModal";
+import { ETIQUETA } from "./clasesFinanzas";
+
+const PAGOS_PREVIOS = "mx-0 mt-1 mb-4 border-t border-t-border pt-3";
 
 export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago, errorPago, onClose, onConfirmar, registrando }) {
   return (
@@ -32,8 +35,8 @@ export default function ModalRegistrarPago({ open, pago, montoPago, setMontoPago
           </div>
           {errorPago && <p className={ERROR_CAMPO} role="alert">{errorPago}</p>}
           {pago.doc.pagos.length > 0 && (
-            <div className="fin-pagos-previos">
-              <span className="fin-card-label">Pagos registrados</span>
+            <div className={PAGOS_PREVIOS}>
+              <span className={ETIQUETA}>Pagos registrados</span>
               <Timeline items={pago.doc.pagos.map((p) => ({ titulo: soles(p.monto), fecha: formatFecha(p.fecha) }))} />
             </div>
           )}

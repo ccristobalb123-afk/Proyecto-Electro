@@ -10,6 +10,7 @@ import ModalNuevoGasto from "../components/finanzas/ModalNuevoGasto";
 import ModalCategoriasGasto from "../components/finanzas/ModalCategoriasGasto";
 import ModalRegistrarPago from "../components/finanzas/ModalRegistrarPago";
 import "./Finanzas.css";
+import { PESTANA, PESTANA_ACTIVA, PESTANA_NORMAL, PESTANAS } from "../components/shared/clasesPestanas";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -35,13 +36,13 @@ function Finanzas() {
         </button>
       }
     >
-      <div className="tabs" role="tablist" aria-label="Facturas, facturas por pagar o gastos">
+      <div className={PESTANAS} role="tablist" aria-label="Facturas, facturas por pagar o gastos">
         <button
           id="tab-facturas"
           role="tab"
           aria-selected={f.tab === "facturas"}
           aria-controls="panel-finanzas"
-          className={f.tab === "facturas" ? "active" : ""}
+          className={`${PESTANA} ${f.tab === "facturas" ? PESTANA_ACTIVA : PESTANA_NORMAL}`}
           onClick={() => f.cambiarTab("facturas")}
         >
           Facturas
@@ -51,7 +52,7 @@ function Finanzas() {
           role="tab"
           aria-selected={f.tab === "facturasPagar"}
           aria-controls="panel-finanzas"
-          className={f.tab === "facturasPagar" ? "active" : ""}
+          className={`${PESTANA} ${f.tab === "facturasPagar" ? PESTANA_ACTIVA : PESTANA_NORMAL}`}
           onClick={() => f.cambiarTab("facturasPagar")}
         >
           Facturas por pagar
@@ -61,7 +62,7 @@ function Finanzas() {
           role="tab"
           aria-selected={f.tab === "gastos"}
           aria-controls="panel-finanzas"
-          className={f.tab === "gastos" ? "active" : ""}
+          className={`${PESTANA} ${f.tab === "gastos" ? PESTANA_ACTIVA : PESTANA_NORMAL}`}
           onClick={() => f.cambiarTab("gastos")}
         >
           Gastos

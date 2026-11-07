@@ -5,6 +5,7 @@ import EstadoVacio from "../shared/EstadoVacio";
 import EstadoError from "../shared/EstadoError";
 import { totalPagado, estadoPago, montoNetoAPagar } from "../../services/facturasService";
 import { soles, formatFecha, ESTADO_PAGO_LABEL } from "./finanzasUtils";
+import { CABECERA, CABECERA_TEXTO, CUERPO, DETRACCION, ESTADO_PAGO, ETIQUETA, FECHA, FECHAS, GRILLA, MONTO, MONTO_SALDO, MONTOS, PIE, SUBTITULO, TARJETA, TITULO } from "./clasesFinanzas";
 
 export default function FacturasGrid({ cargando, error, onReintentar, facturas, onNuevo, onSubirComprobante, estadoComprobante, onRegistrarPago, onEditar, onAnular }) {
   if (cargando) return <Loading texto="Cargando facturas…" />;
@@ -21,45 +22,45 @@ export default function FacturasGrid({ cargando, error, onReintentar, facturas, 
   }
 
   return (
-    <div className="fin-grid">
+    <div className={GRILLA}>
       {facturas.map((f) => {
         const estado = estadoPago(f);
         const saldo = montoNetoAPagar(f) - totalPagado(f.pagos);
         return (
-          <div className="fin-card" key={f.id}>
-            <div className="fin-card-header">
-              <div>
-                <div className="fin-card-titulo">{f.cliente}</div>
-                <div className="fin-card-sub">
+          <div className={TARJETA} key={f.id}>
+            <div className={CABECERA}>
+              <div className={CABECERA_TEXTO}>
+                <div className={TITULO}>{f.cliente}</div>
+                <div className={SUBTITULO}>
                   {f.serie}-{f.numero} · <span className={`co-badge ${f.empresa}`}>{f.empresa === "corevex" ? "Corevex" : "Electro"}</span>
                 </div>
               </div>
-              <span className={f.anulada ? "estado-pago anulada" : `estado-pago ${estado}`}>
+              <span className={ESTADO_PAGO[f.anulada ? "anulada" : estado]}>
                 {f.anulada ? "Anulada" : ESTADO_PAGO_LABEL[estado]}
               </span>
             </div>
 
-            <div className="fin-card-body">
-              <div className="fin-card-montos">
+            <div className={CUERPO}>
+              <div className={MONTOS}>
                 <div>
-                  <span className="fin-card-label">Monto total</span>
-                  <span className="fin-card-monto">{soles(f.montoTotal)}</span>
+                  <span className={ETIQUETA}>Monto total</span>
+                  <span className={MONTO}>{soles(f.montoTotal)}</span>
                 </div>
                 {estado !== "pendiente" && (
                   <div>
-                    <span className="fin-card-label">Saldo pendiente</span>
-                    <span className="fin-card-monto fin-card-monto--saldo">{soles(saldo)}</span>
+                    <span className={ETIQUETA}>Saldo pendiente</span>
+                    <span className={MONTO_SALDO}>{soles(saldo)}</span>
                   </div>
                 )}
               </div>
 
-              <div className="fin-card-fechas">
-                <div><span className="fin-card-label">Emisión</span><span>{formatFecha(f.fechaEmision)}</span></div>
-                <div><span className="fin-card-label">Vencimiento</span><span>{formatFecha(f.fechaVencimiento)}</span></div>
+              <div className={FECHAS}>
+                <div className={FECHA}><span className={ETIQUETA}>Emisión</span><span>{formatFecha(f.fechaEmision)}</span></div>
+                <div className={FECHA}><span className={ETIQUETA}>Vencimiento</span><span>{formatFecha(f.fechaVencimiento)}</span></div>
               </div>
 
               {f.catalogoDetraccion && (
-                <span className="fin-tag-detraccion">
+                <span className={DETRACCION}>
                   {f.catalogoDetraccion.codigo} · {f.catalogoDetraccion.descripcion} — {soles(f.montoDetraccion)}
                 </span>
               )}
@@ -67,7 +68,7 @@ export default function FacturasGrid({ cargando, error, onReintentar, facturas, 
               <CampoComprobante item={f} estado={estadoComprobante?.(f.id)} onSubir={onSubirComprobante} />
             </div>
 
-            <div className="fin-card-footer">
+            <div className={PIE}>
               {estado !== "pagado" && !f.anulada && (
                 <button className="btn-outline-sm" type="button" onClick={() => onRegistrarPago("factura", f)}>
                   Registrar pago

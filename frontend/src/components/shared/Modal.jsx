@@ -8,7 +8,7 @@ import { ACCIONES, BOTON_SECUNDARIO, MENSAJE_VACIO, CAMPO, FILA, AVISO, AVISO_RE
 // - modal-overlay y open: ToastContainer.css (body:has(.modal-overlay.open)).
 // - modal--{variant}: motion.css (seguridad).
 // - modal-electro: responsive.css (.modal-electro .form-row…).
-// - modal-cuerpo: Finanzas.css (.modal-cuerpo:disabled .gasto-documento label).
+// - modal-cuerpo: ModalNuevoGasto.jsx (documento del gasto atenuado mientras se guarda).
 // Las variantes («seguridad», «visor») cambian propiedades que la base
 // también fija: por eso cada una tiene su constante y no se suman dos clases
 // de la misma propiedad en un elemento.
