@@ -14,50 +14,14 @@
   cursor: progress;
 }
 
-/* ----- Campos (bloqueado) -----
-   La etiqueta general del campo (CAMPO, antes ".form-field label") le
-   ganaba por especificidad a .btn-outline-sm (buttons.css). Esa regla no
-   tiene capa, así que ahora le ganaría a la clase: se deja solo lo que
-   pisaría. Botones de archivo de Nuevo gasto (letra). (El adjunto de cada
-   documento del vehículo ya es una clase, CHIP_DOC: la etiqueta del campo le
-   gana sola.) */
-.form-field label.btn-outline-sm {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-/* Botones "Tomar foto" / "Elegir archivo" de las fotos del equipo:
-   .btn-outline-sm (buttons.css, sin capa) fija display, alineación,
-   separación, relleno y letra. El cursor de mano va acá porque, mientras se
-   guarda, esta regla le ganaba al cursor de "trabajando" de arriba (va
-   después). El resto va en clases (FotosEquipo.jsx). */
+/* ----- Fotos del equipo (bloqueado) -----
+   "Tomar foto" / "Elegir archivo" conservan el cursor de mano mientras se
+   guarda: esta regla le gana por venir después a la del cursor de
+   "trabajando" de arriba (las dos sin capa, misma especificidad); como clase
+   perdería contra ella. El resto de esos botones va en clases
+   (FotosEquipo.jsx). */
 .foto-equipo__botones label.btn-outline-sm {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding-inline: 8px;
-  font-size: 12px;
-  font-weight: 600;
   cursor: pointer;
-}
-
-/* "Mantener la actual": .link-button (buttons.css, sin capa) fija la
-   alineación y la letra. */
-.foto-equipo__mantener {
-  align-self: center;
-  font-size: var(--fs-sm);
-}
-
-/* La cámara solo tiene sentido en celulares y tablets (como en Gastos):
-   .btn-outline-sm fija el display. */
-.foto-equipo__botones label.foto-equipo__camara {
-  display: none;
-}
-
-@media (pointer: coarse) {
-  .foto-equipo__botones label.foto-equipo__camara {
-    display: inline-flex;
-  }
 }
 
 /* ----- Variante «seguridad» (cambio de contraseña) -----

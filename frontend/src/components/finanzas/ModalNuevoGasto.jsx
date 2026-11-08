@@ -12,13 +12,15 @@ const DOCUMENTO = `flex flex-col gap-2.5 rounded border-[1.5px] p-3.5
 const DOCUMENTO_SIN = "border-dashed border-border";
 const DOCUMENTO_CON = "border-solid border-success bg-success-tint";
 const DOCUMENTO_ESTADO = "m-0 text-[13px] wrap-anywhere";
-// "gasto-documento__botones" y "gasto-documento__camara" quedan como gancho
-// de Finanzas.css (separación de los botones y la cámara solo en pantallas
-// táctiles: .btn-outline-sm, sin capa, fija display y gap).
-const BOTONES = "gasto-documento__botones flex flex-wrap gap-2";
-// [&&]:inline-flex: la etiqueta general del campo (CAMPO, [&_label]:block)
-// ahora le gana a .btn-outline-sm, que está en la capa "components".
-const BOTON_ARCHIVO = "btn-outline-sm [&&]:inline-flex cursor-pointer justify-center [flex:1_1_140px]";
+const BOTONES = "flex flex-wrap gap-2";
+// "Tomar foto" / "Elegir archivo" (.btn-outline-sm), 6px entre ícono y texto.
+// El display va con [&&]: porque la etiqueta general del campo (CAMPO,
+// [&_label]:block, 0-1-1) le ganaría a una clase sola (0-1-0). "Tomar foto"
+// solo se muestra en pantallas táctiles: la cámara solo tiene sentido en
+// celulares y tablets.
+const BOTON_ARCHIVO_BASE = "btn-outline-sm cursor-pointer justify-center gap-1.5 [flex:1_1_140px]";
+const BOTON_ARCHIVO = `${BOTON_ARCHIVO_BASE} [&&]:inline-flex`;
+const BOTON_CAMARA = `${BOTON_ARCHIVO_BASE} [&&]:hidden pointer-coarse:[&&]:inline-flex`;
 const FALTANTES = "mx-0 mt-0 mb-4 rounded bg-volt-tint px-3 py-2 text-[13px] leading-[1.4] text-volt-dark";
 
 const OPCION_NUEVA = "__nueva__";
@@ -49,7 +51,7 @@ function CampoDocumento({ archivoNombre, onElegir }) {
           {archivoNombre ? <b>{archivoNombre}</b> : <>Sin documento — {AYUDA_ARCHIVO}</>}
         </p>
         <div className={BOTONES}>
-          <label className={`${BOTON_ARCHIVO} gasto-documento__camara`}>
+          <label className={BOTON_CAMARA}>
             <IconCamera width={15} height={15} />
             {archivoNombre ? "Tomar otra foto" : "Tomar foto"}
             <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="input-oculto" onChange={alElegir} />

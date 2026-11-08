@@ -1,27 +1,11 @@
 /* ============================================================
    Estados de carga: el spinner y BotonCarga van con clases de Tailwind en
-   Carga.jsx. Acá queda lo que una clase no puede expresar (el @keyframes)
-   y lo que no puede cambiar porque otra regla sin capa ya lo fija en el
-   mismo botón (regla 9 de docs/tailwind.md).
+   Carga.jsx. Acá queda lo que una clase no puede expresar: el @keyframes
+   del giro.
    ============================================================ */
 
 @keyframes spinner-girar {
   to {
     transform: rotate(360deg);
   }
-}
-
-/* BotonCarga lleva .btn-primary (tokens.css), .btn-danger o .btn-outline-sm
-   (buttons.css), sin capa: fijan display, alineación y separación, y su
-   :disabled atenúa el botón. Ocupado no es lo mismo que deshabilitado por el
-   usuario: mantiene su color normal y el cursor de "trabajando". */
-.boton-carga {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.boton-carga[aria-busy="true"]:disabled {
-  opacity: 1;
-  cursor: progress;
 }

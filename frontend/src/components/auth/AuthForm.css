@@ -2,8 +2,6 @@
    Contenido de los formularios del acceso (dentro de AuthShell).
    Los estilos van con clases de Tailwind (components/auth/clasesAuth.js).
    Acá queda solo (ver "Estado de la migración" en docs/tailwind.md):
-   - el botón principal: .btn-primary (tokens.css) es una regla sin capa
-     que fija alto, letra, transición… y le gana a cualquier clase;
    - el margen de PasswordField dentro del acceso: es un ajuste de
      contexto sobre un componente compartido (en el modal lleva otro);
    - la animación del mensaje de error (@keyframes; la usa la clase
@@ -21,19 +19,4 @@
     opacity: 0;
     transform: translateY(-4px);
   }
-}
-
-/* ---------- Botón principal ---------- */
-.auth-form .btn-primary {
-  width: 100%;
-  height: 46px;
-  font-size: 14px;
-  justify-content: center;
-  /* Responde al presionar (no al soltar) — se declara en la base para que
-     también vuelva suave */
-  transition: transform 100ms var(--ease-out), background 0.15s ease;
-}
-
-.auth-form .btn-primary:active:not(:disabled) {
-  transform: scale(0.97);
 }

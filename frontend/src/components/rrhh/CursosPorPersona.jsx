@@ -14,11 +14,10 @@ const NOMBRE_EMPRESA_CORTO = { corevex: "Corevex", electro: "Electro" };
 // Acá va lo que solo usa RRHH.
 const EMPRESAS = "flex flex-wrap gap-1.5";
 const EMO = "inline-flex items-center gap-1";
-// "persona-cursos__acciones" queda como gancho de fichas.css (display,
-// alineación, separación y letra de los botones: .btn-primary y
-// .btn-outline-sm no tienen capa).
-const ACCIONES = "persona-cursos__acciones flex flex-wrap gap-2";
-const ACCION = "min-h-11";
+// "Agregar curso" (.btn-primary) y "Registrar EMO" (.btn-outline-sm): mismo
+// alto y letra, ícono y texto con 6px entre sí.
+const ACCIONES = "flex flex-wrap gap-2";
+const ACCION = "inline-flex min-h-11 items-center gap-1.5 text-[13.5px]";
 const VACIO = "m-0 text-sm text-muted";
 const CURSO = "inline-flex min-w-0 flex-col items-start gap-0.5";
 const CURSO_NOMBRE = "font-semibold text-text wrap-anywhere";

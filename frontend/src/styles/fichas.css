@@ -13,13 +13,3 @@
   outline: 2px solid var(--copper);
   outline-offset: -2px;
 }
-
-/* Botones de la ficha de RRHH ("Agregar curso", "Registrar EMO"): .btn-primary
-   y .btn-outline-sm (sin capa) fijan display, alineación, separación y letra.
-   El contenedor y el alto mínimo van en clases (CursosPorPersona.jsx). */
-.persona-cursos__acciones :is(.btn-primary, .btn-outline-sm) {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-}

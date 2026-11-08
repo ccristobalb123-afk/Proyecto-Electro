@@ -6,12 +6,18 @@
  * color del enlace «Volver» van acá: base.css y etiquetas.css están en la
  * capa "base" y las clases les ganan (ver docs/tailwind.md).
  *
- * "auth-form" no da estilo por sí sola: es el gancho de AuthForm.css
- * (.btn-primary y el margen de .password-field dentro del acceso) y de
+ * "auth-form" lleva además el botón principal (FORM, abajo) y es el gancho
+ * de AuthForm.css (el margen de .password-field dentro del acceso) y de
  * motion.css.
  */
 
-export const FORM = "auth-form w-full";
+// Botón principal del acceso (.btn-primary): a todo el ancho, 46px, y
+// responde al presionar (no al soltar) con un leve achique; la transición se
+// declara en la base para que también vuelva suave. motion.css lo quita con
+// movimiento reducido (html .auth-form .btn-primary:active…): "auth-form" y
+// "btn-primary" quedan como gancho.
+export const FORM = `auth-form w-full [&_.btn-primary]:h-[46px] [&_.btn-primary]:w-full [&_.btn-primary]:justify-center [&_.btn-primary]:text-[14px]
+  [&_.btn-primary]:[transition:transform_100ms_var(--ease-out),background_0.15s_ease] [&_.btn-primary:active:not(:disabled)]:[transform:scale(0.97)]`;
 
 // Título del paso: recibe el foco por código al cambiar de paso; no es un
 // control, así que sin anillo.

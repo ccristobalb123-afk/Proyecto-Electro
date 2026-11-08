@@ -17,7 +17,6 @@ import CambiarPasswordModal from "../shared/CambiarPasswordModal";
 import SesionesModal from "../shared/SesionesModal";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import "./AppShell.css";
 
 /* Estilos con Tailwind (ver docs/tailwind.md). Las clases sin utilidades que
    quedan son ganchos de reglas sin capa de otros archivos:
@@ -26,12 +25,21 @@ import "./AppShell.css";
      táctil de 44px (responsive.css);
    - main: reglas de cada pantalla con ".main" delante (responsive.css,
      tarjetas.css);
-   - topbar-right: el botón de acción de cada pantalla (.btn-primary, sin
-     capa) se ajusta en AppShell.css.
+   - topbar-accion-texto: el texto del botón de acción de cada pantalla (el
+     <span> está en las pantallas); TOPBAR_ACCION lo oculta en ≤400px.
    max-lg: = tablet y celular (≤960px), cuando el menú lateral pasa a panel
    deslizante. [background:…], [border:none]… copian la propiedad abreviada
    de antes para que el estilo calculado quede igual. */
 const ALTO_PANTALLA = "h-screen supports-[height:100dvh]:h-dvh";
+// Botón de acción de cada pantalla ("+ Nueva factura por pagar"): sin partir
+// el texto. En celulares angostos (≤400px) el texto le quitaba casi todo el
+// ancho al título: queda solo el "+" en un botón cuadrado de 44px y el texto
+// sigue disponible para lectores de pantalla (como .sr-only).
+const TOPBAR_ACCION = `flex flex-none items-center gap-4.5 [&_.btn-primary]:whitespace-nowrap
+  max-[401px]:[&_.btn-primary]:h-(--control-height-lg) max-[401px]:[&_.btn-primary]:w-(--control-height-lg) max-[401px]:[&_.btn-primary]:p-0
+  max-[401px]:[&_.btn-primary]:justify-center max-[401px]:[&_.topbar-accion-texto]:absolute max-[401px]:[&_.topbar-accion-texto]:-m-px
+  max-[401px]:[&_.topbar-accion-texto]:size-px max-[401px]:[&_.topbar-accion-texto]:overflow-hidden
+  max-[401px]:[&_.topbar-accion-texto]:[clip:rect(0,0,0,0)] max-[401px]:[&_.topbar-accion-texto]:whitespace-nowrap`;
 const SIDEBAR = `sidebar [flex:0_0_var(--sidebar-width)] [background:var(--ink)] text-on-ink flex flex-col sticky top-0 ${ALTO_PANTALLA}
   overflow-y-auto overscroll-contain
   max-lg:fixed max-lg:[inset:0_auto_0_0] max-lg:z-(--z-drawer) max-lg:w-[min(var(--sidebar-width),82vw)]
@@ -204,7 +212,7 @@ export function AppShell({ title, topbarExtra, children }) {
             </button>
             <h1 className="m-0 truncate font-display text-[16px] font-semibold">{title}</h1>
           </div>
-          <div className="topbar-right flex flex-none items-center gap-4.5">{topbarExtra}</div>
+          <div className={TOPBAR_ACCION}>{topbarExtra}</div>
         </header>
         <main className={MAIN}>{children}</main>
       </div>

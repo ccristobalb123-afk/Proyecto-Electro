@@ -23,9 +23,12 @@ import "../components/operaciones/EquiposCards.css";
 import { useLocation } from "react-router-dom";
 import { PESTANA, PESTANA_ACTIVA, PESTANA_NORMAL, PESTANAS } from "../components/shared/clasesPestanas";
 
-// "Tipos de equipo", a la derecha sobre las tarjetas. "equipos-barra" queda
-// como gancho de EquiposCards.css (borde del botón: .btn-outline-sm, sin capa).
-const BARRA_EQUIPOS = "equipos-barra mx-0 -mt-1.5 mb-3.5 flex justify-end";
+// "Tipos de equipo", a la derecha sobre las tarjetas. El botón queda
+// directamente sobre --fondo-pagina: con --border (1.15:1) su contorno no
+// llegaba a 3:1; --border-control da 3.0:1 y el hover (--electro) 3.3:1. El
+// hover se repite acá porque border-control le gana al de .btn-outline-sm.
+const BARRA_EQUIPOS = "mx-0 -mt-1.5 mb-3.5 flex justify-end";
+const BOTON_TIPOS = "btn-outline-sm border-control hover:border-electro";
 
 // Si se llega con otros parámetros (?tab=…&q=…) estando ya en esta
 // página — por ejemplo, tocando un aviso en la campana —, se vuelve a
@@ -140,7 +143,7 @@ function Operaciones() {
 
       {o.tab === "equipos" && (
         <div className={BARRA_EQUIPOS}>
-          <button className="btn-outline-sm" type="button" onClick={() => setTiposAbierto(true)}>
+          <button className={BOTON_TIPOS} type="button" onClick={() => setTiposAbierto(true)}>
             Tipos de equipo
           </button>
         </div>

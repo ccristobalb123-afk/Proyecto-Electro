@@ -17,7 +17,6 @@ import EstadoVacio from "../components/shared/EstadoVacio";
 import EstadoError from "../components/shared/EstadoError";
 import EtiquetaUrgencia from "../components/shared/EtiquetaUrgencia";
 import { Link } from "react-router-dom";
-import "./Dashboard.css";
 
 const ICONO_KPI = [IconContrato, IconWrench, IconInvoice, IconBell];
 // "Contratos por vencer" en ámbar: es un aviso (por vencer), no una acción.
@@ -27,9 +26,10 @@ const TONE_KPI = ["volt", "success", "copper", "danger"];
    que quedan son ganchos de reglas sin capa que siguen en otros archivos:
    - kpi-grid, cols: columnas en tablet/celular (responsive.css);
    - kpi-card, panel: color del borde suave (tarjetas.css; acá solo el ancho);
-   - month-select: alto táctil de 44px (responsive.css);
-   - panel-head__accion: Dashboard.css (lo que fija .link-button, regla sin
-     capa, en ese elemento).
+   - month-select: alto táctil de 44px (responsive.css).
+   "Ver todos" (.link-button) va sin margen arriba y con letra --fs-sm; en
+   pantallas táctiles manda el margen de la regla táctil de responsive.css,
+   como antes.
    [background:…] y [box-shadow:…] en vez de bg-… / shadow-…: copian el
    "background:" abreviado y la sombra de antes, para que el estilo calculado
    quede igual. max-md: = celular (≤640px), max-lg: = tablet (≤960px). */
@@ -171,7 +171,7 @@ export default function Dashboard() {
           <div className={PANEL_HEAD}>
             <h2 className={PANEL_TITULO}>Vencimientos</h2>
             {proximosVencimientos.length > AVISOS_VISIBLES && (
-              <button className="link-button panel-head__accion" type="button" onClick={() => setVerTodos((v) => !v)} aria-expanded={verTodos}>
+              <button className="link-button mt-0 text-sm" type="button" onClick={() => setVerTodos((v) => !v)} aria-expanded={verTodos}>
                 {verTodos ? "Ver menos" : `Ver todos (${proximosVencimientos.length})`}
               </button>
             )}

@@ -12,8 +12,8 @@
  *   equipo-card-select: responsive.css (título más chico, acciones en
  *   cuadrícula y 44px táctiles en celular).
  * - equipo-card-foto-btn: motion.css (sin zoom con movimiento reducido).
- * - equipo-faltantes y equipo-vencido: EquiposCards.css (el botón de
- *   adentro es .link-button, sin capa).
+ * - equipo-faltantes y equipo-vencido: EquiposCards.css (margen superior del
+ *   botón de adentro, ver ahí).
  */
 import { ESTADO_BASE, ESTADO_PUNTO, ETIQUETA_FORMA } from "../shared/clasesTarjeta";
 
@@ -80,6 +80,10 @@ export const INSPECCIONES = `${DOS_COLUMNAS} text-[12.5px] text-text`;
 const AVISO = "mx-0 mt-0 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded px-3 py-2 text-sm leading-[1.4]";
 export const AVISO_FALTAN = `equipo-faltantes ${AVISO} bg-volt-tint text-volt-dark`;
 export const AVISO_VENCIDO = `equipo-vencido ${AVISO} bg-danger-tint text-danger-dark`;
+// "Completar datos" / "Renovar fechas" (.link-button) con la letra y el color
+// del aviso.
+export const AVISO_FALTAN_BOTON = "link-button text-sm font-semibold text-volt-dark";
+export const AVISO_VENCIDO_BOTON = "link-button text-sm font-semibold text-danger-dark";
 
 // Pie: "Actualizando…", acciones y "Cambiar estado".
 export const PIE = `mt-auto flex flex-col gap-2.5 border-t border-t-border bg-paper py-3 ${LATERAL}`;

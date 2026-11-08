@@ -133,7 +133,7 @@ export default function EquiposGrid({
                             ? `Sigue asignado a ${eq.responsable}, pero no se puede usar: devuélvelo o renueva sus fechas.`
                             : "No se puede asignar ni usar hasta renovar sus fechas."}
                         </span>
-                        <button className="link-button" type="button" onClick={() => onRenovar(eq)}>
+                        <button className={C.AVISO_VENCIDO_BOTON} type="button" onClick={() => onRenovar(eq)}>
                           Renovar fechas
                         </button>
                       </div>
@@ -169,7 +169,7 @@ export default function EquiposGrid({
                     {eq.faltantes?.length > 0 && (
                       <div className={C.AVISO_FALTAN}>
                         <span>Faltan datos: {eq.faltantes.join(", ")}.</span>
-                        <button className="link-button" type="button" onClick={() => onEditar(eq)}>
+                        <button className={C.AVISO_FALTAN_BOTON} type="button" onClick={() => onEditar(eq)}>
                           Completar datos
                         </button>
                       </div>

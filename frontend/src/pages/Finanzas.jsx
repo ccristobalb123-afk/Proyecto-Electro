@@ -9,7 +9,6 @@ import ModalNuevaFacturaPagar from "../components/finanzas/ModalNuevaFacturaPaga
 import ModalNuevoGasto from "../components/finanzas/ModalNuevoGasto";
 import ModalCategoriasGasto from "../components/finanzas/ModalCategoriasGasto";
 import ModalRegistrarPago from "../components/finanzas/ModalRegistrarPago";
-import "./Finanzas.css";
 import { PESTANA, PESTANA_ACTIVA, PESTANA_NORMAL, PESTANAS } from "../components/shared/clasesPestanas";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";

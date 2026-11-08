@@ -12,6 +12,12 @@ export function Spinner({ tamano = 15, className = "" }) {
   return <IconLoader className={`${GIRO} ${className}`} width={tamano} height={tamano} aria-hidden="true" />;
 }
 
+// Botón con carga: lleva .btn-primary, .btn-danger o .btn-outline-sm (capa
+// "components"); estas clases le ganan. Ocupado no es lo mismo que
+// deshabilitado por el usuario: mantiene su color normal (sin la atenuación
+// de :disabled) y el cursor de "trabajando".
+const BOTON_CARGA = "inline-flex items-center justify-center gap-2 aria-busy:disabled:cursor-progress aria-busy:disabled:opacity-100";
+
 /**
  * Botón que escribe en el backend. Mientras `cargando`:
  *   - se deshabilita (evita el doble envío y los registros duplicados),
@@ -50,7 +56,7 @@ export function BotonCarga({
       ref={ref}
       style={style}
       type={type}
-      className={`${className} boton-carga justify-center`}
+      className={`${className} ${BOTON_CARGA}`}
       disabled={disabled || cargando}
       aria-busy={cargando || undefined}
       {...resto}

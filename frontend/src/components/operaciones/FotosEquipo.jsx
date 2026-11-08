@@ -20,12 +20,18 @@ const VACIO = `mb-0 flex h-full w-full cursor-default flex-col items-center just
   [background:var(--paper)] text-[12px] font-medium`;
 const VACIO_FALTA = "border-danger text-danger-dark";
 const VACIO_PROCESANDO = "border-border text-muted";
-// Botones "Tomar foto" / "Elegir archivo". [&&]:m-0 le gana al margen de la
-// etiqueta general de CAMPO. "foto-equipo__botones", "foto-equipo__camara" y
-// "foto-equipo-slot" quedan como gancho: Modal.css (lo que fija
-// .btn-outline-sm, sin capa, y el cursor) y los campos atenuados mientras se
+// Botones "Tomar foto" / "Elegir archivo" (.btn-outline-sm): más angostos,
+// letra de 12px y 6px entre ícono y texto. Display, margen y letra van con
+// [&&]: porque la etiqueta general de CAMPO ([&_label], 0-1-1) le ganaría a
+// una clase sola. "Tomar foto" solo se muestra en pantallas táctiles (como en
+// Gastos). "foto-equipo__botones" y "foto-equipo-slot" quedan como gancho:
+// Modal.css (el cursor mientras se guarda) y los campos atenuados mientras se
 // guarda.
-const BOTON = "[&&]:m-0 justify-center whitespace-nowrap";
+const BOTON_BASE = "[&&]:m-0 items-center justify-center gap-1.5 whitespace-nowrap px-2 [&&]:text-[12px] [&&]:font-semibold";
+const BOTON = `${BOTON_BASE} [&&]:inline-flex`;
+const BOTON_CAMARA = `${BOTON_BASE} [&&]:hidden pointer-coarse:[&&]:inline-flex`;
+// "Mantener la actual" (.link-button): centrado y con letra --fs-sm.
+const BOTON_MANTENER = "link-button self-center text-sm";
 
 /**
  * Las 2 fotos de un equipo — siempre 2. Compartido por "Nuevo equipo",
@@ -97,7 +103,7 @@ export default function FotosEquipo({ actuales = [], valor, onChange, onProcesan
                 )}
               </div>
               <div className="foto-equipo__botones flex flex-col gap-1.5">
-                <label className={`btn-outline-sm foto-equipo__camara ${BOTON}`}>
+                <label className={`btn-outline-sm ${BOTON_CAMARA}`}>
                   <IconCamera width={15} height={15} />
                   Tomar foto
                   <input type="file" accept="image/*" capture="environment" className="input-oculto" disabled={procesando !== null} onChange={alElegir(indice)} />
@@ -108,7 +114,7 @@ export default function FotosEquipo({ actuales = [], valor, onChange, onProcesan
                   <input type="file" accept="image/*" className="input-oculto" disabled={procesando !== null} onChange={alElegir(indice)} />
                 </label>
                 {nueva && actual && (
-                  <button type="button" className="link-button foto-equipo__mantener" onClick={() => onChange(valor.map((x, i) => (i === indice ? MANTENER : x)))}>
+                  <button type="button" className={BOTON_MANTENER} onClick={() => onChange(valor.map((x, i) => (i === indice ? MANTENER : x)))}>
                     Mantener la actual
                   </button>
                 )}

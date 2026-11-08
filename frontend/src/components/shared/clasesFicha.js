@@ -8,8 +8,6 @@
  *   la ficha cerrada; abierta lleva el azul marino).
  * - persona-cursos__cabecera: fichas.css (anillo de foco: la regla global de
  *   foco de tokens.css no tiene capa y le ganaría a una clase).
- * - persona-cursos__acciones: fichas.css (botones de RRHH, por .btn-primary
- *   y .btn-outline-sm sin capa).
  */
 
 // Lista de fichas y lista de registros dentro de una ficha.

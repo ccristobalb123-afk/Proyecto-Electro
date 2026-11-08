@@ -4,9 +4,8 @@ import "./AuthShell.css";
 import "./AuthForm.css";
 
 // Estilos con Tailwind (ver docs/tailwind.md). AuthShell.css solo tiene las
-// animaciones de entrada (@keyframes); AuthForm.css, lo que .btn-primary
-// fija en el botón principal (regla sin capa que le gana a cualquier clase)
-// y el margen del campo de contraseña compartido dentro del acceso.
+// animaciones de entrada (@keyframes); AuthForm.css, el margen del campo de
+// contraseña compartido dentro del acceso y el @keyframes del error.
 //
 // El cambio de diseño de este acceso es en 960px (no en lg: = 961px):
 // max-[960px]: = hasta 959px, igual que el "@media (max-width: 959px)" de
