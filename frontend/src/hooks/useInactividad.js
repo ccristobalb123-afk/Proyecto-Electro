@@ -12,6 +12,12 @@ const INTERVALO_LATIDO_MS = 30_000;
 const REVISION_MS = 1000;
 // Aviso previo (no bloqueante) antes del límite absoluto de la sesión.
 const AVISO_MAXIMA_MS = 5 * 60_000;
+// Si el aviso de actividad falla (sin red, servidor caído), se reintenta
+// solo, con espera creciente; mientras tanto la actividad no manda nada.
+const ESPERAS_REINTENTO_MS = [5_000, 10_000, 20_000, 40_000, 60_000];
+// Sin conexión o con la pestaña oculta no se intenta: se espera a "online"
+// o a que la pestaña vuelva a verse.
+const puedeEnviar = () => navigator.onLine !== false && document.visibilityState !== "hidden";
 
 /**
  * Cierre de sesión por inactividad y por duración máxima.
@@ -37,6 +43,10 @@ export function useInactividad({ activo, onExpirar, onCercaDelMaximo }) {
   const avisoMaximaDadoRef = useRef(false);
   const onExpirarRef = useRef(onExpirar);
   const onCercaDelMaximoRef = useRef(onCercaDelMaximo);
+  // Estado del aviso de actividad: una sola petición a la vez (enCurso);
+  // pendiente = falló o no se pudo enviar y queda un reintento por hacer.
+  const latidoRef = useRef({ enCurso: false, pendiente: false, fallos: 0, temporizador: null, cancelado: false });
+  const enviarLatidoRef = useRef(null);
   useEffect(() => {
     onExpirarRef.current = onExpirar;
     onCercaDelMaximoRef.current = onCercaDelMaximo;
@@ -66,23 +76,55 @@ export function useInactividad({ activo, onExpirar, onCercaDelMaximo }) {
     setSegundosRestantes(mostrar ? Math.ceil(restante / 1000) : null);
   }, []);
 
+  // Envía el aviso de actividad. Si falla, programa el reintento (5 s,
+  // 10 s, 20 s, 40 s y luego cada 60 s); al primer éxito vuelve la cadencia
+  // normal. Antes, tras un fallo, cada evento de actividad (cada tecla,
+  // cada scroll) mandaba otra petición al instante.
+  const enviarLatido = useCallback(async () => {
+    const r = latidoRef.current;
+    clearTimeout(r.temporizador);
+    r.temporizador = null;
+    if (r.enCurso || r.cancelado) return;
+    if (!puedeEnviar()) {
+      r.pendiente = true; // se reanuda con "online" o visibilitychange
+      return;
+    }
+    r.enCurso = true;
+    r.pendiente = false;
+    // La marca la ven las demás pestañas: tampoco mandan nada en 30 s.
+    marcarLatido(Date.now());
+    try {
+      const sesion = await authService.registrarActividad();
+      r.fallos = 0;
+      guardarEstadoServidor(sesion);
+      revisar();
+    } catch (err) {
+      // 401: sesión terminada; apiClient ya avisó el cierre. No se reintenta.
+      if (r.cancelado || err?.status === 401) return;
+      r.pendiente = true;
+      const espera = ESPERAS_REINTENTO_MS[Math.min(r.fallos, ESPERAS_REINTENTO_MS.length - 1)];
+      r.fallos += 1;
+      r.temporizador = setTimeout(() => enviarLatidoRef.current?.(), espera);
+    } finally {
+      r.enCurso = false;
+    }
+  }, [revisar]);
+  useEffect(() => {
+    enviarLatidoRef.current = enviarLatido;
+  });
+
   // Reporta actividad al servidor (que es quien mueve el plazo).
+  // forzar ("Seguir conectado") no espera los 30 s ni el reintento
+  // programado, pero tampoco manda una segunda petición si ya hay una.
   const latido = useCallback(
-    async (forzar) => {
+    (forzar) => {
+      const r = latidoRef.current;
+      if (r.enCurso || (r.pendiente && !forzar)) return;
       const estado = leerEstado();
-      const ahora = Date.now();
-      if (!forzar && estado && ahora - (estado.ultimoLatido || 0) < INTERVALO_LATIDO_MS) return;
-      marcarLatido(ahora);
-      try {
-        guardarEstadoServidor(await authService.registrarActividad());
-        revisar();
-      } catch {
-        // 401: apiClient ya avisó el cierre. Sin conexión: se reintenta
-        // con la próxima actividad (el aviso sigue a la vista si corresponde).
-        marcarLatido(0);
-      }
+      if (!forzar && !r.pendiente && estado && Date.now() - (estado.ultimoLatido || 0) < INTERVALO_LATIDO_MS) return;
+      return enviarLatido();
     },
-    [revisar]
+    [enviarLatido]
   );
 
   useEffect(() => {
@@ -92,6 +134,8 @@ export function useInactividad({ activo, onExpirar, onCercaDelMaximo }) {
     }
     expiradoRef.current = false;
     avisoMaximaDadoRef.current = false;
+    const estadoLatido = { enCurso: false, pendiente: false, fallos: 0, temporizador: null, cancelado: false };
+    latidoRef.current = estadoLatido;
 
     // Al montar (por ejemplo tras un F5) se piden las fechas al servidor;
     // no cuenta como actividad.
@@ -109,14 +153,22 @@ export function useInactividad({ activo, onExpirar, onCercaDelMaximo }) {
       if (avisoVisibleRef.current) return;
       latido(false);
     }
+    // Reintento que quedó esperando la conexión o la visibilidad.
+    function alReanudar() {
+      if (estadoLatido.pendiente && !estadoLatido.temporizador && puedeEnviar()) enviarLatido();
+    }
     function alVolver() {
-      if (document.visibilityState === "visible") revisar();
+      if (document.visibilityState === "visible") {
+        revisar();
+        alReanudar();
+      }
     }
 
     EVENTOS_ACTIVIDAD.forEach((ev) => window.addEventListener(ev, alActuar, { passive: true, capture: true }));
     document.addEventListener("visibilitychange", alVolver);
     window.addEventListener("focus", revisar);
     window.addEventListener("pageshow", revisar);
+    window.addEventListener("online", alReanudar);
     const dejarDeEscuchar = escucharOtrasPestañas({ onCambio: revisar });
     const intervalo = setInterval(revisar, REVISION_MS);
     revisar();
@@ -126,10 +178,13 @@ export function useInactividad({ activo, onExpirar, onCercaDelMaximo }) {
       document.removeEventListener("visibilitychange", alVolver);
       window.removeEventListener("focus", revisar);
       window.removeEventListener("pageshow", revisar);
+      window.removeEventListener("online", alReanudar);
+      estadoLatido.cancelado = true;
+      clearTimeout(estadoLatido.temporizador);
       dejarDeEscuchar();
       clearInterval(intervalo);
     };
-  }, [activo, latido, revisar]);
+  }, [activo, latido, enviarLatido, revisar]);
 
   const seguirConectado = useCallback(() => latido(true), [latido]);
 
