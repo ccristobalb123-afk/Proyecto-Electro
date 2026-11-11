@@ -89,7 +89,28 @@ app.use("/api", (req, res) => {
 // frontend/), así que este bloque completo se salta solo.
 const distFrontend = path.join(process.cwd(), "..", "frontend", "dist");
 if (fs.existsSync(distFrontend)) {
-  app.use(express.static(distFrontend));
+  // Caché según la RUTA, no según una lista de nombres:
+  // - dist/assets/: Vite pone ahí los archivos con hash en el nombre
+  //   (index-3fa9c1.js). Si cambia el contenido, cambia el nombre, así que
+  //   un mismo nombre nunca cambia: caché de un año e "immutable" (el
+  //   navegador y Cloudflare no lo vuelven a pedir ni a revalidar).
+  // - Todo lo demás (index.html, sw.js, manifest.webmanifest, íconos de
+  //   public/): conserva su nombre entre versiones, así que "no-cache":
+  //   se puede guardar, pero se revalida siempre con el ETag (304 si no
+  //   cambió). index.html es lo que apunta a los assets nuevos tras una
+  //   publicación, y el service worker (sw.js) nunca debe quedar con
+  //   caché larga o el navegador seguiría con uno viejo.
+  // Antes respondía "public, max-age=0" para todo y el navegador
+  // revalidaba cada archivo en cada carga.
+  const carpetaAssets = path.join(distFrontend, "assets") + path.sep;
+  app.use(
+    express.static(distFrontend, {
+      cacheControl: false, // la cabecera la pone setHeaders; el ETag se mantiene
+      setHeaders(res, rutaArchivo) {
+        res.setHeader("Cache-Control", rutaArchivo.startsWith(carpetaAssets) ? "public, max-age=31536000, immutable" : "no-cache");
+      },
+    })
+  );
   // Cualquier ruta que NO empiece con /api cae acá — así el router de
   // React (ej. /operaciones, /finanzas) sigue funcionando aunque el
   // usuario refresque la página estando en esa URL, en vez de darle
@@ -99,7 +120,8 @@ if (fs.existsSync(distFrontend)) {
   // a archivo mal armado) recibía el index.html con 200 en vez de un
   // 404, y el navegador mostraba la app en blanco en vez de un error.
   app.get(/^(?!\/api(\/|$)).*/i, (req, res) => {
-    res.sendFile(path.join(distFrontend, "index.html"));
+    // index.html también por acá (/operaciones, /finanzas…): "no-cache".
+    res.sendFile(path.join(distFrontend, "index.html"), { cacheControl: false, headers: { "Cache-Control": "no-cache" } });
   });
 }
 
