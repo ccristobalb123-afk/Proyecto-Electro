@@ -6,3 +6,5 @@ uploads/*
 !uploads/.gitkeep
 *.log
 .DS_Store
+# Caché de miniaturas de fotos (se regenera sola; ver src/lib/miniaturas.js)
+cache/

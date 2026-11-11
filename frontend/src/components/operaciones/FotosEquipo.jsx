@@ -4,6 +4,7 @@ import { Spinner } from "../shared/Carga";
 import { comprimirImagen } from "../../utils/imageUtils";
 import { MANTENER } from "./camposEquipo";
 import { ERROR_CAMPO } from "../shared/clasesModal";
+import { urlMiniatura } from "../../utils/fotosEquipo";
 
 // Cada foto: "Foto 1 · Actual/Nueva/Falta", la imagen (o el recuadro
 // punteado si falta o se está procesando) y sus botones, apilados: en 360px
@@ -77,7 +78,8 @@ export default function FotosEquipo({ actuales = [], valor, onChange, onProcesan
         {[0, 1].map((indice) => {
           const v = valor[indice];
           const actual = actuales?.[indice];
-          const src = v === MANTENER ? actual : v;
+          // La actual, en miniatura (la casilla es chica); una nueva es su data URL.
+          const src = v === MANTENER ? urlMiniatura(actual) : v;
           const nueva = !!v && v !== MANTENER;
           // Etiqueta solo si hay algo que distinguir: en un equipo nuevo
           // (sin fotos) todas son nuevas.

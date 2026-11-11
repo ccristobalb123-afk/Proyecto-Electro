@@ -3,6 +3,7 @@ import { IconClose } from "../icons/Icons";
 import { useBloquearScroll } from "../../hooks/useBloquearScroll";
 import "./Modal.css";
 import { ACCIONES, BOTON_SECUNDARIO, MENSAJE_VACIO, CAMPO, FILA, AVISO, AVISO_RELLENO, AVISO_ETIQUETA, AVISO_FILA, AVISO_INPUT, AVISO_TEXTO, OPCIONES, OPCION, OPCION_NORMAL, OPCION_ELEGIDA, OPCION_RADIO } from "./clasesModal";
+import { urlMiniatura } from "../../utils/fotosEquipo";
 
 // Clases que quedan como gancho de otras reglas (no dan estilo por sí solas):
 // - modal-overlay y open: ToastContainer.css (body:has(.modal-overlay.open)).
@@ -346,7 +347,8 @@ export function CampoMontoConIgv({ montoBase, igvIncluido, onChange }) {
 // Historial tipo línea de tiempo — reutilizado en "Hoja de vida" de
 // equipos/vehículos y en historiales de pago (Finanzas).
 // Miniaturas que se amplían con `onVerFoto` (quien la usa muestra el
-// Lightbox). Se cargan recién al verse. Las usan la hoja de vida del
+// Lightbox, con la foto original). Se cargan recién al verse, en su versión
+// chica (urlMiniatura). Las usan la hoja de vida del
 // equipo y la pestaña Asignaciones.
 export function MiniaturasFotos({ titulo, fotos, onVerFoto }) {
   return (
@@ -355,7 +357,7 @@ export function MiniaturasFotos({ titulo, fotos, onVerFoto }) {
       <div className="flex flex-wrap gap-1.5">
         {fotos.map((url, i) => (
           <button key={url} type="button" className="h-12 w-16 cursor-zoom-in overflow-hidden rounded-[6px] border border-border [background:var(--paper)] p-0" onClick={() => onVerFoto(url)} aria-label={`${titulo}: ampliar foto ${i + 1}`}>
-            <img className="block h-full w-full object-cover" src={url} alt="" loading="lazy" decoding="async" />
+            <img className="block h-full w-full object-cover" src={urlMiniatura(url)} alt="" loading="lazy" decoding="async" />
           </button>
         ))}
       </div>

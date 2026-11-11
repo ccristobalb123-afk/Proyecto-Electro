@@ -3,6 +3,7 @@ import { app } from "./app.js";
 import { revisarVencimientosYNotificar } from "./services/vencimientos.service.js";
 import { limpiarArchivosHuerfanos } from "./services/limpiezaArchivos.service.js";
 import { limpiarSesiones } from "./services/sesiones.service.js";
+import { limpiarMiniaturas } from "./lib/miniaturas.js";
 
 const PORT = process.env.PORT || 3001;
 
@@ -39,6 +40,16 @@ limpiarArchivosHuerfanos().catch((err) => console.error("Error limpiando archivo
 setInterval(() => {
   limpiarArchivosHuerfanos().catch((err) => console.error("Error limpiando archivos huérfanos:", err));
 }, VEINTICUATRO_HORAS);
+
+// Una vez al día: borra de cache/miniaturas las miniaturas que nadie pidió
+// en 90 días (las de fotos reemplazadas, sobre todo). Se regeneran si hace
+// falta. Ver lib/miniaturas.js.
+const limpiarCacheMiniaturas = () =>
+  limpiarMiniaturas()
+    .then((n) => n && console.log(`Miniaturas sin uso borradas: ${n}`))
+    .catch((err) => console.error("Error limpiando miniaturas:", err));
+limpiarCacheMiniaturas();
+setInterval(limpiarCacheMiniaturas, VEINTICUATRO_HORAS);
 
 // Cada hora: deja cerradas las sesiones vencidas (inactividad o 12 h) y
 // borra las de hace más de 30 días con sus refresh tokens — antes la

@@ -4,7 +4,8 @@ import { ApiError, validacionFallida, conflicto } from "../lib/errors.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 import { camposDelTipo, ETIQUETAS_CAMPO, admiteRegistro, campoIdentificador, destinoApi, normalizarTexto } from "../lib/tiposEquipo.js";
 import { ENUM_A_TIPO } from "./vehiculos.service.js";
-import { fotosDeRegistro, resolverFotos, guardarFotos, textoFotosCambiadas, decodificarFoto, versionFoto } from "../lib/fotosEquipo.js";
+import { fotosDeRegistro, resolverFotos, guardarFotos, textoFotosCambiadas, decodificarFoto, versionFoto, hashFoto } from "../lib/fotosEquipo.js";
+import { obtenerMiniatura } from "../lib/miniaturas.js";
 
 const INCLUDE = { categoria: true, empresa: true, vehiculo: true, personal: true };
 
@@ -840,13 +841,14 @@ export async function obtenerHojaDeVida(equipoId, empresasPermitidas) {
  * Foto actual del equipo (1 o 2) como imagen, para las tarjetas de
  * Equipos, el visor, "Editar fotos" y las miniaturas de Asignaciones.
  * `inmutable`: la versión pedida es la vigente, así que el navegador la
- * puede guardar en caché sin volver a pedirla.
+ * puede guardar en caché sin volver a pedirla. `tam`: ancho de la
+ * miniatura (ya validado con tamanoMiniatura) o null para la original.
  *
  * Mismo control que buscarEquipo (404 si no existe, 403 si es de otra
  * empresa), pero trae solo la foto pedida y la empresa, no el equipo
  * completo con sus 2 fotos y sus relaciones.
  */
-export async function obtenerFotoActual(equipoId, posicion, version, empresasPermitidas) {
+export async function obtenerFotoActual(equipoId, posicion, version, empresasPermitidas, tam = null) {
   const indice = [1, 2].includes(posicion) ? posicion - 1 : -1;
   // Fuera del rango de un int de Postgres sería un error 500: es un 404.
   const [fila] = Number.isInteger(equipoId) && equipoId > 0 && equipoId <= 2147483647
@@ -859,13 +861,22 @@ export async function obtenerFotoActual(equipoId, posicion, version, empresasPer
   verificarAccesoEmpresa(fila.slug, empresasPermitidas);
   const data = indice >= 0 ? fila.data : null;
   if (!data) throw new ApiError(404, "NO_ENCONTRADO", "La foto no existe.");
-  return { ...decodificarFoto(data), inmutable: version === versionFoto(data) };
+  const hash = hashFoto(data);
+  const inmutable = version === hash.slice(0, 12); // = versionFoto(data)
+  if (tam) return { mime: "image/jpeg", buffer: await obtenerMiniatura(hash, tam, () => decodificarFoto(data).buffer), inmutable };
+  return { ...decodificarFoto(data), inmutable };
 }
 
-/** Una foto guardada del historial (o actual) del equipo, como imagen. */
-export async function obtenerFotoEquipo(equipoId, fotoId, empresasPermitidas) {
+/**
+ * Una foto guardada del historial (o actual) del equipo, como imagen.
+ * `tam`: ancho de la miniatura o null. Con la miniatura ya en disco no se
+ * lee la foto de la base (solo su hash).
+ */
+export async function obtenerFotoEquipo(equipoId, fotoId, empresasPermitidas, tam = null) {
   await buscarEquipo(equipoId, empresasPermitidas);
-  const foto = Number.isInteger(fotoId) ? await db.fotoEquipo.findFirst({ where: { id: fotoId, equipoId } }) : null;
+  const foto = Number.isInteger(fotoId) ? await db.fotoEquipo.findFirst({ where: { id: fotoId, equipoId }, select: { id: true, hash: true } }) : null;
   if (!foto) throw new ApiError(404, "NO_ENCONTRADO", "La foto no existe.");
-  return decodificarFoto(foto.data);
+  const leer = async () => decodificarFoto((await db.fotoEquipo.findUnique({ where: { id: foto.id }, select: { data: true } })).data);
+  if (tam) return { mime: "image/jpeg", buffer: await obtenerMiniatura(foto.hash, tam, async () => (await leer()).buffer) };
+  return leer();
 }

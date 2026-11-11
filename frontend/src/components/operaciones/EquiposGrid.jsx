@@ -9,6 +9,7 @@ import Lightbox from "../shared/Lightbox";
 import { ESTADOS_EQUIPO as ESTADOS } from "../../services/equiposService";
 import { CAMPOS_EQUIPO } from "./camposEquipo";
 import * as C from "./clasesEquipos";
+import { urlMiniatura } from "../../utils/fotosEquipo";
 
 // Datos de la tarjeta según el tipo (las fechas de inspección van aparte,
 // y el campo que identifica al equipo ya está en la cabecera).
@@ -93,7 +94,7 @@ export default function EquiposGrid({
                               title="Ver foto en grande"
                               onClick={() => setFotoMaximizada(foto)}
                             >
-                              <img className={C.FOTO_IMAGEN} src={foto} alt={`${eq.identificador} — foto ${i + 1}`} loading="lazy" decoding="async" />
+                              <img className={C.FOTO_IMAGEN} src={urlMiniatura(foto)} alt={`${eq.identificador} — foto ${i + 1}`} loading="lazy" decoding="async" />
                             </button>
                           ) : (
                             <div key={i} className={C.FOTO_VACIA} />

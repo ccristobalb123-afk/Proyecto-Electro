@@ -20,11 +20,23 @@
 // no-cache". Antes el listado llevaba las fotos en base64: ~23 MB con 66
 // fotos; ahora ~23 kB, y cada foto se baja al verse y queda en caché.
 // Las fotos del historial se sirven igual, por id, en
-// /api/equipos/:id/fotos/:fotoId.
+// /api/equipos/:id/fotos/:fotoId (siempre "immutable": otra foto = otro id).
 //
-// Pendiente (ver el diagnóstico de fotos): miniaturas (~480 px) para la
-// tarjeta, que hoy recibe la foto de 1280x1707; guardar la versión en una
-// columna en vez de calcular el sha256 de cada foto en cada listado; y
+// Miniaturas: las dos URLs aceptan ?tam=480 y devuelven una miniatura JPEG
+// de 480 px de ancho (~36 kB en vez de ~260 kB), con los mismos controles y
+// las mismas cabeceras de caché que la original. Otro valor de tam es un
+// 400 (lista cerrada en TAMANOS_MINIATURA). El frontend la pide con
+// urlMiniatura (frontend/src/utils/fotosEquipo.js) en las tarjetas de
+// Equipos, las miniaturas de Asignaciones y del historial, y las casillas
+// de "Editar fotos"/inspección; el visor ampliado usa la original.
+// Se generan con sharp la primera vez y quedan en backend/cache/miniaturas
+// (<sha256 de la foto>-<ancho>.jpg): fuera de uploads/, así que no van en
+// los respaldos ni las toca la limpieza de uploads, y se pueden borrar
+// cuando sea. Las que nadie pide en 90 días (p. ej. de fotos reemplazadas)
+// las borra limpiarMiniaturas una vez al día. Detalle en lib/miniaturas.js.
+//
+// Pendiente (ver el diagnóstico de fotos): guardar la versión en una
+// columna en vez de calcular el sha256 de cada foto en cada listado, y
 // pasar los binarios a disco (backend/uploads).
 // ============================================================
 import crypto from "node:crypto";
@@ -89,13 +101,14 @@ export function resolverFotos(entrada, actuales) {
   return { fotos, reemplazadas, cambiadas };
 }
 
-const hashDe = (data) => crypto.createHash("sha256").update(data).digest("hex");
+/** sha256 (hex) de una foto guardada: su identidad (fotos_equipo.hash, miniaturas). */
+export const hashFoto = (data) => crypto.createHash("sha256").update(data).digest("hex");
 
 /** Guarda (una sola vez) cada foto en fotos_equipo y devuelve sus ids, en orden. */
 export async function guardarFotos(tx, equipoId, datas) {
   const ids = [];
   for (const data of datas) {
-    const hash = hashDe(data);
+    const hash = hashFoto(data);
     const foto = await tx.fotoEquipo.upsert({
       where: { equipoId_hash: { equipoId, hash } },
       create: { equipoId, hash, data },
@@ -123,4 +136,4 @@ export function decodificarFoto(data) {
  * Versión corta de una foto (para su URL): cambia si cambia la foto, así
  * el navegador puede guardarla en caché sin quedarse con una vieja.
  */
-export const versionFoto = (data) => hashDe(data).slice(0, 12);
+export const versionFoto = (data) => hashFoto(data).slice(0, 12);
