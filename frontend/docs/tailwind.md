@@ -1,8 +1,10 @@
 # Tailwind CSS en Activo360
 
-Tailwind 4 (`tailwindcss` y `@tailwindcss/vite`, versión fija 4.3.4) está
-instalado para migrar **pantalla por pantalla**. Hoy ninguna pantalla lo usa:
-todo se ve igual que antes.
+Tailwind 4 (`tailwindcss` y `@tailwindcss/vite`, versión fija 4.3.4) da el
+estilo de toda la app. La migración desde el CSS propio está cerrada (paso 5,
+ver «Cierre de la migración»): cada pantalla y componente usa clases de
+Tailwind, y en los `.css` quedan solo `@keyframes` y las reglas que una clase
+no puede reemplazar, cada una con su motivo.
 
 - Entrada: `src/styles/tailwind.css` (importada en `src/main.jsx`).
 - Plugin: `tailwindcss()` en `vite.config.js`.
@@ -115,10 +117,10 @@ reglas siguen en `responsive.css`.
    - Consecuencia: una regla sin capa con especificidad 0 (`:where(...)`)
      le gana a esas etiquetas. Pasó con el botón de `VisorArchivo` (ver
      regla 10).
-   - El resto del CSS de la app (variables y clases de `tokens.css`,
-     `foco.css`, `responsive.css`, el `.css` de cada módulo) no está en capa, y lo que
-     no está en capa le gana a lo que sí, sin importar la especificidad ni
-     el orden de carga. Si un elemento
+   - El resto del CSS de la app (variables y `.sr-only` de `tokens.css`,
+     `foco.css`, `responsive.css`, `motion.css`, `tarjetas.css`, el `.css`
+     de cada módulo) no está en capa, y lo que no está en capa le gana a lo
+     que sí, sin importar la especificidad ni el orden de carga. Si un elemento
      tiene `.equipo-card { padding: 16px }` y le agregas `p-2`, **sigue con
      16 px**.
    - **Ojo con `!important`:** en capas se invierte. Las dos reglas con
@@ -175,8 +177,7 @@ reglas siguen en `responsive.css`.
    `.link-button` (`buttons.css`), `.co-badge` (`badges.css`) y la barra de
    filtros (`filters.css`) ya **no** están en esta lista: van en la capa
    `components`, así que una clase les gana. Los residuos que habían quedado
-   por ellas siguen en su `.css` y se pasan a clases en un paso aparte (ver
-   «Estado de la migración»).
+   por ellas ya pasaron a clases (ver «Estado de la migración»).
 
    `base.css` y las etiquetas `button`/`a` ya **no** están en esta lista:
    desde que van en la capa `base`, sus propiedades (márgenes y tamaños de
@@ -260,11 +261,100 @@ Para que una migración quede idéntica (no solo "parecida"):
 - Comparar también hover, pressed y foco de lo interactivo, forzándolos de
   verdad: con WebDriver, acción `pointerMove` (hover), `pointerMove` +
   `pointerDown` sin soltar (pressed) y `focus({focusVisible: true})` (foco
-  de teclado). Comprobar en el navegador que `:hover`, `:active` y
+  de teclado); con Playwright, `page.mouse.move`, `page.mouse.down` y
+  `page.keyboard.press("Tab")`. Comprobar en el navegador que `:hover`, `:active` y
   `:focus-visible` quedan activos.
 - Hacer la primera captura de cada tamaño con una sesión de "calentamiento"
   descartada: la primera sesión del navegador dibuja algunas letras con
   0.2 px de diferencia y parece un cambio que no lo es.
+
+## Cierre de la migración
+
+### Criterio de «migración terminada»
+
+La migración está terminada cuando se cumple todo esto:
+
+1. Ningún `.css` de `src/components/` ni de `src/pages/` da aspecto a un
+   componente. Solo puede contener:
+   - (a) `@keyframes` (una clase no puede definir una animación);
+   - (b) una regla que tiene que ganarle, o perder, contra otra regla sin
+     capa sobre el mismo elemento (regla 9): como clase quedaría por debajo
+     y el resultado cambiaría;
+   - (c) un selector que depende de otro componente o de su estado, que el
+     componente afectado no controla (ej. «hay un modal abierto», o los
+     botones que pone `ModalActions`, que no recibe clases).
+
+   Cada regla (b) o (c) lleva un comentario con su motivo y aparece en la
+   fila de su módulo en «Migrado».
+2. Todo lo demás vive en clases de Tailwind en el `className`, o en
+   constantes de un archivo `clases*.js` cuando se comparte o es largo.
+3. Las clases que siguen en el JSX sin dar estilo son **ganchos** de una
+   regla sin capa (`responsive.css`, `motion.css`, `tarjetas.css`,
+   `foco.css`, `ToastContainer.css`…) y están anotadas en el comentario de
+   su constante o componente.
+4. En `styles/` quedan solo las capas `base` y `components`, la entrada de
+   Tailwind y los archivos sin capa de la tabla de abajo.
+
+**Estado (paso 5):** se cumple, **salvo una regla**: el margen de 18 px de
+`.auth-form .password-field` (`AuthForm.css`). Ninguna regla sin capa la
+bloquea (`PasswordField` lleva `mb-4`, una clase), así que no entra en (b)
+ni en (c): podría pasar a `FORM` en `clasesAuth.js` como
+`[&_.password-field]:mb-[18px]` (0-2-0, le gana a `mb-4`). Queda pendiente,
+con su medición antes/después.
+
+### Inventario de `.css` (paso 5)
+
+Componentes y pantallas:
+
+| Archivo | Qué contiene | Por qué sigue | Criterio |
+|---|---|---|---|
+| `components/auth/AuthShell.css` | 3 `@keyframes` (paso, riel y fondo del acceso) | animaciones de entrada | (a) |
+| `components/auth/AuthForm.css` | `@keyframes` del error y `.auth-form .password-field { margin-bottom: 18px }` | la animación; el margen, **ver arriba** | (a); el margen, **resto** |
+| `components/shared/Carga.css` | `@keyframes` del giro del spinner | animación | (a) |
+| `components/shared/Loading.css` | `@keyframes` del pulso del texto | animación | (a) |
+| `components/shared/NotificacionesBell.css` | `@keyframes` de entrada del panel | animación (`motion.css` la cambia por un fundido) | (a) |
+| `components/shared/VisorArchivo.css` | 2 `@keyframes` (fondo y visor) | animaciones de entrada | (a) |
+| `components/shared/AvisoInactividad.css` | `@keyframes` del pulso del ícono | animación (`motion.css` la quita con movimiento reducido) | (a) |
+| `components/shared/ToastContainer.css` | 2 `@keyframes` y `body:has(.modal-overlay.open, .confirm-overlay) .toast` (sin toques; los de éxito, ocultos) | animaciones; la otra regla depende de si hay un modal o diálogo abierto | (a), (c) |
+| `components/shared/Modal.css` | 4 `@keyframes` de la variante «seguridad»; cursor «trabajando» en los campos del modal bloqueado (`.modal-cuerpo:disabled :is(…)`); cursor de mano de los botones de foto del equipo | animaciones; los dos cursores son una cadena de reglas sin capa: la primera le gana a las clases de cursor de cada campo y la segunda le gana a la primera por orden | (a), (b) |
+| `pages/Administracion.css` | cursor de mano de la casilla SuperAdmin mientras se guarda | eslabón de la misma cadena: le gana por orden al cursor «trabajando» de `Modal.css` | (b) |
+| `components/operaciones/EquiposCards.css` | `margin-top: 0` de «Completar datos» / «Renovar fechas» | le gana a `html .link-button` táctil de `responsive.css`; como clase perdería y el botón subiría 12 px | (b) |
+| `pages/Rrhh.css` | en ≤640 px, botones del formulario de curso en dos filas (`.modal-actions:has(> button[value="otro"])`) | los botones los pone `ModalActions`, que no recibe clases, y la regla depende de qué botones hay | (c) |
+
+`styles/`:
+
+| Archivo | Capa | Qué contiene y por qué |
+|---|---|---|
+| `tailwind.css` | — | entrada de Tailwind: orden de capas, tema (lee `tokens.css`), variante `apaisado:`, exclusiones de `@source` |
+| `tokens.css` | sin capa | variables de `:root` (fuente de todos los valores) y `.sr-only` |
+| `base.css` | `base` | lo que queda del «reboot» de Bootstrap |
+| `etiquetas.css` | `base` | reglas de etiqueta globales (`*`, `html/body/#root`, `body`, `button`, `a`) |
+| `buttons.css`, `badges.css`, `filters.css` | `components` | clases globales compartidas (`.btn-primary`, `.btn-outline-sm`, `.link-button`, `.co-badge`, barra de filtros); una clase de Tailwind les gana |
+| `foco.css` | sin capa | regla global de foco y sus 5 excepciones |
+| `responsive.css` | sin capa | celular y 44 px táctiles |
+| `motion.css` | sin capa | movimiento reducido y `@keyframes fade-in` |
+| `tarjetas.css` | sin capa | borde suave de tarjetas y paneles |
+
+### Lo que se queda sin capa y por qué
+
+**Regla de oro: lo que está sin capa le gana a cualquier clase de Tailwind**,
+sin importar la especificidad ni el orden de carga. Entre reglas sin capa
+mandan, como siempre, la especificidad y el orden. Por eso una clase nueva
+«no funciona» si una regla de esta tabla ya fija esa propiedad en ese
+elemento (regla 9): en ese caso no se usa `!`, se escribe la excepción sin
+capa, al lado de la regla.
+
+| Archivo / regla | Qué | Por qué sin capa |
+|---|---|---|
+| `tokens.css` — `:root` | variables | son la fuente de valores, no reglas que compitan |
+| `tokens.css` — `.sr-only` | texto solo para lectores de pantalla | se deja con su definición: la de Tailwind agrega `clip-path` y no es igual (está excluida en `tailwind.css`) |
+| `foco.css` — `input:focus-visible, button:focus-visible` | anillo de foco de teclado | red de seguridad: ninguna clase debe poder quitarlo |
+| `foco.css` — excepciones (`.global-search input:focus`, `.filters .search input:focus`, `.confirm-palabra input:focus-visible`, `.persona-cursos__cabecera:focus-visible`, `.btn-seguir-conectado:focus-visible`) | sin anillo en los dos buscadores (lo dibuja la caja), anillo rojo en «escribe ELIMINAR», anillo por dentro en la fila de las fichas, anillo `--copper-dark` en «Seguir conectado» | para cambiar la regla global hay que estar sin capa y con más especificidad que 0-1-1 |
+| `responsive.css` | celular y 44 px táctiles (`html .x`) | ajustes que deben ganar siempre |
+| `motion.css` | movimiento reducido (`html .x`) y `@keyframes fade-in` | idem: con movimiento reducido no debe moverse nada aunque una clase lo pida |
+| `tarjetas.css` | borde suave de tarjetas y fichas | un solo lugar para el borde, que gana a la clase de cada tarjeta |
+| `@keyframes` del `.css` de cada componente | animaciones | un `@keyframes` no compite con las clases; se queda junto al componente que lo usa (`animate-[nombre_…]`) |
+| reglas (b) y (c) de componentes y pantallas | ver el inventario | (b): tienen que ganarle a otra regla sin capa; (c): dependen de otro componente |
 
 ## Estado de la migración
 
@@ -298,16 +388,8 @@ queda en `tokens.css` (ver la tabla). `tokens.css` queda con las variables y
 **Aviso de inactividad:** migrado (paso 4). Ver su fila en «Migrado»; su
 anillo de foco pasó a `foco.css`.
 
-**Qué queda sin capa y por qué:**
-
-| Archivo | Qué | Por qué |
-|---|---|---|
-| `tokens.css` | variables (`:root`) | son la fuente de valores, no reglas |
-| `foco.css` | regla de foco (`input/button:focus-visible`) | red de seguridad del foco de teclado: ninguna clase debe poder quitarlo |
-| `foco.css` | excepciones a la regla de foco (dos buscadores, campo «escribe ELIMINAR», fila de las fichas, «Seguir conectado» del aviso de inactividad) | para cambiar el foco hay que estar sin capa, como la regla, y con más especificidad |
-| `tokens.css` | `.sr-only` | se deja con su definición, sin capa: la de Tailwind agrega `clip-path` y no es igual (por eso está excluida en `tailwind.css`) |
-| `responsive.css`, `motion.css`, `tarjetas.css` | ajustes de celular/táctil, movimiento reducido y borde de tarjeta | ajustes que ganan siempre, a propósito |
-| `.css` de cada módulo | lo anotado en cada fila de «Migrado» | bloqueado por las reglas de arriba, `@keyframes` o selectores que una clase no puede expresar |
+**Qué queda sin capa y por qué:** ver la tabla única en «Cierre de la
+migración» (arriba).
 
 **Residuos de la capa `components`:** migrados. Lo que `.btn-primary`,
 `.btn-outline-sm`, `.btn-danger` y `.link-button` bloqueaban cuando estaban
@@ -351,7 +433,7 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 
 | Qué | Archivos | CSS que queda y motivo |
 |---|---|---|
-| Login y Restablecer contraseña | `AuthShell.jsx`, `AuthRail.jsx`, `OtpInput.jsx`, `clasesAuth.js`, `Login.jsx`, `RestablecerPassword.jsx` | `AuthShell.css`: solo los `@keyframes` de entrada. `AuthForm.css`: el margen de 18 px del campo de contraseña dentro del formulario (`.auth-form .password-field`: ajuste de contexto sobre un componente compartido que fuera del acceso usa `mb-4`) y el `@keyframes` del error. El botón principal (ancho, alto, letra, centrado, transición y escala al presionar) va con clases en el formulario (`FORM` en `clasesAuth.js`, `[&_.btn-primary]:…`). Ganchos: `auth-form` y `btn-primary` (`motion.css`: sin escala con movimiento reducido) |
+| Login y Restablecer contraseña | `AuthShell.jsx`, `AuthRail.jsx`, `OtpInput.jsx`, `clasesAuth.js`, `Login.jsx`, `RestablecerPassword.jsx` | `AuthShell.css`: solo los `@keyframes` de entrada. `AuthForm.css`: el margen de 18 px del campo de contraseña dentro del formulario (`.auth-form .password-field`: ajuste de contexto sobre un componente compartido que fuera del acceso usa `mb-4`; no lo bloquea ninguna regla sin capa, así que es un resto pendiente, ver «Cierre de la migración») y el `@keyframes` del error. El botón principal (ancho, alto, letra, centrado, transición y escala al presionar) va con clases en el formulario (`FORM` en `clasesAuth.js`, `[&_.btn-primary]:…`). Ganchos: `auth-form` y `btn-primary` (`motion.css`: sin escala con movimiento reducido) |
 | Campo de contraseña | `PasswordField.jsx` | ninguno (`PasswordField.css` se eliminó) |
 | Medidor de fuerza | `PasswordStrength.jsx` | ninguno (`PasswordStrength.css` se eliminó) |
 | Estado vacío | `EstadoVacio.jsx` | ninguno (`EstadoVacio.css` se eliminó) |
@@ -370,7 +452,7 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Visor de archivos | `VisorArchivo.jsx`, variante «visor» de `Modal.jsx` (`FONDO_VISOR`, `CAJA_VISOR`, `TITULO_VISOR`), `ACCIONES_VISOR` en `clasesModal.js` | `VisorArchivo.css`: solo los `@keyframes` de entrada del fondo y del visor. El botón «Ver archivo» (`BotonVerArchivo`) ya no usa la regla `:where(...)` (regla 10) |
 | Foto ampliada | `Lightbox.jsx` | ninguno (`Lightbox.css` se eliminó). Gancho: `lightbox-close` (`responsive.css`) |
 | Sesiones y dispositivos | `SesionesModal.jsx` | ninguno (`SesionesModal.css` se eliminó) |
-| Administración (lista de usuarios, tarjetas, formulario de usuario y contraseña generada) | `Administracion.jsx`, `ModalPasswordGenerada.jsx` (base de la tarjeta en `clasesTarjeta.js`, compartida con Finanzas) | `Administracion.css`: solo el cursor de mano de la casilla SuperAdmin mientras se guarda (`.form-field label.superadmin-toggle`: le gana a la regla del cursor «trabajando» de `Modal.css`, sin capa y con la misma especificidad, por venir después; una clase perdería). Se borraron reglas sin uso (`.rol-choice`, `.rol-generico`, `.rol-hint`). Ganchos: `usuarios-grid`, `usuario-card-footer`, `usuario-tu-tag`, `modulos-check`, `empresas-check` (`responsive.css`), `usuario-card` (`tarjetas.css`: el borde suave sigue ahí) y `superadmin-toggle`. El texto del botón «Nuevo usuario» (`.topbar-accion-texto`) sigue en `AppShell.css`: lo comparten las demás pantallas |
+| Administración (lista de usuarios, tarjetas, formulario de usuario y contraseña generada) | `Administracion.jsx`, `ModalPasswordGenerada.jsx` (base de la tarjeta en `clasesTarjeta.js`, compartida con Finanzas) | `Administracion.css`: solo el cursor de mano de la casilla SuperAdmin mientras se guarda (`.form-field label.superadmin-toggle`: le gana a la regla del cursor «trabajando» de `Modal.css`, sin capa y con la misma especificidad, por venir después; una clase perdería). Se borraron reglas sin uso (`.rol-choice`, `.rol-generico`, `.rol-hint`). Ganchos: `usuarios-grid`, `usuario-card-footer`, `usuario-tu-tag`, `modulos-check`, `empresas-check` (`responsive.css`), `usuario-card` (`tarjetas.css`: el borde suave sigue ahí) y `superadmin-toggle`. El texto del botón «Nuevo usuario» lleva el gancho `topbar-accion-texto`: lo oculta en ≤400 px `TOPBAR_ACCION` de `AppShell.jsx`, compartido con las demás pantallas |
 | Finanzas (pestañas, tarjetas de facturas, facturas por pagar y gastos, y lo propio de sus modales: pagos registrados, categorías de gasto, documento y «Faltan datos» de Nuevo gasto, detalle de «¿Eliminar este gasto?») | `Finanzas.jsx`, `clasesFinanzas.js`, `FacturasGrid.jsx`, `FacturasPorPagarGrid.jsx`, `GastosGrid.jsx`, `CampoComprobante.jsx`, `ModalRegistrarPago.jsx`, `ModalCategoriasGasto.jsx`, `ModalNuevoGasto.jsx`, `DetalleEliminarGasto.jsx`; compartidas nuevas: `clasesTarjeta.js` (tarjeta, encabezado, rótulo, pie y grilla) y `clasesPestanas.js` (pestañas); `OPCIONES_FILA` en `clasesModal.js` | ninguno (`Finanzas.css` se eliminó): los botones del documento de Nuevo gasto van en clases (`BOTON_ARCHIVO`, `BOTON_CAMARA`; «Tomar foto» con `pointer-coarse:`). Ganchos: `tabs` (`responsive.css`), `fin-grid`, `fin-card-header`, `fin-card-footer`, `fin-card-archivo`, `fin-card-archivo--link` (`responsive.css`), `fin-card` (`tarjetas.css`: el borde suave sigue ahí), `modal-cuerpo` (documento atenuado mientras se guarda). «Ver comprobante» sube la letra y el color con `[&&]:` para ganarle a las clases de `BotonVerArchivo` |
 | RRHH (pestañas, tabla y tarjetas de Contratos, fichas de Cursos / EMO en lo que solo usa RRHH, detalle, selector de personal y avisos del formulario de curso) | `Rrhh.jsx`, `clasesRrhh.js`, `TablaRrhh.jsx`, `CursosPorPersona.jsx`, `SelectorPersonal.jsx`, `ModalNuevoCurso.jsx`; reutiliza `clasesTarjeta.js` (tarjeta de celular y rótulos) y `clasesPestanas.js` | `Rrhh.css`: solo la fila de botones del formulario de curso en celular (`.modal-actions:has(> button[value="otro"])`: «Cancelar» lo pone `ModalActions`, que no recibe clases). La ficha y el chip de documento pasaron a constantes compartidas con Operaciones (`clasesFicha.js`, `clasesDocumento.js`; ver la fila de Operaciones, parte 2). Ganchos: `tabs`, `table-scroll`, `rrhh-cards-mobile`, `selector-personal__lista` (`responsive.css`), `rrhh-mobile-card` (`tarjetas.css`). Ya no usan `.mini-avatar` ni `.equipo-card-label`, que `Operaciones.css` y `EquiposCards.css` definen con otros valores (26 px; margen inferior de 2 px) y se colaban en RRHH según el orden en que se abrían las pantallas |
 | Operaciones, parte 1: cabecera, pestañas, barra de «Tipos de equipo» y pestaña Equipos (grupos por tipo, tarjetas y el aviso «Faltan datos» del modal de editar equipo) | `Operaciones.jsx`, `EquiposGrid.jsx`, `clasesEquipos.js`, `ModalEditarEquipo.jsx`; reutiliza `clasesPestanas.js` y de `clasesTarjeta.js` el rótulo (`ETIQUETA_FORMA`) y la etiqueta de estado (`ESTADO_BASE`, `ESTADO_PUNTO`, ahora compartidas con RRHH) | `EquiposCards.css`: solo el `margin-top: 0` de «Completar datos» / «Renovar fechas» (ver «Qué queda»). Su letra y color van en clases (`AVISO_FALTAN_BOTON`, `AVISO_VENCIDO_BOTON`) y el borde de «Tipos de equipo» también (`border-control hover:border-electro` en `Operaciones.jsx`: el hover se repite porque la clase le gana al de `.btn-outline-sm`). Se borraron las reglas de tabla y `.code` (Operaciones ya no tiene tablas; solo se colaban en la de RRHH, con los mismos valores) y las que no usaba nada (`.tag`, `.responsable`, `.sin-responsable`, `.row-actions`, `.categorias-lista…`, `.filtros-asignaciones__tipos`, `.equipo-card-actions-spacer`). La regla «Asignado a» con ícono pasó de `Asignacion.css` a clases. Ganchos: `tabs`, `categoria-seccion-header`, `equipo-card-actions`, `equipo-card-fotos-editar`, `equipo-card-select` (`responsive.css`), `equipo-card-foto-btn` (`motion.css`), `equipo-faltantes`, `equipo-vencido` (`EquiposCards.css`). La tarjeta conserva `--borde-tarjeta` (`--borde-tarjeta-ancho`, `--borde-tarjeta-color`) |
@@ -381,6 +463,8 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 - **Pantallas:** ninguna: todas están migradas (lo que queda en el `.css`
   de cada una está en su fila, con su motivo).
 - **Componentes:** ninguno (el aviso de inactividad se migró en el paso 4).
+  Queda una regla suelta sin migrar: el margen de `.auth-form .password-field`
+  (`AuthForm.css`; ver «Cierre de la migración»).
 - **Otros:** `Monto.jsx` / `Monto.css` y `MenuAcciones.jsx` / `MenuAcciones.css` se borraron: no se usaban.
 - **Globales** (`styles/`): `buttons.css`, `badges.css` y `filters.css`
   siguen como CSS, pero en la capa `components` (ver arriba).
