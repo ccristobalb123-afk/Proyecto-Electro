@@ -9,9 +9,11 @@ espaciados, tipografía, sombras). Además quedan `base.css` y `etiquetas.css`
 (base), `buttons.css`, `badges.css` y `filters.css` (clases globales),
 `foco.css`, `responsive.css`, `motion.css` y `tarjetas.css` (ajustes que
 ganan siempre) y, en el `.css` de algunos módulos, solo `@keyframes` y las
-reglas que una clase no puede reemplazar. La migración está cerrada; el
-criterio, el inventario de cada `.css` y la tabla de lo que queda sin capa
-están en «Cierre de la migración» de `frontend/docs/tailwind.md`.
+reglas que una clase no puede reemplazar. La migración está cerrada y su
+criterio de «terminada» se cumple sin excepciones (desde el paso 5b, en que
+el margen de `.auth-form .password-field` pasó a clases). El criterio, el
+inventario de cada `.css` y la tabla de lo que queda sin capa están en
+«Cierre de la migración» de `frontend/docs/tailwind.md`.
 
 ### Tailwind y capas
 Tailwind 4, sin preflight y en capas. Orden, de menor a mayor

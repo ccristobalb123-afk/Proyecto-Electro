@@ -8,7 +8,7 @@ let estiloOriginal = null;
 
 /**
  * Bloquea el scroll del fondo mientras un diálogo está abierto. En esta
- * app el que se desplaza no es el <body> sino `.main` (ver AppShell.css),
+ * app el que se desplaza no es el <body> sino `.main` (ver AppShell.jsx),
  * así que bloquear solo el body no alcanzaba: en el celular, al llegar al
  * final de un modal o arrastrar sobre el fondo oscuro, la página de atrás
  * seguía moviéndose. La posición del scroll se conserva.

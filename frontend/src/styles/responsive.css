@@ -35,7 +35,8 @@
 /* ---------- Celular ---------- */
 @media (max-width: 640px) {
   /* 2 columnas: de a una por fila eran 4 tarjetas altas antes de llegar
-     a los vencimientos. La tarjeta se compacta en Dashboard.css. */
+     a los vencimientos. La tarjeta se compacta con clases max-md: en
+     Dashboard.jsx. */
   .main .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);

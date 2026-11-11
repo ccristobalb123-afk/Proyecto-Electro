@@ -6,9 +6,8 @@
  * color del enlace «Volver» van acá: base.css y etiquetas.css están en la
  * capa "base" y las clases les ganan (ver docs/tailwind.md).
  *
- * "auth-form" lleva además el botón principal (FORM, abajo) y es el gancho
- * de AuthForm.css (el margen de .password-field dentro del acceso) y de
- * motion.css.
+ * "auth-form" lleva además el botón principal y el margen de los campos de
+ * contraseña (FORM, abajo), y es el gancho de motion.css.
  */
 
 // Botón principal del acceso (.btn-primary): a todo el ancho, 46px, y
@@ -16,7 +15,10 @@
 // declara en la base para que también vuelva suave. motion.css lo quita con
 // movimiento reducido (html .auth-form .btn-primary:active…): "auth-form" y
 // "btn-primary" quedan como gancho.
-export const FORM = `auth-form w-full [&_.btn-primary]:h-[46px] [&_.btn-primary]:w-full [&_.btn-primary]:justify-center [&_.btn-primary]:text-[14px]
+// [&_.password-field]:mb-[18px]: el campo de contraseña compartido
+// (PasswordField, mb-4 fuera del acceso) se alinea con los demás campos;
+// 0-2-0, le gana a mb-4 (0-1-0). Antes en AuthForm.css.
+export const FORM = `auth-form w-full [&_.password-field]:mb-[18px] [&_.btn-primary]:h-[46px] [&_.btn-primary]:w-full [&_.btn-primary]:justify-center [&_.btn-primary]:text-[14px]
   [&_.btn-primary]:[transition:transform_100ms_var(--ease-out),background_0.15s_ease] [&_.btn-primary:active:not(:disabled)]:[transform:scale(0.97)]`;
 
 // Título del paso: recibe el foco por código al cambiar de paso; no es un

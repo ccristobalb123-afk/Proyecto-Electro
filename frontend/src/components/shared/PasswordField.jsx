@@ -16,7 +16,7 @@ import { IconEye, IconEyeOff } from "../icons/Icons";
  * Estilos con Tailwind (ver docs/tailwind.md). Funciona igual sobre la hoja
  * del Login y dentro del modal: lleva su propio aspecto completo y no depende
  * de .form-field. La clase password-field no da estilo por sí sola: es el
- * gancho de AuthForm.css (margen del campo dentro del acceso).
+ * gancho del margen del campo dentro del acceso (FORM en clasesAuth.js).
  */
 
 // pr-12: el espacio de la derecha es del botón del ojo.

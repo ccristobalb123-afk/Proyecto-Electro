@@ -295,21 +295,24 @@ La migración está terminada cuando se cumple todo esto:
 4. En `styles/` quedan solo las capas `base` y `components`, la entrada de
    Tailwind y los archivos sin capa de la tabla de abajo.
 
-**Estado (paso 5):** se cumple, **salvo una regla**: el margen de 18 px de
-`.auth-form .password-field` (`AuthForm.css`). Ninguna regla sin capa la
-bloquea (`PasswordField` lleva `mb-4`, una clase), así que no entra en (b)
-ni en (c): podría pasar a `FORM` en `clasesAuth.js` como
-`[&_.password-field]:mb-[18px]` (0-2-0, le gana a `mb-4`). Queda pendiente,
-con su medición antes/después.
+**Estado:** se cumple **sin excepciones** desde el paso 5b. El único resto
+que quedaba, el margen de 18 px de `.auth-form .password-field`
+(`AuthForm.css`), pasó a `FORM` en `clasesAuth.js` como
+`[&_.password-field]:mb-[18px]` (0-2-0, le gana al `mb-4` de
+`PasswordField`). Medido en Login y Restablecer contraseña (reposo, campos
+escritos con foco de teclado y errores), a 360 px táctil y 1280 px con
+ratón: 0 diferencias en píxeles y en estilos calculados de todos los
+elementos. Cada regla que no es `@keyframes` está en el inventario con su
+caso, (b) o (c).
 
-### Inventario de `.css` (paso 5)
+### Inventario de `.css` (pasos 5 y 5b)
 
 Componentes y pantallas:
 
 | Archivo | Qué contiene | Por qué sigue | Criterio |
 |---|---|---|---|
 | `components/auth/AuthShell.css` | 3 `@keyframes` (paso, riel y fondo del acceso) | animaciones de entrada | (a) |
-| `components/auth/AuthForm.css` | `@keyframes` del error y `.auth-form .password-field { margin-bottom: 18px }` | la animación; el margen, **ver arriba** | (a); el margen, **resto** |
+| `components/auth/AuthForm.css` | `@keyframes` del mensaje de error | animación | (a) |
 | `components/shared/Carga.css` | `@keyframes` del giro del spinner | animación | (a) |
 | `components/shared/Loading.css` | `@keyframes` del pulso del texto | animación | (a) |
 | `components/shared/NotificacionesBell.css` | `@keyframes` de entrada del panel | animación (`motion.css` la cambia por un fundido) | (a) |
@@ -425,15 +428,15 @@ cambio en que se borró del CSS viejo:
   `<select>` de mes.
 
 Las clases que siguen siendo gancho de otra regla se dejaron:
-`auth-form` (`AuthForm.css` y `motion.css`), `password-field` (`AuthForm.css`)
-y `month-select` (alto táctil de 44 px en `responsive.css`).
+`auth-form` (`motion.css`), `password-field` (lo usa `FORM` en
+`clasesAuth.js` para el margen del campo dentro del acceso) y `month-select` (alto táctil de 44 px en `responsive.css`).
 
 **Migrado** (estilos en clases; en su `.css` queda solo lo que bloquea una
 regla sin capa, regla 9, o lo que una clase no puede expresar):
 
 | Qué | Archivos | CSS que queda y motivo |
 |---|---|---|
-| Login y Restablecer contraseña | `AuthShell.jsx`, `AuthRail.jsx`, `OtpInput.jsx`, `clasesAuth.js`, `Login.jsx`, `RestablecerPassword.jsx` | `AuthShell.css`: solo los `@keyframes` de entrada. `AuthForm.css`: el margen de 18 px del campo de contraseña dentro del formulario (`.auth-form .password-field`: ajuste de contexto sobre un componente compartido que fuera del acceso usa `mb-4`; no lo bloquea ninguna regla sin capa, así que es un resto pendiente, ver «Cierre de la migración») y el `@keyframes` del error. El botón principal (ancho, alto, letra, centrado, transición y escala al presionar) va con clases en el formulario (`FORM` en `clasesAuth.js`, `[&_.btn-primary]:…`). Ganchos: `auth-form` y `btn-primary` (`motion.css`: sin escala con movimiento reducido) |
+| Login y Restablecer contraseña | `AuthShell.jsx`, `AuthRail.jsx`, `OtpInput.jsx`, `clasesAuth.js`, `Login.jsx`, `RestablecerPassword.jsx` | `AuthShell.css`: solo los `@keyframes` de entrada. `AuthForm.css`: solo el `@keyframes` del error. El margen de 18 px del campo de contraseña dentro del formulario va en clases (`[&_.password-field]:mb-[18px]` en `FORM`; fuera del acceso `PasswordField` usa `mb-4`). El botón principal (ancho, alto, letra, centrado, transición y escala al presionar) va con clases en el formulario (`FORM` en `clasesAuth.js`, `[&_.btn-primary]:…`). Ganchos: `auth-form` y `btn-primary` (`motion.css`: sin escala con movimiento reducido) |
 | Campo de contraseña | `PasswordField.jsx` | ninguno (`PasswordField.css` se eliminó) |
 | Medidor de fuerza | `PasswordStrength.jsx` | ninguno (`PasswordStrength.css` se eliminó) |
 | Estado vacío | `EstadoVacio.jsx` | ninguno (`EstadoVacio.css` se eliminó) |
@@ -462,9 +465,8 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 
 - **Pantallas:** ninguna: todas están migradas (lo que queda en el `.css`
   de cada una está en su fila, con su motivo).
-- **Componentes:** ninguno (el aviso de inactividad se migró en el paso 4).
-  Queda una regla suelta sin migrar: el margen de `.auth-form .password-field`
-  (`AuthForm.css`; ver «Cierre de la migración»).
+- **Componentes:** ninguno (el aviso de inactividad se migró en el paso 4 y
+  el margen de `.auth-form .password-field`, en el paso 5b).
 - **Otros:** `Monto.jsx` / `Monto.css` y `MenuAcciones.jsx` / `MenuAcciones.css` se borraron: no se usaban.
 - **Globales** (`styles/`): `buttons.css`, `badges.css` y `filters.css`
   siguen como CSS, pero en la capa `components` (ver arriba).

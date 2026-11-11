@@ -1,19 +1,10 @@
 /* ============================================================
    Contenido de los formularios del acceso (dentro de AuthShell).
    Los estilos van con clases de Tailwind (components/auth/clasesAuth.js).
-   Acá queda solo (ver "Estado de la migración" en docs/tailwind.md):
-   - el margen de PasswordField dentro del acceso: es un ajuste de
-     contexto sobre un componente compartido (en el modal lleva otro);
-   - la animación del mensaje de error (@keyframes; la usa la clase
-     animate-[…] de ERROR).
+   Acá queda solo la animación del mensaje de error (@keyframes; la usa la
+   clase animate-[…] de ERROR).
    ============================================================ */
 
-/* Los campos de contraseña de la carcasa se alinean con los demás */
-.auth-form .password-field {
-  margin-bottom: 18px;
-}
-
-/* ---------- Mensajes ---------- */
 @keyframes auth-error-entrada {
   from {
     opacity: 0;
