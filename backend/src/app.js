@@ -111,7 +111,16 @@ if (fs.existsSync(distFrontend)) {
       },
     })
   );
-  // Cualquier ruta que NO empiece con /api cae acá — así el router de
+  // Un archivo de /assets que no existe es un 404 real, no el index.html:
+  // tras una publicación, una pestaña abierta pide chunks de la versión
+  // anterior (vite build los borra). Con el index.html (200, text/html) el
+  // navegador fallaba con un error de tipo MIME y la pantalla quedaba en
+  // blanco; con el 404, main.jsx recarga la página una vez (vite:preloadError).
+  // "no-store" para que ni el navegador ni Cloudflare guarden el 404.
+  app.use("/assets", (req, res) => {
+    res.status(404).set("Cache-Control", "no-store").type("text/plain").send("No existe.");
+  });
+  // Cualquier ruta que NO empiece con /api (ni /assets) cae acá — así el router de
   // React (ej. /operaciones, /finanzas) sigue funcionando aunque el
   // usuario refresque la página estando en esa URL, en vez de darle
   // un 404 porque el servidor no conoce esa ruta.
