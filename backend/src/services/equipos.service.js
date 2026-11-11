@@ -8,6 +8,17 @@ import { fotosDeRegistro, resolverFotos, guardarFotos, textoFotosCambiadas, deco
 
 const INCLUDE = { categoria: true, empresa: true, vehiculo: true, personal: true };
 
+// Enlaces a las fotos actuales del equipo, no las fotos: el navegador las
+// pide con <img> (la cookie de sesión viaja sola) solo cuando se ven, y
+// las guarda en caché. ?v= cambia si cambia la foto (ver
+// obtenerFotoActual). Antes el listado llevaba las fotos en base64 (unos
+// 350 KB cada una) y pesaba ~23 MB con 66 fotos.
+function urlsFotosActuales(equipo) {
+  return (Array.isArray(equipo.fotos) ? equipo.fotos : [])
+    .map((f, i) => (f ? `/api/equipos/${equipo.id}/foto-actual/${i + 1}?v=${versionFoto(f)}` : null))
+    .filter(Boolean);
+}
+
 // "2026-10-16" de una columna DATE (medianoche UTC) — sin desfase de día.
 const isoDia = (fecha) => (fecha ? new Date(fecha).toISOString().slice(0, 10) : null);
 
@@ -112,7 +123,7 @@ function serializar(equipo) {
     faltantes: campos ? campos.filter((c) => valorGuardado(equipo, c) == null || valorGuardado(equipo, c) === "").map((c) => ETIQUETAS_CAMPO[c]) : [],
     // Campos libres: solo en categorías antiguas sin tipo.
     camposValores: campos ? {} : equipo.camposValores,
-    fotos: equipo.fotos,
+    fotos: urlsFotosActuales(equipo),
     ...(equipo.comentarioMantenimiento ? { comentarioMantenimiento: equipo.comentarioMantenimiento } : {}),
     ...(equipo.ultimaInspeccion ? { ultInspeccion: formatearFechaDia(equipo.ultimaInspeccion) } : {}),
     ...(equipo.proximaInspeccion ? { proxInspeccion: formatearFechaDia(equipo.proximaInspeccion) } : {}),
@@ -668,9 +679,8 @@ export async function listarAsignacionesActuales(empresasPermitidas) {
       ...(estaVencido(e) ? { vencido: true } : {}),
       // Lote solo si su tipo lo pide.
       ...(camposDelTipo(e.categoria)?.includes("lote") ? { lote: e.lote } : {}),
-      // Enlaces a sus fotos (no las fotos): se cargan recién al desplegar
-      // la fila. ?v= cambia si cambia la foto (ver obtenerFotoActual).
-      fotos: (Array.isArray(e.fotos) ? e.fotos : []).map((f, i) => (f ? `/api/equipos/${e.id}/foto-actual/${i + 1}?v=${versionFoto(f)}` : null)).filter(Boolean),
+      // Enlaces a sus fotos: se cargan recién al desplegar la fila.
+      fotos: urlsFotosActuales(e),
     });
   }
   return [...grupos.values()]
@@ -827,13 +837,27 @@ export async function obtenerHojaDeVida(equipoId, empresasPermitidas) {
 }
 
 /**
- * Foto actual del equipo (1 o 2) como imagen, para las miniaturas de la
- * pestaña Asignaciones. `inmutable`: la versión pedida es la vigente, así
- * que el navegador la puede guardar en caché sin volver a pedirla.
+ * Foto actual del equipo (1 o 2) como imagen, para las tarjetas de
+ * Equipos, el visor, "Editar fotos" y las miniaturas de Asignaciones.
+ * `inmutable`: la versión pedida es la vigente, así que el navegador la
+ * puede guardar en caché sin volver a pedirla.
+ *
+ * Mismo control que buscarEquipo (404 si no existe, 403 si es de otra
+ * empresa), pero trae solo la foto pedida y la empresa, no el equipo
+ * completo con sus 2 fotos y sus relaciones.
  */
 export async function obtenerFotoActual(equipoId, posicion, version, empresasPermitidas) {
-  const equipo = await buscarEquipo(equipoId, empresasPermitidas);
-  const data = [1, 2].includes(posicion) && Array.isArray(equipo.fotos) ? equipo.fotos[posicion - 1] : null;
+  const indice = [1, 2].includes(posicion) ? posicion - 1 : -1;
+  // Fuera del rango de un int de Postgres sería un error 500: es un 404.
+  const [fila] = Number.isInteger(equipoId) && equipoId > 0 && equipoId <= 2147483647
+    ? await db.$queryRaw`
+        SELECT em.slug, CASE WHEN jsonb_typeof(e.fotos) = 'array' THEN e.fotos ->> ${indice}::int END AS data
+        FROM equipos e JOIN empresas em ON em.id = e.empresa_id
+        WHERE e.id = ${equipoId}`
+    : [];
+  if (!fila) throw new ApiError(404, "NO_ENCONTRADO", "El equipo no existe.");
+  verificarAccesoEmpresa(fila.slug, empresasPermitidas);
+  const data = indice >= 0 ? fila.data : null;
   if (!data) throw new ApiError(404, "NO_ENCONTRADO", "La foto no existe.");
   return { ...decodificarFoto(data), inmutable: version === versionFoto(data) };
 }

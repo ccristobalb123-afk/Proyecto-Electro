@@ -38,7 +38,9 @@ const BOTON_MANTENER = "link-button self-center text-sm";
  * "Editar fotos" y "Actualizar inspección". Cada foto se mantiene (la
  * actual, por defecto) o se cambia con "Tomar foto" (solo en celulares y
  * tablets, como en Gastos) o "Elegir archivo"; no se pueden quitar.
- * `valor`: [v0, v1], cada uno "actual", una foto nueva (data URL) o null
+ * `actuales`: las fotos que ya tiene el equipo, como URL de la API
+ * (/api/equipos/:id/foto-actual/:n?v=…); el <img> las pide con la cookie
+ * de sesión. `valor`: [v0, v1], cada uno "actual", una foto nueva (data URL) o null
  * (falta). Cada foto nueva se comprime en el celular (JPEG de hasta
  * 1280 px), lo que puede tardar unos segundos: `onProcesando(true)` avisa
  * al modal para que no se pueda guardar a medias.

@@ -48,8 +48,9 @@ app.use(
     credentials: true,
   })
 );
-// 2 MB: las fotos de equipos viajan en base64 dentro del JSON (2 fotos
-// comprimidas pueden pasar de los 100 KB que trae Express por defecto).
+// 2 MB: al subirlas, las fotos de equipos viajan en base64 dentro del JSON
+// (2 fotos comprimidas pueden pasar de los 100 KB que trae Express por
+// defecto). Al leerlas no: la API devuelve su URL (ver lib/fotosEquipo.js).
 // Los archivos grandes van por /api/uploads (multipart, hasta 10 MB).
 app.use(express.json({ limit: "2mb" }));
 app.use(auditoria);

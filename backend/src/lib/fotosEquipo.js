@@ -6,6 +6,26 @@
 // equipos.fotos. Para el historial, cada foto distinta se guarda además
 // UNA vez en fotos_equipo (por su hash): las inspecciones y los cambios
 // de fotos la referencian por id, y una foto reemplazada no se borra.
+//
+// Cómo se sirven: las respuestas de la API nunca llevan la foto, solo su
+// URL. GET /api/equipos (y las respuestas de crear/editar un equipo) y
+// /api/equipos/asignaciones-actuales devuelven en `fotos`
+// /api/equipos/:id/foto-actual/:n?v=<versión> (urlsFotosActuales en
+// equipos.service.js), y el navegador la pide con un <img> normal: la
+// cookie de sesión httpOnly viaja sola, así que el endpoint exige sesión,
+// el módulo Operaciones y acceso a la empresa del equipo (401/403/404).
+// `v` son los primeros 12 caracteres del sha256 de la foto (versionFoto):
+// con la versión vigente responde "private, max-age=31536000, immutable"
+// (el navegador no la vuelve a pedir); con otra o sin ella, "private,
+// no-cache". Antes el listado llevaba las fotos en base64: ~23 MB con 66
+// fotos; ahora ~23 kB, y cada foto se baja al verse y queda en caché.
+// Las fotos del historial se sirven igual, por id, en
+// /api/equipos/:id/fotos/:fotoId.
+//
+// Pendiente (ver el diagnóstico de fotos): miniaturas (~480 px) para la
+// tarjeta, que hoy recibe la foto de 1280x1707; guardar la versión en una
+// columna en vez de calcular el sha256 de cada foto en cada listado; y
+// pasar los binarios a disco (backend/uploads).
 // ============================================================
 import crypto from "node:crypto";
 import { validacionFallida } from "./errors.js";
