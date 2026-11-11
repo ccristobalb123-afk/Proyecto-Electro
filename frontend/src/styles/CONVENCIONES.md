@@ -24,12 +24,11 @@ Los cuatro archivos sin capa a propósito (`foco.css`, `responsive.css`,
 `motion.css`, `tarjetas.css`) son "ajustes que ganan siempre": si una regla
 de ahí toca una propiedad, ninguna clase la puede cambiar. Para cambiar el
 anillo de foco de un control, agrega la excepción en `foco.css`, con su
-motivo y un selector de más de 0-1-1 de especificidad (pendiente:
-`.btn-seguir-conectado:focus-visible`, en `AvisoInactividad.css`, todavía
-no vive en `foco.css`; se moverá al migrar AvisoInactividad, paso 4). Uso,
-tabla token →
-clase, breakpoints, reglas de convivencia y la lista completa de lo que queda
-sin capa en `frontend/docs/tailwind.md`.
+motivo y un selector de más de 0-1-1 de especificidad (desde el paso 4
+también está ahí `.btn-seguir-conectado:focus-visible`, del aviso de
+inactividad). Uso, tabla token → clase, breakpoints, reglas de
+convivencia y la lista completa de lo que queda sin capa en
+`frontend/docs/tailwind.md`.
 
 ### `base.css`
 Conserva únicamente las reglas del antiguo "reboot" de Bootstrap que la interfaz

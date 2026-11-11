@@ -133,12 +133,11 @@ reglas siguen en `responsive.css`.
      en el mismo archivo, después de la regla y con más especificidad
      (0-1-1 o más): el `outline: none` del campo del buscador global y del
      de las barras de filtros (el foco se dibuja en la caja), el anillo rojo
-     del campo «escribe ELIMINAR» de ConfirmDialog y el anillo por dentro
-     del borde de la fila de las fichas desplegables. Para cambiar el foco
-     de otro control, agrega ahí la excepción con su motivo.
-     **Pendiente:** `.btn-seguir-conectado:focus-visible`
-     (`AvisoInactividad.css`) es una excepción de foco que todavía no vive en
-     `foco.css`; se moverá ahí cuando se migre AvisoInactividad (paso 4).
+     del campo «escribe ELIMINAR» de ConfirmDialog, el anillo por dentro
+     del borde de la fila de las fichas desplegables y el anillo en
+     `--copper-dark` de «Seguir conectado» del aviso de inactividad
+     (`.btn-seguir-conectado:focus-visible`, desde el paso 4). Para cambiar
+     el foco de otro control, agrega ahí la excepción con su motivo.
 3. **Cómo migrar una regla:** pasa la propiedad a clases de Tailwind y
    **bórrala** del CSS antiguo en el mismo cambio. Si dejas las dos, gana la
    antigua (y la clase nueva parece "no funcionar").
@@ -231,11 +230,15 @@ Para que una migración quede idéntica (no solo "parecida"):
   `[&>:is(button,a)]:…` (hijos directos).
 - **`backdrop-filter`:** el build (lightningcss) juntaba `backdrop-filter` y
   `-webkit-backdrop-filter` de una misma regla y dejaba solo el que tiene
-  prefijo, así que el desenfoque del fondo de ConfirmDialog (y del aviso de
-  inactividad) solo se ve en Safari. Al migrar se copió así
-  (`[-webkit-backdrop-filter:blur(4px)]`) para no cambiar el aspecto;
-  agregar `[backdrop-filter:blur(4px)]` lo activaría también en Firefox y
-  Chrome.
+  prefijo, así que el desenfoque del fondo de ConfirmDialog y del aviso de
+  inactividad solo se ve en Safari. Al migrar se copió así
+  (`[-webkit-backdrop-filter:blur(4px)]` y `…blur(6px)]`) para no cambiar el
+  aspecto. Comprobado en el paso 4: Chromium reconoce `backdrop-filter` pero
+  no `-webkit-backdrop-filter`, y el fondo del aviso queda con
+  `backdrop-filter: none`. Corrección propuesta (es un cambio visual, va
+  aparte): `backdrop-blur-[4px]` / `backdrop-blur-[6px]`, la utilidad de
+  Tailwind, que sí deja las dos propiedades en el build; en Chrome, Edge y
+  Firefox la pantalla de atrás se vería desenfocada además de oscurecida.
 - **`font-mono` y `font-display`** son utilidades de Tailwind como las demás
   (hasta el paso 3 del cierre también existían sin capa en `tokens.css` y le
   ganaban a cualquier otra regla de letra; por eso hay código con
@@ -292,13 +295,16 @@ misma letra en cada uso (medido). `.pantalla-cargando-sesion` pasó a clases
 queda en `tokens.css` (ver la tabla). `tokens.css` queda con las variables y
 `.sr-only`.
 
+**Aviso de inactividad:** migrado (paso 4). Ver su fila en «Migrado»; su
+anillo de foco pasó a `foco.css`.
+
 **Qué queda sin capa y por qué:**
 
 | Archivo | Qué | Por qué |
 |---|---|---|
 | `tokens.css` | variables (`:root`) | son la fuente de valores, no reglas |
 | `foco.css` | regla de foco (`input/button:focus-visible`) | red de seguridad del foco de teclado: ninguna clase debe poder quitarlo |
-| `foco.css` | excepciones a la regla de foco (dos buscadores, campo «escribe ELIMINAR», fila de las fichas) | para cambiar el foco hay que estar sin capa, como la regla, y con más especificidad |
+| `foco.css` | excepciones a la regla de foco (dos buscadores, campo «escribe ELIMINAR», fila de las fichas, «Seguir conectado» del aviso de inactividad) | para cambiar el foco hay que estar sin capa, como la regla, y con más especificidad |
 | `tokens.css` | `.sr-only` | se deja con su definición, sin capa: la de Tailwind agrega `clip-path` y no es igual (por eso está excluida en `tailwind.css`) |
 | `responsive.css`, `motion.css`, `tarjetas.css` | ajustes de celular/táctil, movimiento reducido y borde de tarjeta | ajustes que ganan siempre, a propósito |
 | `.css` de cada módulo | lo anotado en cada fila de «Migrado» | bloqueado por las reglas de arriba, `@keyframes` o selectores que una clase no puede expresar |
@@ -359,6 +365,7 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Campos de formulario de los modales | `clasesModal.js` (`CAMPO`, `FILA`, `ERROR_CAMPO`, `AYUDA`, `AVISO…`, `DROPZONE…`, `OPCION…`, `BOTON_SECUNDARIO`…), usadas en `Modal.jsx` (empresa, aviso de vencimiento, IGV, detracción) y en cada formulario (`ModalNuevo*`, `ModalEditar*`, `ModalInspeccion`, `ModalTiposEquipo`, `FotosEquipo`, `CamposEquipo`, `CamposDocumentosVehiculo`, `ModalDocumentos`, `Administracion.jsx`…) | `Modal.css`: solo el cursor de mano de «Tomar foto» / «Elegir archivo» de las fotos del equipo mientras se guarda (`.foto-equipo__botones label.btn-outline-sm`: le gana por venir después a la regla del cursor «trabajando», las dos sin capa; como clase perdería). Lo demás de esos botones, de «Mantener la actual» y la letra de los botones de archivo de Nuevo gasto va en clases (`FotosEquipo.jsx`, `ModalNuevoGasto.jsx`); como la etiqueta general del campo (`[&_label]`, 0-1-1) le gana a una clase sola, el display y la letra van con `[&&]:`. Ganchos: `form-field` (`responsive.css`, `Administracion.css`), `form-row` (`responsive.css`), `campo-ayuda` (`Operaciones.css`), `co-choice`, `igv-choice` (`responsive.css`), `aviso-input-row`, `btn-secondary` (`responsive.css`), `dropzone`, `foto-equipo__botones` (el cursor de arriba), `foto-equipo-slot` (campos atenuados mientras se guarda) |
 | Botón con carga y spinner | `Carga.jsx` | `Carga.css`: solo el `@keyframes` del giro. Display, alineación, separación y el aspecto «ocupado» (`:disabled` sin atenuar, cursor de «trabajando») van en clases (`BOTON_CARGA`) |
 | Bloque de carga | `Loading.jsx` | `Loading.css`: solo el `@keyframes` del pulso del texto |
+| Aviso de inactividad | `AvisoInactividad.jsx`, `clasesAviso.js` | `AvisoInactividad.css`: solo el `@keyframes` del pulso del ícono. El anillo de foco de «Seguir conectado» (`--copper-dark`) pasó a `foco.css`, y la regla de movimiento reducido duplicada se borró (ya estaba en `motion.css`). El párrafo `.sr-only` del anuncio lleva las clases de texto de la tarjeta, como antes, pero su margen ahora es el de `.sr-only` (`-1px`; antes la regla `.aviso-inactividad-card p` le ponía `0 0 24px`): está fuera del flujo y oculto, no cambia ningún píxel. ≤400 px con `max-[401px]:`. Ganchos: `aviso-inactividad-icono-container` (`motion.css`) y `btn-seguir-conectado` (`responsive.css`, `foco.css`). El fondo lleva solo `-webkit-backdrop-filter` (ver «Detalles») |
 | Diálogo de confirmación | `ConfirmDialog.jsx` | ninguno (`ConfirmDialog.css` se eliminó): el anillo de foco rojo del campo «escribe ELIMINAR» está en `foco.css` (`.confirm-palabra input:focus-visible`). Ganchos: `confirm-overlay` (`ToastContainer.css`), `btn-confirm-primary`, `-secondary`, `-danger` (`responsive.css`) y `confirm-palabra` (`foco.css`). El fondo lleva solo `-webkit-backdrop-filter` (ver «Detalles») |
 | Visor de archivos | `VisorArchivo.jsx`, variante «visor» de `Modal.jsx` (`FONDO_VISOR`, `CAJA_VISOR`, `TITULO_VISOR`), `ACCIONES_VISOR` en `clasesModal.js` | `VisorArchivo.css`: solo los `@keyframes` de entrada del fondo y del visor. El botón «Ver archivo» (`BotonVerArchivo`) ya no usa la regla `:where(...)` (regla 10) |
 | Foto ampliada | `Lightbox.jsx` | ninguno (`Lightbox.css` se eliminó). Gancho: `lightbox-close` (`responsive.css`) |
@@ -373,13 +380,7 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 
 - **Pantallas:** ninguna: todas están migradas (lo que queda en el `.css`
   de cada una está en su fila, con su motivo).
-- **Componentes con reglas en CSS que todavía no se migra** (se dejan para
-  migrarlos junto con ese CSS):
-  - `AvisoInactividad.css`: `responsive.css` (alto táctil de 44 px de
-    `.btn-seguir-conectado`) y `motion.css` (pulso con movimiento reducido).
-    Además, su anillo de foco (`.btn-seguir-conectado:focus-visible`) es una
-    excepción de foco que todavía no vive en `foco.css`; se moverá ahí al
-    migrar AvisoInactividad (paso 4).
+- **Componentes:** ninguno (el aviso de inactividad se migró en el paso 4).
 - **Otros:** `Monto.jsx` / `Monto.css` y `MenuAcciones.jsx` / `MenuAcciones.css` se borraron: no se usaban.
 - **Globales** (`styles/`): `buttons.css`, `badges.css` y `filters.css`
   siguen como CSS, pero en la capa `components` (ver arriba).

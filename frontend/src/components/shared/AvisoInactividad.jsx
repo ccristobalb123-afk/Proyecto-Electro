@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { IconHourglass } from "../icons/Icons";
 import { useBloquearScroll } from "../../hooks/useBloquearScroll";
+import * as C from "./clasesAviso";
+// Solo el @keyframes del pulso; el resto va en clases (clasesAviso.js).
 import "./AvisoInactividad.css";
 
 // Momentos en que el lector de pantalla anuncia cuánto falta (anunciarlo
@@ -61,32 +63,32 @@ export default function AvisoInactividad({ segundosRestantes, onSeguirConectado 
   }
 
   return (
-    <div className="aviso-inactividad-overlay">
+    <div className={C.FONDO}>
       <div
-        className="aviso-inactividad-card"
+        className={C.TARJETA}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={tituloId}
         aria-describedby={descripcionId}
         onKeyDown={alPresionarTecla}
       >
-        <div className="aviso-inactividad-icono-container" aria-hidden="true">
-          <IconHourglass className="aviso-inactividad-icono" width={30} height={30} />
+        <div className={C.ICONO_CAJA} aria-hidden="true">
+          <IconHourglass className={C.ICONO} width={30} height={30} />
         </div>
-        <h2 id={tituloId} className="font-display">
+        <h2 id={tituloId} className={C.TITULO}>
           Tu sesión está por cerrarse por inactividad
         </h2>
-        <p id={descripcionId}>
+        <p id={descripcionId} className={C.TEXTO}>
           Se cerrará en{" "}
-          <strong className="timer-destacado" role="timer" aria-live="off">
+          <strong className={C.TIEMPO} role="timer" aria-live="off">
             {tiempo}
           </strong>{" "}
           para proteger la información si dejaste el equipo sin vigilancia.
         </p>
-        <p className="sr-only" aria-live="polite">
+        <p className={`sr-only ${C.TEXTO}`} aria-live="polite">
           {anuncio}
         </p>
-        <button ref={botonRef} type="button" className="btn-seguir-conectado" onClick={seguir} disabled={enviando}>
+        <button ref={botonRef} type="button" className={C.BOTON} onClick={seguir} disabled={enviando}>
           {enviando ? "Conectando…" : "Seguir conectado"}
         </button>
       </div>

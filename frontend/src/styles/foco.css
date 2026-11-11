@@ -46,3 +46,11 @@ button:focus-visible {
   outline: 2px solid var(--copper);
   outline-offset: -2px;
 }
+
+/* Botón "Seguir conectado" del aviso de inactividad (AvisoInactividad.jsx,
+   clasesAviso.js): anillo en --copper-dark en vez de --copper, como estaba
+   en AvisoInactividad.css. 0-2-0. */
+.btn-seguir-conectado:focus-visible {
+  outline: 2px solid var(--copper-dark);
+  outline-offset: 2px;
+}
