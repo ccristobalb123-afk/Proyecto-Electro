@@ -229,17 +229,15 @@ Para que una migración quede idéntica (no solo "parecida"):
   Variantes útiles: `[&_input:not([type=radio]):not([type=checkbox])]:…`
   (0-3-1), `[fieldset&]:…` (solo si el elemento es un `<fieldset>`),
   `[&>:is(button,a)]:…` (hijos directos).
-- **`backdrop-filter`:** el build (lightningcss) juntaba `backdrop-filter` y
-  `-webkit-backdrop-filter` de una misma regla y dejaba solo el que tiene
-  prefijo, así que el desenfoque del fondo de ConfirmDialog y del aviso de
-  inactividad solo se ve en Safari. Al migrar se copió así
-  (`[-webkit-backdrop-filter:blur(4px)]` y `…blur(6px)]`) para no cambiar el
-  aspecto. Comprobado en el paso 4: Chromium reconoce `backdrop-filter` pero
-  no `-webkit-backdrop-filter`, y el fondo del aviso queda con
-  `backdrop-filter: none`. Corrección propuesta (es un cambio visual, va
-  aparte): `backdrop-blur-[4px]` / `backdrop-blur-[6px]`, la utilidad de
-  Tailwind, que sí deja las dos propiedades en el build; en Chrome, Edge y
-  Firefox la pantalla de atrás se vería desenfocada además de oscurecida.
+- **Desenfoque del fondo: siempre `backdrop-blur-*`**, nunca una propiedad
+  escrita a mano (`[backdrop-filter:…]` ni `[-webkit-backdrop-filter:…]`).
+  El build (lightningcss) junta `backdrop-filter` y `-webkit-backdrop-filter`
+  de una misma regla y deja solo la que tiene prefijo, que Chromium y Firefox
+  no reconocen: el desenfoque solo se veía en Safari. La utilidad de Tailwind
+  (`backdrop-blur-[4px]`) deja las dos propiedades en el CSS compilado. Así
+  lo usan ConfirmDialog (`backdrop-blur-[4px]`) y el aviso de inactividad
+  (`backdrop-blur-[6px]`, en `clasesAviso.js`); hasta que se corrigió, los
+  dos tenían la clase con prefijo y en Chrome el fondo solo se oscurecía.
 - **`font-mono` y `font-display`** son utilidades de Tailwind como las demás
   (hasta el paso 3 del cierre también existían sin capa en `tokens.css` y le
   ganaban a cualquier otra regla de letra; por eso hay código con

@@ -9,17 +9,16 @@
  *   (anillo de foco en --copper-dark: la regla global de foco no tiene capa
  *   y le ganaría a una clase).
  *
- * Fondo: solo -webkit-backdrop-filter, como quedaba antes en el build
- * (lightningcss juntaba las dos propiedades y dejaba solo la versión con
- * prefijo), así que el desenfoque solo se ve en Safari. Se copia tal cual
- * para no cambiar el aspecto en este paso (ver docs/tailwind.md).
+ * Fondo: desenfoque con backdrop-blur-[6px], que deja en el build la
+ * propiedad con y sin prefijo (antes solo estaba la de Safari, ver
+ * docs/tailwind.md).
  *
  * ≤400 px: max-[401px]: (Tailwind cuenta "menor que"; @media (max-width:
  * 400px) incluye los 400 px).
  */
 
 export const FONDO = `fixed inset-0 z-(--z-critical-alert) flex items-center justify-center p-6
-  [background:color-mix(in_srgb,var(--ink-2)_60%,transparent)] [-webkit-backdrop-filter:blur(6px)]
+  [background:color-mix(in_srgb,var(--ink-2)_60%,transparent)] backdrop-blur-[6px]
   max-[401px]:p-4`;
 
 export const TARJETA = `w-full max-w-[340px] rounded-lg border border-border p-8 text-center

@@ -118,7 +118,11 @@ no hace falta ninguna clase extra.
    gancho en el JSX.
 7. **No uses `!`** (`p-2!`) para ganarle a una regla sin capa: si te hace
    falta, es el caso 4 o el 5.
-8. **Nombres.** No nombres una clase igual que una de un framework externo
+8. **Desenfoque del fondo** (overlays de diálogos): `backdrop-blur-[Npx]`,
+   nunca `[-webkit-backdrop-filter:…]` ni `[backdrop-filter:…]`. El build
+   deja solo la versión con prefijo, que Chromium no reconoce; la utilidad
+   de Tailwind deja las dos (ver `docs/tailwind.md`).
+9. **Nombres.** No nombres una clase igual que una de un framework externo
    (`.card`, `.btn`, `.badge`, `.modal`…): ya hubo un choque real con
    `.modal` cuando se usaba Bootstrap.
 

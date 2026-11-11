@@ -7,12 +7,11 @@ import { Spinner } from "./Carga";
 // confirm-overlay (ToastContainer.css: con un diálogo abierto, los avisos no
 // estorban), btn-confirm-* (responsive.css: 44px táctiles) y confirm-palabra
 // (styles/foco.css: anillo de foco rojo del campo, ver allí).
-// Solo -webkit-backdrop-filter, como quedaba antes en el build: lightningcss
-// juntaba "backdrop-filter" y "-webkit-backdrop-filter" y dejaba solo la
-// versión con prefijo, así que el desenfoque solo se ve en Safari. Se copia
-// tal cual para no cambiar el aspecto en este paso (ver docs/tailwind.md).
+// Desenfoque del fondo con backdrop-blur-[4px]: la utilidad de Tailwind deja
+// en el build la propiedad con y sin prefijo (Chromium y Firefox usan la que
+// no lo tiene; antes solo estaba la de Safari, ver docs/tailwind.md).
 const FONDO = `confirm-overlay fixed inset-0 z-(--z-confirm) flex items-center justify-center p-6
-  [background:color-mix(in_srgb,var(--ink-2)_55%,transparent)] [-webkit-backdrop-filter:blur(4px)]
+  [background:color-mix(in_srgb,var(--ink-2)_55%,transparent)] backdrop-blur-[4px]
   max-md:p-4`;
 const TARJETA = `m-0 max-h-full w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-lg border p-[26px]
   [background:var(--card)] [box-shadow:var(--shadow-lg)] focus:[outline:none] max-md:p-5`;
