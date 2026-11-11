@@ -117,9 +117,10 @@ export const AVISO = "mb-4 rounded [background:var(--volt-tint)]";
 export const AVISO_RELLENO = "px-4 py-3.5";
 export const AVISO_ETIQUETA = "[&&]:mb-2 [&&]:flex items-center gap-1.5 [&&]:text-[13px] [&&]:font-semibold text-volt-dark";
 export const AVISO_FILA = "aviso-input-row flex items-center gap-2.5";
-// [font-family:…] y no font-mono: .font-mono también existe sin capa en
-// tokens.css y le ganaría a la letra de CAMPO (en los documentos del
-// vehículo el aviso va dentro de un campo, y ahí la letra es la del body).
+// [font-family:…] y no font-mono: en los documentos del vehículo el aviso va
+// dentro de un campo, y la letra del campo ([&_input…]:font-body de CAMPO,
+// más específica) le gana a cualquiera de las dos clases; ahí la letra es la
+// del body, como antes. Se deja como está.
 export const AVISO_INPUT = "h-[38px] w-20 rounded border border-control text-center [font-family:var(--font-mono)] text-[14px] font-semibold";
 export const AVISO_TEXTO = "text-[13px] text-volt-dark";
 

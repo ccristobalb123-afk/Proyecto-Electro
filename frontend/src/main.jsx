@@ -9,7 +9,6 @@ import "./styles/tokens.css";
 import "./styles/tailwind.css";
 import "./styles/foco.css";
 import "./styles/motion.css";
-import "./styles/fichas.css";
 import "./styles/responsive.css";
 import "./styles/tarjetas.css";
 import App from "./App.jsx";

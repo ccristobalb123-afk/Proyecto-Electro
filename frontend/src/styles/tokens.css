@@ -169,46 +169,19 @@
      - Tablet:       max-width: 960px
      - Desktop ancho: sin media query (es el diseño base) */
 
-/* Las reglas de etiqueta globales (*, html/body/#root, body, button, a)
-   ya no están acá: viven en styles/etiquetas.css, dentro de la capa
-   "base" de Tailwind, y .btn-primary está en styles/buttons.css, en la
-   capa "components" (ver docs/tailwind.md). Lo que queda en este archivo
-   sigue sin capa y le gana a cualquier clase: .font-display, .font-mono,
-   la regla de foco, .pantalla-cargando-sesion y .sr-only. */
-
-.font-display {
-  font-family: var(--font-display);
-}
-
-.font-mono {
-  font-family: var(--font-mono);
-}
-
-/* Anillo de foco: a propósito SIN capa (no va a etiquetas.css). Es la
-   red de seguridad del foco de teclado y ninguna clase debe poder
-   quitarlo. */
-input:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--copper);
-  outline-offset: 2px;
-}
-
-/* Pantalla de carga mientras se resuelve la sesión (ProtectedRoute) */
-.pantalla-cargando-sesion {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  height: 100vh;
-  height: 100dvh;
-  color: var(--muted);
-  font-size: 14px;
-}
+/* Este archivo es solo la fuente de valores (variables de :root) y
+   .sr-only. Las reglas de etiqueta globales viven en styles/etiquetas.css
+   (capa "base"), .btn-primary en styles/buttons.css (capa "components"),
+   la regla de foco y sus excepciones en styles/foco.css (sin capa), y las
+   letras de títulos y montos son las utilidades font-display / font-mono de
+   Tailwind (ver docs/tailwind.md). */
 
 /* Oculta visualmente un elemento pero lo deja disponible para lectores
    de pantalla — para labels de campos que ya se explican por su
    placeholder/ícono visualmente, pero necesitan un <label> real para
-   accesibilidad (ej. los buscadores de las barras de filtros). */
+   accesibilidad (ej. los buscadores de las barras de filtros).
+   Se queda acá, sin capa, con su definición: la sr-only de Tailwind
+   (excluida en tailwind.css) agrega clip-path y no es igual. */
 .sr-only {
   position: absolute;
   width: 1px;

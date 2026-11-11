@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Spinner } from "../shared/Carga";
+import { PANTALLA_CARGANDO } from "../shared/clasesCarga";
 
 /**
  * Envuelve una página que requiere sesión. Uso:
@@ -23,7 +24,7 @@ export function ProtectedRoute({ modulo, children }) {
 
   if (cargandoSesion) {
     return (
-      <div className="pantalla-cargando-sesion" role="status">
+      <div className={PANTALLA_CARGANDO} role="status">
         <Spinner tamano={20} />
         Cargando sesión…
       </div>

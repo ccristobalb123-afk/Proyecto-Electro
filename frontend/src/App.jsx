@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute, RutaPublicaSoloInvitado } from "./components/auth/ProtectedRoute";
 import { Spinner } from "./components/shared/Carga";
 import MonitorSesion from "./components/shared/MonitorSesion";
+import { PANTALLA_CARGANDO } from "./components/shared/clasesCarga";
 
 // Cada página se descarga al entrar a su ruta (code-splitting): así Chart.js
 // (Dashboard) y qrcode (Login) no viajan con quien solo abre otra sección.
@@ -20,7 +21,7 @@ export default function App() {
     // para que la transición entre ambas no parpadee.
     <Suspense
       fallback={
-        <div className="pantalla-cargando-sesion" role="status">
+        <div className={PANTALLA_CARGANDO} role="status">
           <Spinner tamano={20} />
           Cargando…
         </div>

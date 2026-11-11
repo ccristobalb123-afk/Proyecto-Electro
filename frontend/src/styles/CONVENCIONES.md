@@ -14,15 +14,20 @@ prioridad:
 2. `components`: `buttons.css` (con `.btn-primary`), `badges.css` y
    `filters.css`, en ese orden. Las clases de Tailwind les ganan.
 3. `utilities`: las clases de Tailwind.
-4. Sin capa (siempre gana): las variables y la regla de foco de
-   `tokens.css`, las excepciones de foco en `foco.css`, `responsive.css`
+4. Sin capa (siempre gana): las variables y `.sr-only` de `tokens.css`,
+   `foco.css` (la regla global de foco y sus excepciones), `responsive.css`
    (celular y 44 px táctiles), `motion.css` (movimiento reducido),
-   `tarjetas.css` (borde de tarjetas), `fichas.css` y lo que queda en el CSS
-   de cada módulo (cada regla dice por qué no es una clase).
+   `tarjetas.css` (borde de tarjetas) y lo que queda en el CSS de cada
+   módulo (cada regla dice por qué no es una clase).
 
 Los cuatro archivos sin capa a propósito (`foco.css`, `responsive.css`,
 `motion.css`, `tarjetas.css`) son "ajustes que ganan siempre": si una regla
-de ahí toca una propiedad, ninguna clase la puede cambiar. Uso, tabla token →
+de ahí toca una propiedad, ninguna clase la puede cambiar. Para cambiar el
+anillo de foco de un control, agrega la excepción en `foco.css`, con su
+motivo y un selector de más de 0-1-1 de especificidad (pendiente:
+`.btn-seguir-conectado:focus-visible`, en `AvisoInactividad.css`, todavía
+no vive en `foco.css`; se moverá al migrar AvisoInactividad, paso 4). Uso,
+tabla token →
 clase, breakpoints, reglas de convivencia y la lista completa de lo que queda
 sin capa en `frontend/docs/tailwind.md`.
 
@@ -43,7 +48,7 @@ Las reglas de etiqueta globales de la app que antes estaban en `tokens.css`:
 color), `button` (letra del body, cursor) y `a` (color heredado, sin
 subrayado). También va en la capa `base`, **después** de `base.css`, para que
 la letra de `button` le gane al `font-family: inherit` de `base.css`. La regla
-de foco (`input/button:focus-visible`) se queda sin capa en `tokens.css`.
+de foco (`input/button:focus-visible`) se queda sin capa, en `foco.css`.
 
 ### Grillas de tarjetas
 CSS Grid con `minmax(0, 1fr)`, sin librería y con `gap: var(--space-4)`:

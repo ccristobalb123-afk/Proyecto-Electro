@@ -20,7 +20,8 @@ export const TITULO = "wrap-anywhere text-[14.5px] font-bold text-text";
 export const SUBTITULO = "mt-[3px] flex flex-wrap items-center gap-1.5 text-[12px] text-muted";
 
 // Un monto nunca se parte en dos líneas ("S/" arriba, número abajo).
-// [font-family:…] y no font-mono: .font-mono va sin capa en tokens.css.
+// [font-family:…]: se escribió así cuando .font-mono iba sin capa en tokens.css;
+// hoy font-mono es la utilidad de Tailwind y daría lo mismo.
 const MONTO_BASE = "whitespace-nowrap [font-family:var(--font-mono)] text-[15px] font-bold";
 export const MONTO = `${MONTO_BASE} text-text`;
 export const MONTO_SALDO = `${MONTO_BASE} text-danger-dark`;

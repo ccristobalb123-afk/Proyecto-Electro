@@ -1,9 +1,0 @@
-/* ConfirmDialog: los estilos van con clases de Tailwind en ConfirmDialog.jsx.
-   Acá queda solo lo que una clase no puede cambiar (regla 9 de
-   docs/tailwind.md): el anillo de foco del campo "escribe ELIMINAR" es rojo,
-   pero la regla global de foco (input:focus-visible, tokens.css) no tiene
-   capa a propósito y le ganaría a cualquier clase. */
-.confirm-palabra input:focus-visible {
-  outline: 2px solid var(--danger);
-  outline-offset: 2px;
-}

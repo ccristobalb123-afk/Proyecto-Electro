@@ -3,7 +3,8 @@ import { Modal, ModalActions } from "../shared/Modal";
 import { IconClipboardCheck } from "../icons/Icons";
 
 const CAJA = "mb-2.5 flex items-center gap-2.5 rounded border border-border bg-paper px-4 py-3.5";
-// [font-family:…] y no font-mono: .font-mono va sin capa en tokens.css (ver docs/tailwind.md).
+// [font-family:…]: se escribió así cuando .font-mono iba sin capa en tokens.css;
+// hoy font-mono es la utilidad de Tailwind y daría lo mismo.
 const VALOR = "flex-1 [font-family:var(--font-mono)] text-[16px] font-semibold tracking-[0.03em] text-text";
 const AYUDA = "mx-0 mt-0 mb-3.5 text-[12px] text-muted";
 const AVISO = "mb-3.5 flex items-center gap-2 rounded bg-danger-tint px-3 py-2.5 text-[12.5px] text-danger-dark";

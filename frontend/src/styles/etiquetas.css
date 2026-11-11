@@ -12,7 +12,7 @@
    texto con otra letra.
 
    La regla de foco (input/button:focus-visible) NO está acá: se queda
-   sin capa en tokens.css.
+   sin capa, en foco.css.
    ============================================================ */
 
 * {

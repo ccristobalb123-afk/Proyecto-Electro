@@ -1,16 +1,48 @@
 /* ============================================================
-   Foco — reglas que quedan SIN capa a propósito, junto a la regla global
-   de foco (input/button:focus-visible, en tokens.css, también sin capa).
-   Esa regla es la red de seguridad del anillo de foco de teclado: ninguna
-   clase de Tailwind ni regla en capa puede quitarlo. Las excepciones que sí
-   deben cambiarlo tienen que estar sin capa también; se juntan acá.
+   Foco — todo lo que toca el anillo de foco, SIN capa a propósito.
+
+   La regla global (input/button:focus-visible) es la red de seguridad del
+   foco de teclado: al estar sin capa, ninguna clase de Tailwind ni regla en
+   capa puede quitarla. Por lo mismo, las excepciones que sí deben cambiarla
+   tienen que estar sin capa también. Todas tienen más especificidad que la
+   regla global (0-1-1), así que le ganan sin depender del orden; igual van
+   después de ella.
+
+   Si agregas una excepción, ponla acá, con su motivo, y que su selector
+   tenga más especificidad que 0-1-1.
    ============================================================ */
 
-/* Buscador de las barras de filtros: el campo no dibuja su propio
-   contorno, el foco se muestra en la caja (.filters .search:focus-within,
-   filters.css). filters.css está en la capa "components": en capa, este
-   "outline: none" perdería contra la regla global de foco y el buscador
-   mostraría dos anillos. */
+/* Regla global: anillo de 2px en el color principal, separado 2px. */
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 2px;
+}
+
+/* Buscador global del topbar (GlobalSearch.jsx): el campo no dibuja su
+   propio contorno; el foco se muestra en la caja (focus-within:). 0-2-1. */
+.global-search input:focus {
+  outline: none;
+}
+
+/* Buscador de las barras de filtros: igual, el foco se muestra en la caja
+   (.filters .search:focus-within, filters.css, en la capa "components").
+   0-3-1. */
 .filters .search input:focus {
   outline: none;
+}
+
+/* Campo "escribe ELIMINAR" del diálogo de confirmación (ConfirmDialog.jsx):
+   anillo rojo, del color de la acción peligrosa. 0-2-1. */
+.confirm-palabra input:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+/* Fila de una ficha desplegable (RRHH > Cursos / EMO y Operaciones >
+   Asignaciones, clasesFicha.js): el anillo va por dentro del borde, porque
+   la ficha recorta lo que sobresale (overflow: hidden). 0-2-0. */
+.persona-cursos__cabecera:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: -2px;
 }

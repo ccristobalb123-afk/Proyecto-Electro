@@ -2,12 +2,11 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useBloquearScroll } from "../../hooks/useBloquearScroll";
 import { IconAlertCircle, IconHelpCircle } from "../icons/Icons";
 import { Spinner } from "./Carga";
-import "./ConfirmDialog.css";
 
 // Clases que quedan como gancho de otras reglas (no dan estilo por sí solas):
 // confirm-overlay (ToastContainer.css: con un diálogo abierto, los avisos no
 // estorban), btn-confirm-* (responsive.css: 44px táctiles) y confirm-palabra
-// (ConfirmDialog.css: anillo de foco rojo del campo, ver allí).
+// (styles/foco.css: anillo de foco rojo del campo, ver allí).
 // Solo -webkit-backdrop-filter, como quedaba antes en el build: lightningcss
 // juntaba "backdrop-filter" y "-webkit-backdrop-filter" y dejaba solo la
 // versión con prefijo, así que el desenfoque solo se ve en Safari. Se copia

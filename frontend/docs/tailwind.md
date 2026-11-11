@@ -126,13 +126,19 @@ reglas siguen en `responsive.css`.
      `[tabindex="-1"]`) ahora le ganan a **cualquier** `!important` sin capa.
      Hoy ninguna regla compite con ellas; no escribas otro `display` u
      `outline` con `!important` para esos casos.
-   - La regla global de foco de `tokens.css`
-     (`input:focus-visible, button:focus-visible`) queda a propósito fuera de
-     capa: es la red de seguridad del anillo de foco y ninguna clase debe
-     poder quitarlo. Las excepciones que sí lo cambian tienen que estar sin
-     capa también y se juntan en `styles/foco.css` (hoy: el `outline: none`
-     del campo del buscador de las barras de filtros, cuyo foco se dibuja en
-     la caja; en capa perdería y se verían dos anillos).
+   - La regla global de foco (`input:focus-visible, button:focus-visible`,
+     en `styles/foco.css`) queda a propósito fuera de capa: es la red de
+     seguridad del anillo de foco y ninguna clase debe poder quitarlo. Las
+     excepciones que sí lo cambian tienen que estar sin capa también y viven
+     en el mismo archivo, después de la regla y con más especificidad
+     (0-1-1 o más): el `outline: none` del campo del buscador global y del
+     de las barras de filtros (el foco se dibuja en la caja), el anillo rojo
+     del campo «escribe ELIMINAR» de ConfirmDialog y el anillo por dentro
+     del borde de la fila de las fichas desplegables. Para cambiar el foco
+     de otro control, agrega ahí la excepción con su motivo.
+     **Pendiente:** `.btn-seguir-conectado:focus-visible`
+     (`AvisoInactividad.css`) es una excepción de foco que todavía no vive en
+     `foco.css`; se moverá ahí cuando se migre AvisoInactividad (paso 4).
 3. **Cómo migrar una regla:** pasa la propiedad a clases de Tailwind y
    **bórrala** del CSS antiguo en el mismo cambio. Si dejas las dos, gana la
    antigua (y la clase nueva parece "no funcionar").
@@ -144,9 +150,12 @@ reglas siguen en `responsive.css`.
    Los botones, badges y la barra de filtros (`buttons.css`, `badges.css`,
    `filters.css`) están en la capa `components`: una clase de Tailwind en el
    mismo elemento les gana.
-6. **Nombres que ya existen:** `.sr-only` y `.font-display` son de la app
-   (en `tokens.css`). Tailwind no genera `sr-only` (está excluida en
-   `tailwind.css`) y su `font-display` da el mismo valor.
+6. **Nombres que ya existen:** `.sr-only` es de la app (en `tokens.css`, sin
+   capa) y Tailwind no genera la suya (está excluida en `tailwind.css`): la
+   de Tailwind agrega `clip-path` y no es igual. `font-display` y
+   `font-mono` son las utilidades de Tailwind (dan `var(--font-display)` y
+   `var(--font-mono)`); las copias sin capa que había en `tokens.css` se
+   borraron.
 7. **Palabras sueltas en el código:** Tailwind toma como clase cualquier
    palabra que coincida (ej. `hidden` en `<input hidden>`). No pasa nada:
    la regla solo se aplica a elementos con esa clase. Si alguna genera CSS
@@ -159,9 +168,9 @@ reglas siguen en `responsive.css`.
 
    | Regla sin capa | Propiedades que fija |
    |---|---|
-   | `input:focus-visible`, `button:focus-visible` (`tokens.css`) | contorno de foco (`outline`): a propósito, para que ninguna clase lo quite |
+   | `input:focus-visible`, `button:focus-visible` y sus excepciones (`foco.css`) | contorno de foco (`outline`): a propósito, para que ninguna clase lo quite |
    | `responsive.css` (táctil, celular), `motion.css`, `tarjetas.css` | lo que fija cada regla (ej. `html .link-button` en táctil: relleno y margen vertical) |
-   | `.sr-only`, `.font-display`, `.font-mono`, `.pantalla-cargando-sesion` (`tokens.css`) | posición y recorte; letra; la pantalla de carga |
+   | `.sr-only` (`tokens.css`) | posición, tamaño y recorte del texto solo para lectores de pantalla |
 
    `.btn-primary`, `.btn-outline-sm`, `.btn-danger`, `.icon-btn`,
    `.link-button` (`buttons.css`), `.co-badge` (`badges.css`) y la barra de
@@ -227,10 +236,10 @@ Para que una migración quede idéntica (no solo "parecida"):
   (`[-webkit-backdrop-filter:blur(4px)]`) para no cambiar el aspecto;
   agregar `[backdrop-filter:blur(4px)]` lo activaría también en Firefox y
   Chrome.
-- **`font-mono` y `font-display` también existen sin capa** en `tokens.css`:
-  como clase le ganan a cualquier otra regla de letra de Tailwind (por
-  ejemplo a la de un contenedor `[&_input]:font-body`). Si la letra tiene que
-  poder perder, usa `[font-family:var(--font-mono)]`.
+- **`font-mono` y `font-display`** son utilidades de Tailwind como las demás
+  (hasta el paso 3 del cierre también existían sin capa en `tokens.css` y le
+  ganaban a cualquier otra regla de letra; por eso hay código con
+  `[font-family:var(--font-mono)]`, que hoy da lo mismo).
 - **Ganarle al contenedor sin `!`.** Si un hijo tiene que ganarle a esa regla
   del contenedor (antes lo hacía por estar después en el CSS), sube su
   especificidad con `[&&]:` (repite la clase: `.x.x`, 0-2-0). Ej. la etiqueta
@@ -272,14 +281,25 @@ resultado habría cambiado:
   (la etiqueta general del campo, `[&_label]:block`, ahora le gana a
   `.btn-outline-sm`).
 
+**Restos de `tokens.css` y foco:** hechos (paso 3 del cierre). La regla
+global de foco salió de `tokens.css` y está en `styles/foco.css` junto con
+todas sus excepciones (los dos buscadores, el campo «escribe ELIMINAR» y la
+fila de las fichas), que antes estaban en `GlobalSearch.css`,
+`ConfirmDialog.css` y `fichas.css` (eliminados). `.font-display` y
+`.font-mono` se borraron de `tokens.css`: las utilidades de Tailwind dan la
+misma letra en cada uso (medido). `.pantalla-cargando-sesion` pasó a clases
+(`PANTALLA_CARGANDO` en `components/shared/clasesCarga.js`). `.sr-only` se
+queda en `tokens.css` (ver la tabla). `tokens.css` queda con las variables y
+`.sr-only`.
+
 **Qué queda sin capa y por qué:**
 
 | Archivo | Qué | Por qué |
 |---|---|---|
 | `tokens.css` | variables (`:root`) | son la fuente de valores, no reglas |
-| `tokens.css` | regla de foco (`input/button:focus-visible`) | red de seguridad del foco de teclado: ninguna clase debe poder quitarlo |
-| `foco.css` | excepciones a la regla de foco | para cambiar el foco hay que estar sin capa, como la regla |
-| `tokens.css` | `.sr-only`, `.font-display`, `.font-mono`, `.pantalla-cargando-sesion` | pendientes (paso 3 del cierre) |
+| `foco.css` | regla de foco (`input/button:focus-visible`) | red de seguridad del foco de teclado: ninguna clase debe poder quitarlo |
+| `foco.css` | excepciones a la regla de foco (dos buscadores, campo «escribe ELIMINAR», fila de las fichas) | para cambiar el foco hay que estar sin capa, como la regla, y con más especificidad |
+| `tokens.css` | `.sr-only` | se deja con su definición, sin capa: la de Tailwind agrega `clip-path` y no es igual (por eso está excluida en `tailwind.css`) |
 | `responsive.css`, `motion.css`, `tarjetas.css` | ajustes de celular/táctil, movimiento reducido y borde de tarjeta | ajustes que ganan siempre, a propósito |
 | `.css` de cada módulo | lo anotado en cada fila de «Migrado» | bloqueado por las reglas de arriba, `@keyframes` o selectores que una clase no puede expresar |
 
@@ -331,7 +351,7 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Estado vacío | `EstadoVacio.jsx` | ninguno (`EstadoVacio.css` se eliminó) |
 | Estado de error | `EstadoError.jsx` | ninguno (`EstadoError.css` se eliminó) |
 | Estructura (menú lateral, topbar, contenido) | `AppShell.jsx` | ninguno (`AppShell.css` se eliminó). El botón de acción de cada pantalla en el topbar va con clases en su contenedor (`TOPBAR_ACCION`, `[&_.btn-primary]:…`, y en ≤400 px solo el «+»). Clases que quedan como gancho: `sidebar` (`motion.css`), `sidebar-cerrar`, `hamburger-btn`, `logout-btn`, `nav` (`responsive.css`), `main` (`responsive.css`, `tarjetas.css`) y `topbar-accion-texto` (el texto de ese botón, en las pantallas; `TOPBAR_ACCION` lo oculta en ≤400 px) |
-| Buscador global | `GlobalSearch.jsx` | `GlobalSearch.css`: solo el `outline: none` del campo (la regla de foco de `tokens.css` le gana a cualquier clase, regla 9). Ganchos: `search` y `global-search` (`responsive.css`). Las reglas de `.search` que compartían las barras de filtros pasaron, iguales, a `filters.css` como `.filters .search` |
+| Buscador global | `GlobalSearch.jsx` | ninguno (`GlobalSearch.css` se eliminó): el `outline: none` del campo está en `foco.css` con las demás excepciones de foco. Ganchos: `search` y `global-search` (`responsive.css`). Las reglas de `.search` que compartían las barras de filtros pasaron, iguales, a `filters.css` como `.filters .search` |
 | Campana de notificaciones | `NotificacionesBell.jsx`, `EtiquetaUrgencia.jsx` | `NotificacionesBell.css`: solo el `@keyframes` del panel. `EtiquetaUrgencia.css` se eliminó. Ganchos: `notificaciones-bell__boton`, `__cerrar`, `__push-toggle` (`responsive.css`) y `__panel` (`motion.css`) |
 | Avisos (toasts) | `ToastContainer.jsx` | `ToastContainer.css`: los `@keyframes` de entrada y la regla que oculta o deja pasar los toques de los avisos con un modal abierto (`body:has(...)`: depende del estado de otro componente). Ganchos: `toast`, `toast--{tipo}` (`ToastContainer.css`, `motion.css`) y `toast__cerrar` (`responsive.css`) |
 | Dashboard | `Dashboard.jsx` (+ `className` en `EtiquetaUrgencia.jsx`) | ninguno (`Dashboard.css` se eliminó). «Ver todos» lleva `mt-0 text-sm`; en pantallas táctiles manda, como antes, el margen de la regla táctil de `responsive.css`. El relleno de la carga del gráfico va en clases (`<Loading compacto>`) |
@@ -339,7 +359,7 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Campos de formulario de los modales | `clasesModal.js` (`CAMPO`, `FILA`, `ERROR_CAMPO`, `AYUDA`, `AVISO…`, `DROPZONE…`, `OPCION…`, `BOTON_SECUNDARIO`…), usadas en `Modal.jsx` (empresa, aviso de vencimiento, IGV, detracción) y en cada formulario (`ModalNuevo*`, `ModalEditar*`, `ModalInspeccion`, `ModalTiposEquipo`, `FotosEquipo`, `CamposEquipo`, `CamposDocumentosVehiculo`, `ModalDocumentos`, `Administracion.jsx`…) | `Modal.css`: solo el cursor de mano de «Tomar foto» / «Elegir archivo» de las fotos del equipo mientras se guarda (`.foto-equipo__botones label.btn-outline-sm`: le gana por venir después a la regla del cursor «trabajando», las dos sin capa; como clase perdería). Lo demás de esos botones, de «Mantener la actual» y la letra de los botones de archivo de Nuevo gasto va en clases (`FotosEquipo.jsx`, `ModalNuevoGasto.jsx`); como la etiqueta general del campo (`[&_label]`, 0-1-1) le gana a una clase sola, el display y la letra van con `[&&]:`. Ganchos: `form-field` (`responsive.css`, `Administracion.css`), `form-row` (`responsive.css`), `campo-ayuda` (`Operaciones.css`), `co-choice`, `igv-choice` (`responsive.css`), `aviso-input-row`, `btn-secondary` (`responsive.css`), `dropzone`, `foto-equipo__botones` (el cursor de arriba), `foto-equipo-slot` (campos atenuados mientras se guarda) |
 | Botón con carga y spinner | `Carga.jsx` | `Carga.css`: solo el `@keyframes` del giro. Display, alineación, separación y el aspecto «ocupado» (`:disabled` sin atenuar, cursor de «trabajando») van en clases (`BOTON_CARGA`) |
 | Bloque de carga | `Loading.jsx` | `Loading.css`: solo el `@keyframes` del pulso del texto |
-| Diálogo de confirmación | `ConfirmDialog.jsx` | `ConfirmDialog.css`: solo el anillo de foco rojo del campo «escribe ELIMINAR» (`.confirm-palabra input:focus-visible`: la regla global de foco de `tokens.css` no tiene capa a propósito y le ganaría a la clase, regla 9). Ganchos: `confirm-overlay` (`ToastContainer.css`), `btn-confirm-primary`, `-secondary`, `-danger` (`responsive.css`) y `confirm-palabra`. El fondo lleva solo `-webkit-backdrop-filter` (ver «Detalles») |
+| Diálogo de confirmación | `ConfirmDialog.jsx` | ninguno (`ConfirmDialog.css` se eliminó): el anillo de foco rojo del campo «escribe ELIMINAR» está en `foco.css` (`.confirm-palabra input:focus-visible`). Ganchos: `confirm-overlay` (`ToastContainer.css`), `btn-confirm-primary`, `-secondary`, `-danger` (`responsive.css`) y `confirm-palabra` (`foco.css`). El fondo lleva solo `-webkit-backdrop-filter` (ver «Detalles») |
 | Visor de archivos | `VisorArchivo.jsx`, variante «visor» de `Modal.jsx` (`FONDO_VISOR`, `CAJA_VISOR`, `TITULO_VISOR`), `ACCIONES_VISOR` en `clasesModal.js` | `VisorArchivo.css`: solo los `@keyframes` de entrada del fondo y del visor. El botón «Ver archivo» (`BotonVerArchivo`) ya no usa la regla `:where(...)` (regla 10) |
 | Foto ampliada | `Lightbox.jsx` | ninguno (`Lightbox.css` se eliminó). Gancho: `lightbox-close` (`responsive.css`) |
 | Sesiones y dispositivos | `SesionesModal.jsx` | ninguno (`SesionesModal.css` se eliminó) |
@@ -347,7 +367,7 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Finanzas (pestañas, tarjetas de facturas, facturas por pagar y gastos, y lo propio de sus modales: pagos registrados, categorías de gasto, documento y «Faltan datos» de Nuevo gasto, detalle de «¿Eliminar este gasto?») | `Finanzas.jsx`, `clasesFinanzas.js`, `FacturasGrid.jsx`, `FacturasPorPagarGrid.jsx`, `GastosGrid.jsx`, `CampoComprobante.jsx`, `ModalRegistrarPago.jsx`, `ModalCategoriasGasto.jsx`, `ModalNuevoGasto.jsx`, `DetalleEliminarGasto.jsx`; compartidas nuevas: `clasesTarjeta.js` (tarjeta, encabezado, rótulo, pie y grilla) y `clasesPestanas.js` (pestañas); `OPCIONES_FILA` en `clasesModal.js` | ninguno (`Finanzas.css` se eliminó): los botones del documento de Nuevo gasto van en clases (`BOTON_ARCHIVO`, `BOTON_CAMARA`; «Tomar foto» con `pointer-coarse:`). Ganchos: `tabs` (`responsive.css`), `fin-grid`, `fin-card-header`, `fin-card-footer`, `fin-card-archivo`, `fin-card-archivo--link` (`responsive.css`), `fin-card` (`tarjetas.css`: el borde suave sigue ahí), `modal-cuerpo` (documento atenuado mientras se guarda). «Ver comprobante» sube la letra y el color con `[&&]:` para ganarle a las clases de `BotonVerArchivo` |
 | RRHH (pestañas, tabla y tarjetas de Contratos, fichas de Cursos / EMO en lo que solo usa RRHH, detalle, selector de personal y avisos del formulario de curso) | `Rrhh.jsx`, `clasesRrhh.js`, `TablaRrhh.jsx`, `CursosPorPersona.jsx`, `SelectorPersonal.jsx`, `ModalNuevoCurso.jsx`; reutiliza `clasesTarjeta.js` (tarjeta de celular y rótulos) y `clasesPestanas.js` | `Rrhh.css`: solo la fila de botones del formulario de curso en celular (`.modal-actions:has(> button[value="otro"])`: «Cancelar» lo pone `ModalActions`, que no recibe clases). La ficha y el chip de documento pasaron a constantes compartidas con Operaciones (`clasesFicha.js`, `clasesDocumento.js`; ver la fila de Operaciones, parte 2). Ganchos: `tabs`, `table-scroll`, `rrhh-cards-mobile`, `selector-personal__lista` (`responsive.css`), `rrhh-mobile-card` (`tarjetas.css`). Ya no usan `.mini-avatar` ni `.equipo-card-label`, que `Operaciones.css` y `EquiposCards.css` definen con otros valores (26 px; margen inferior de 2 px) y se colaban en RRHH según el orden en que se abrían las pantallas |
 | Operaciones, parte 1: cabecera, pestañas, barra de «Tipos de equipo» y pestaña Equipos (grupos por tipo, tarjetas y el aviso «Faltan datos» del modal de editar equipo) | `Operaciones.jsx`, `EquiposGrid.jsx`, `clasesEquipos.js`, `ModalEditarEquipo.jsx`; reutiliza `clasesPestanas.js` y de `clasesTarjeta.js` el rótulo (`ETIQUETA_FORMA`) y la etiqueta de estado (`ESTADO_BASE`, `ESTADO_PUNTO`, ahora compartidas con RRHH) | `EquiposCards.css`: solo el `margin-top: 0` de «Completar datos» / «Renovar fechas» (ver «Qué queda»). Su letra y color van en clases (`AVISO_FALTAN_BOTON`, `AVISO_VENCIDO_BOTON`) y el borde de «Tipos de equipo» también (`border-control hover:border-electro` en `Operaciones.jsx`: el hover se repite porque la clase le gana al de `.btn-outline-sm`). Se borraron las reglas de tabla y `.code` (Operaciones ya no tiene tablas; solo se colaban en la de RRHH, con los mismos valores) y las que no usaba nada (`.tag`, `.responsable`, `.sin-responsable`, `.row-actions`, `.categorias-lista…`, `.filtros-asignaciones__tipos`, `.equipo-card-actions-spacer`). La regla «Asignado a» con ícono pasó de `Asignacion.css` a clases. Ganchos: `tabs`, `categoria-seccion-header`, `equipo-card-actions`, `equipo-card-fotos-editar`, `equipo-card-select` (`responsive.css`), `equipo-card-foto-btn` (`motion.css`), `equipo-faltantes`, `equipo-vencido` (`EquiposCards.css`). La tarjeta conserva `--borde-tarjeta` (`--borde-tarjeta-ancho`, `--borde-tarjeta-color`) |
-| Operaciones, parte 2: Vehículos (tarjetas y estado de cada documento), Asignaciones (fichas por persona y camión), los modales de Operaciones en lo que dependía de `Operaciones.css` y `Asignacion.css` (documentos, asignar y su buscador, hoja de vida, tipos de equipo, inspección, baja, mantenimiento, nota de Nuevo equipo), y dos piezas compartidas | `VehiculosGrid.jsx`, `EstadoDocumento.jsx`, `AsignacionesPanel.jsx`, `ModalDocumentos.jsx`, `CamposDocumentosVehiculo.jsx`, `ModalAsignarEquipo.jsx`, `SelectorDestinatario.jsx`, `ModalHistorialOperaciones.jsx`, `ModalTiposEquipo.jsx`, `ModalInspeccion.jsx`, `ModalBaja.jsx`, `ModalMantenimiento.jsx`, `ModalNuevoEquipo.jsx`; compartidas nuevas: `clasesFicha.js` (la ficha desplegable de Cursos / EMO y Asignaciones, antes `fichas.css`), `clasesDocumento.js` (el chip de documento, antes `.doc-chip` en `Rrhh.css`, `Operaciones.css` y dos reglas de `Modal.css`; lo usan RRHH, `BotonVerArchivo` por defecto y el formulario del vehículo), `AVATAR_FORMA` en `clasesTarjeta.js` (30 px en RRHH, 26 px en Asignaciones), `RECUADRO…` y `AYUDA_TEXTO` en `clasesModal.js` | Se borraron `Operaciones.css`, `Asignacion.css` y `VehiculosCards.css`. `fichas.css`: el anillo de foco de la fila (`.persona-cursos__cabecera:focus-visible`: la regla global de foco no tiene capa). `EquiposCards.css`: lo anotado en la fila de la parte 1. El chip «Adjuntar» opcional tiene dos variantes porque al pasar el cursor no era igual: cobre claro en Cursos / EMO y mezcla con cobre en el vehículo. Ganchos: `doc-chip`, `vehiculos-grid`, `vehiculo-card-top-actions`, `vehiculo-doc-nombre--link`, `docs-row-sub--link`, `selector-destino__lista` (`responsive.css`), `persona-cursos`, `persona-cursos--abierta` (`tarjetas.css`), `persona-cursos__cabecera` (`fichas.css`). Las tarjetas de vehículo conservan `--borde-tarjeta` |
+| Operaciones, parte 2: Vehículos (tarjetas y estado de cada documento), Asignaciones (fichas por persona y camión), los modales de Operaciones en lo que dependía de `Operaciones.css` y `Asignacion.css` (documentos, asignar y su buscador, hoja de vida, tipos de equipo, inspección, baja, mantenimiento, nota de Nuevo equipo), y dos piezas compartidas | `VehiculosGrid.jsx`, `EstadoDocumento.jsx`, `AsignacionesPanel.jsx`, `ModalDocumentos.jsx`, `CamposDocumentosVehiculo.jsx`, `ModalAsignarEquipo.jsx`, `SelectorDestinatario.jsx`, `ModalHistorialOperaciones.jsx`, `ModalTiposEquipo.jsx`, `ModalInspeccion.jsx`, `ModalBaja.jsx`, `ModalMantenimiento.jsx`, `ModalNuevoEquipo.jsx`; compartidas nuevas: `clasesFicha.js` (la ficha desplegable de Cursos / EMO y Asignaciones, antes `fichas.css`), `clasesDocumento.js` (el chip de documento, antes `.doc-chip` en `Rrhh.css`, `Operaciones.css` y dos reglas de `Modal.css`; lo usan RRHH, `BotonVerArchivo` por defecto y el formulario del vehículo), `AVATAR_FORMA` en `clasesTarjeta.js` (30 px en RRHH, 26 px en Asignaciones), `RECUADRO…` y `AYUDA_TEXTO` en `clasesModal.js` | Se borraron `Operaciones.css`, `Asignacion.css` y `VehiculosCards.css`. El anillo de foco de la fila de la ficha (`.persona-cursos__cabecera:focus-visible`) está en `foco.css` (`fichas.css` se eliminó en el paso 3 del cierre). `EquiposCards.css`: lo anotado en la fila de la parte 1. El chip «Adjuntar» opcional tiene dos variantes porque al pasar el cursor no era igual: cobre claro en Cursos / EMO y mezcla con cobre en el vehículo. Ganchos: `doc-chip`, `vehiculos-grid`, `vehiculo-card-top-actions`, `vehiculo-doc-nombre--link`, `docs-row-sub--link`, `selector-destino__lista` (`responsive.css`), `persona-cursos`, `persona-cursos--abierta` (`tarjetas.css`), `persona-cursos__cabecera` (`foco.css`). Las tarjetas de vehículo conservan `--borde-tarjeta` |
 
 **Sin migrar** (todo su estilo sigue en CSS):
 
@@ -357,10 +377,12 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
   migrarlos junto con ese CSS):
   - `AvisoInactividad.css`: `responsive.css` (alto táctil de 44 px de
     `.btn-seguir-conectado`) y `motion.css` (pulso con movimiento reducido).
+    Además, su anillo de foco (`.btn-seguir-conectado:focus-visible`) es una
+    excepción de foco que todavía no vive en `foco.css`; se moverá ahí al
+    migrar AvisoInactividad (paso 4).
 - **Otros:** `Monto.jsx` / `Monto.css` y `MenuAcciones.jsx` / `MenuAcciones.css` se borraron: no se usaban.
 - **Globales** (`styles/`): `buttons.css`, `badges.css` y `filters.css`
   siguen como CSS, pero en la capa `components` (ver arriba).
-  `fichas.css` (solo lo bloqueado; ver la fila de Operaciones, parte 2),
   `foco.css`, `tarjetas.css`, `motion.css` y `responsive.css` quedan sin
   capa. `tokens.css`, `base.css` y `etiquetas.css` no se migran: son la
   fuente de valores y la base.

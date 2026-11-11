@@ -5,11 +5,10 @@ import * as equiposService from "../../services/equiposService";
 import * as vehiculosService from "../../services/vehiculosService";
 import * as contratosService from "../../services/contratosService";
 import { useDebounce } from "../../hooks/useDebounce";
-import "./GlobalSearch.css";
 
 /* Estilos con Tailwind (ver docs/tailwind.md). "search" y "global-search"
    son ganchos de responsive.css (alto táctil de 44px de la caja y del
-   campo); el "outline: none" del campo sigue en GlobalSearch.css. En
+   campo); el "outline: none" del campo está en styles/foco.css. En
    celular (max-md:, ≤640px) el buscador no se muestra. El foco del campo
    se dibuja en la caja (focus-within:). */
 const CAJA = `search global-search relative flex w-[260px] items-center gap-2 rounded border border-control

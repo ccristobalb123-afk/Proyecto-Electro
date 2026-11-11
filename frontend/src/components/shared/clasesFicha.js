@@ -1,13 +1,13 @@
 /**
  * Fichas desplegables por persona o camión: RRHH > Cursos / EMO y
  * Operaciones > Asignaciones. Cada fila es un bloque que se abre al tocarlo
- * y muestra sus registros adentro. Antes en styles/fichas.css.
+ * y muestra sus registros adentro. Antes en styles/fichas.css (eliminado).
  *
  * Ganchos que se quedan con su nombre:
  * - persona-cursos y persona-cursos--abierta: tarjetas.css (borde suave de
  *   la ficha cerrada; abierta lleva el azul marino).
- * - persona-cursos__cabecera: fichas.css (anillo de foco: la regla global de
- *   foco de tokens.css no tiene capa y le ganaría a una clase).
+ * - persona-cursos__cabecera: styles/foco.css (anillo de foco: la regla global de
+ *   foco no tiene capa y le ganaría a una clase).
  */
 
 // Lista de fichas y lista de registros dentro de una ficha.

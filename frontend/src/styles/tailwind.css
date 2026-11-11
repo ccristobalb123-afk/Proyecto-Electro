@@ -20,7 +20,7 @@
        una de esas reglas tocan la misma propiedad del mismo elemento,
        gana la regla; para que mande Tailwind, al migrar se borra esa
        propiedad del CSS antiguo.
-     · La regla global de foco de tokens.css (input/button:focus-visible)
+     · La regla global de foco (input/button:focus-visible, styles/foco.css)
        queda a propósito fuera de capa: es la red de seguridad del anillo
        de foco.
    - Tema: lee los valores de tokens.css con var(); no los copia.
