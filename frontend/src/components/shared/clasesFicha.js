@@ -20,8 +20,8 @@ export const REGISTROS = "m-0 flex list-none flex-col gap-2 p-0";
 const FICHA = `[--borde-persona:color-mix(in_srgb,var(--border-control)_45%,var(--border))] min-w-0 overflow-hidden rounded-lg border
   [background:var(--card)]`;
 export const FICHA_CERRADA = `persona-cursos ${FICHA} [box-shadow:var(--shadow-sm),0_2px_6px_rgba(16,24,40,0.06)]`;
-export const FICHA_ABIERTA = `persona-cursos persona-cursos--abierta ${FICHA} border-copper
-  [box-shadow:inset_4px_0_0_var(--copper),var(--shadow-sm),0_4px_12px_rgba(16,24,40,0.08)]`;
+export const FICHA_ABIERTA = `persona-cursos persona-cursos--abierta ${FICHA} border-accion
+  [box-shadow:inset_4px_0_0_var(--accion),var(--shadow-sm),0_4px_12px_rgba(16,24,40,0.08)]`;
 
 // Toda la fila responde al toque (más de 44px de alto).
 export const CABECERA = `persona-cursos__cabecera group flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg [border:0] [background:none] px-4 py-3.5
@@ -35,9 +35,9 @@ export const CHIP_POR_VENCER = `${CHIP} bg-volt-tint text-volt-dark`;
 
 // El chevron se ve como un botón (toda la fila es el botón real); abierto,
 // en azul marino y girado hacia abajo.
-const FLECHA = "inline-flex size-9 flex-none items-center justify-center rounded border group-hover:border-copper group-hover:text-copper-dark";
+const FLECHA = "inline-flex size-9 flex-none items-center justify-center rounded border group-hover:border-accion group-hover:text-accion-dark";
 export const FLECHA_CERRADA = `${FLECHA} border-(--borde-persona) bg-gray-tint text-text`;
-export const FLECHA_ABIERTA = `${FLECHA} border-copper bg-copper-tint text-copper-dark`;
+export const FLECHA_ABIERTA = `${FLECHA} border-accion bg-accion-tint text-accion-dark`;
 const GIRO = "[transition:transform_var(--transition-fast)]";
 export const FLECHA_ICONO_CERRADA = `${GIRO} [transform:rotate(-90deg)]`;
 export const FLECHA_ICONO_ABIERTA = `${GIRO} [transform:rotate(90deg)]`;
@@ -49,7 +49,7 @@ export const DETALLE = "mx-3 mt-0 mb-3 flex flex-col gap-3 rounded border border
 // Vencido (Asignaciones): borde y franja roja a la izquierda.
 const REGISTRO = "flex min-w-0 flex-col gap-2 rounded border px-3 py-2.5";
 export const REGISTRO_NORMAL = `${REGISTRO} border-(--borde-persona) [background:var(--card)]`;
-export const REGISTRO_COINCIDE = `${REGISTRO} border-copper [background:color-mix(in_srgb,var(--copper-tint)_35%,var(--card))] [box-shadow:0_0_0_2px_var(--copper-tint)]`;
+export const REGISTRO_COINCIDE = `${REGISTRO} border-accion [background:color-mix(in_srgb,var(--accion-tint)_35%,var(--card))] [box-shadow:0_0_0_2px_var(--accion-tint)]`;
 export const REGISTRO_VENCIDO = `${REGISTRO} border-danger [background:var(--card)] [box-shadow:inset_3px_0_0_var(--danger)]`;
 export const REGISTRO_CABECERA = "flex flex-wrap items-start justify-between gap-x-2.5 gap-y-1.5";
 export const REGISTRO_FECHAS = "m-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text";

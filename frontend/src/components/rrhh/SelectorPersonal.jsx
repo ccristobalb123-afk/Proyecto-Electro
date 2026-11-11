@@ -10,7 +10,7 @@ const LISTA = "selector-personal__lista mx-0 mt-1.5 mb-0 max-h-[264px] list-none
 // Cada persona: borde inferior salvo en la última. [&&]: para que el borde
 // inferior le gane a [border:0] sin depender del orden de las clases.
 const OPCION = `flex min-h-11 w-full cursor-pointer items-center justify-between gap-2.5 [border:0] [&&]:[border-bottom:1px_solid_var(--border)]
-  [li:last-child>&]:[border-bottom:0] [background:var(--card)] px-3 py-2 text-left [font:inherit] text-text hover:[background:var(--copper-tint)]`;
+  [li:last-child>&]:[border-bottom:0] [background:var(--card)] px-3 py-2 text-left [font:inherit] text-text hover:[background:var(--accion-tint)]`;
 const DNI = "flex-none [font-family:var(--font-mono)] text-xs text-muted";
 const ELEGIDO = "flex flex-wrap items-center justify-between gap-2 rounded border border-border bg-paper px-3 py-2";
 

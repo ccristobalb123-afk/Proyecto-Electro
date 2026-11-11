@@ -15,7 +15,7 @@
 /* Regla global: anillo de 2px en el color principal, separado 2px. */
 input:focus-visible,
 button:focus-visible {
-  outline: 2px solid var(--copper);
+  outline: 2px solid var(--accion);
   outline-offset: 2px;
 }
 
@@ -43,14 +43,14 @@ button:focus-visible {
    Asignaciones, clasesFicha.js): el anillo va por dentro del borde, porque
    la ficha recorta lo que sobresale (overflow: hidden). 0-2-0. */
 .persona-cursos__cabecera:focus-visible {
-  outline: 2px solid var(--copper);
+  outline: 2px solid var(--accion);
   outline-offset: -2px;
 }
 
 /* Botón "Seguir conectado" del aviso de inactividad (AvisoInactividad.jsx,
-   clasesAviso.js): anillo en --copper-dark en vez de --copper, como estaba
+   clasesAviso.js): anillo en --accion-dark en vez de --accion, como estaba
    en AvisoInactividad.css. 0-2-0. */
 .btn-seguir-conectado:focus-visible {
-  outline: 2px solid var(--copper-dark);
+  outline: 2px solid var(--accion-dark);
   outline-offset: 2px;
 }

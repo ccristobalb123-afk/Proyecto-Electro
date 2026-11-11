@@ -11,7 +11,7 @@ const LISTA = "selector-destino__lista mx-0 mt-1.5 mb-0 max-h-[290px] list-none 
 // [border:0] sin depender del orden). Bloqueada (ya tiene un equipo de este
 // tipo): gris, sin hover, con el motivo en rojo oscuro debajo.
 const OPCION = `flex min-h-11 w-full cursor-pointer flex-col items-start gap-0.5 [border:0] [&&]:[border-bottom:1px_solid_var(--border)]
-  [li:last-child>&]:[border-bottom:0] [background:var(--card)] px-3 py-2 text-left [font:inherit] [color:inherit] hover:[background:var(--copper-tint)]
+  [li:last-child>&]:[border-bottom:0] [background:var(--card)] px-3 py-2 text-left [font:inherit] [color:inherit] hover:[background:var(--accion-tint)]
   disabled:cursor-not-allowed disabled:[background:var(--gray-tint)] disabled:hover:[background:var(--gray-tint)]`;
 const TITULO = "text-[15px] font-semibold wrap-anywhere";
 const TITULO_BLOQUEADO = `${TITULO} text-muted`;

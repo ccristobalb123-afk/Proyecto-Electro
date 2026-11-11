@@ -13,7 +13,7 @@ import { useDebounce } from "../../hooks/useDebounce";
    se dibuja en la caja (focus-within:). */
 const CAJA = `search global-search relative flex w-[260px] items-center gap-2 rounded border border-control
   [background:var(--paper)] px-3 py-2
-  focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-copper max-md:hidden`;
+  focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accion max-md:hidden`;
 const CAMPO = "w-full [background:none] text-[13px] [border:none]";
 const PANEL = `absolute top-[calc(100%+8px)] left-0 z-(--z-dropdown-menu) max-h-[360px] w-[320px] max-w-[88vw]
   overflow-y-auto overscroll-contain rounded border border-border [background:var(--card)] p-2 [box-shadow:var(--shadow-md)]`;

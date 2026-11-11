@@ -2,15 +2,15 @@
    src/styles/tokens.css (que se carga antes). Ver REPORTE.md. */
 :root {
   /* Colores (misma familia; saturación y luminosidad hacia las referencias) */
-  --copper: #1e61f2; /* antes #2563eb */
+  --accion: #1e61f2; /* antes #2563eb */
   --danger: #e11414; /* antes #dc2626 */
   --success: #0ca444; /* antes #16a34a */
   --volt: #f59e09; /* antes #f59e0b */
-  --copper-dark: #1e4fd7; /* antes #1d4ed8 */
+  --accion-dark: #1e4fd7; /* antes #1d4ed8 */
   --danger-dark: #9a1919; /* antes #991b1b */
   --success-dark: #126632; /* antes #166534 */
   --volt-dark: #914111; /* antes #92400e */
-  --copper-tint: #e2ecfb; /* antes #dbeafe */
+  --accion-tint: #e2ecfb; /* antes #dbeafe */
   --ink: #142943; /* antes #243447 */
   --ink-2: #0c1928; /* antes #1b2836 */
   --text: #0c1c33; /* antes #1f2937 */

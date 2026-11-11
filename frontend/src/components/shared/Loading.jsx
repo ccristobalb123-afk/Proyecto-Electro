@@ -18,7 +18,7 @@ const TEXTO = `m-0 text-[13.5px] font-medium tracking-[0.01em] text-muted animat
 export default function Loading({ texto = "Cargando información…", compacto = false }) {
   return (
     <div className={`${BLOQUE} ${compacto ? RELLENO_COMPACTO : RELLENO}`} role="status" aria-live="polite">
-      <Spinner tamano={30} className="text-copper" />
+      <Spinner tamano={30} className="text-accion" />
       <p className={TEXTO}>{texto}</p>
     </div>
   );

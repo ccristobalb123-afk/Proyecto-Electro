@@ -93,7 +93,11 @@ no hace falta ninguna clase extra.
    área, o en `components/shared/` si la usan dos áreas. Antes de crear una,
    busca en la lista de abajo: tarjetas, pestañas, modales, campos y fichas
    ya tienen la suya.
-3. **Tokens.** Ningún color, radio, sombra ni tamaño de letra suelto. Si
+3. **Tokens.** El azul de acción es `--accion`, con
+   `--accion-dark` (hover y texto sobre el tinte) y `--accion-tint` (fondo
+   de lo elegido); los tokens nuevos se nombran por su papel, con los
+   sufijos `-dark`/`-tint` de las demás familias (ver «Nombres de los
+   tokens» en `docs/tailwind.md`). Ningún color, radio, sombra ni tamaño de letra suelto. Si
    falta un valor, se agrega primero la variable a `tokens.css` y luego su
    clase en el `@theme inline` de `tailwind.css`. Algo puntual sin token:
    `w-[290px]`, o un token sin clase: `p-(--space-4)`.

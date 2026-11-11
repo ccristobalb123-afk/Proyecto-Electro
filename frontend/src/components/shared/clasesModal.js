@@ -129,7 +129,7 @@ export const AVISO_TEXTO = "text-[13px] text-volt-dark";
 // como gancho: Modal.jsx (campos atenuados mientras se guarda).
 export const DROPZONE = `dropzone mb-5 cursor-pointer rounded border-[1.5px] p-[22px] text-center
   [&_svg]:mb-2 [&_svg]:text-muted-2 [&_p]:text-[13px] [&_p_b]:text-link`;
-export const DROPZONE_SIN_ARCHIVO = "border-dashed border-border hover:border-copper hover:[background:var(--gray-tint)] [&_p]:text-muted";
+export const DROPZONE_SIN_ARCHIVO = "border-dashed border-border hover:border-accion hover:[background:var(--gray-tint)] [&_p]:text-muted";
 export const DROPZONE_CON_ARCHIVO = "border-solid border-success [background:var(--success-tint)] [&_p]:text-success-dark";
 
 // Opciones lado a lado (IGV incluido/agregar, Boleta/Factura). Con OPCIONES,
@@ -140,5 +140,5 @@ export const OPCIONES_FILA = "igv-choice flex gap-2.5";
 export const OPCIONES = `${OPCIONES_FILA} max-md:flex-col`;
 export const OPCION = "[&&]:flex flex-1 cursor-pointer items-center gap-2 rounded border px-3 py-2.5 text-[13px]";
 export const OPCION_NORMAL = "border-border text-muted";
-export const OPCION_ELEGIDA = "border-copper [background:var(--copper-tint)] text-copper-dark";
+export const OPCION_ELEGIDA = "border-accion [background:var(--accion-tint)] text-accion-dark";
 export const OPCION_RADIO = "h-auto w-auto";

@@ -5,9 +5,9 @@
   /* Azul marino (tono 222°): barra lateral, botón principal y su familia */
   --ink: #081c49; /* antes #243447 */
   --ink-2: #051333; /* antes #1b2836 */
-  --copper: #153684; /* antes #2563eb */
-  --copper-dark: #0c255f; /* antes #1d4ed8 */
-  --copper-tint: #e5ebfa; /* antes #dbeafe */
+  --accion: #153684; /* antes #2563eb */
+  --accion-dark: #0c255f; /* antes #1d4ed8 */
+  --accion-tint: #e5ebfa; /* antes #dbeafe */
 
   /* Resto de colores: iguales a la variante B */
   --danger: #e40606; /* antes #dc2626 */
@@ -35,7 +35,7 @@
   --radius-pill: 999px;
   --radius-avatar: 12px;
   --shadow-sm: 0 1px 2px rgba(9, 32, 58, 0.05), 0 8px 24px -8px rgba(9, 32, 58, 0.14);
-  --shadow-boton: 0 6px 16px -6px color-mix(in srgb, var(--copper) 60%, transparent);
+  --shadow-boton: 0 6px 16px -6px color-mix(in srgb, var(--accion) 60%, transparent);
   --fs-rotulo: 11.5px;
   --fw-rotulo: 700;
   --tracking-rotulo: 0.08em;

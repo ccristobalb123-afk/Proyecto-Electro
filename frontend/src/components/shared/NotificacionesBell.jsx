@@ -22,7 +22,7 @@ import "./NotificacionesBell.css";
    entrada (@keyframes) sigue en NotificacionesBell.css. */
 const BOTON = `notificaciones-bell__boton relative flex size-9 cursor-pointer items-center justify-center rounded-[50%] border border-border
   [background:var(--paper)] text-muted [transition:background-color_0.15s_ease,border-color_0.15s_ease,color_0.15s_ease]
-  hover:border-copper hover:[background:var(--copper-tint)] hover:text-copper-dark`;
+  hover:border-accion hover:[background:var(--accion-tint)] hover:text-accion-dark`;
 const BADGE = `absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-[999px] border-2 border-card
   [background:var(--danger)] px-1 py-0 text-xs font-bold text-on-accent`;
 const PANEL = `notificaciones-bell__panel absolute top-[46px] right-0 z-(--z-bell-panel) w-[320px] max-w-[88vw] origin-top-right
@@ -34,8 +34,8 @@ const CERRAR = `notificaciones-bell__cerrar flex cursor-pointer rounded-[4px] [b
 // Bordes por lado (no "border: none" + "border-bottom"): así no hay dos
 // clases que toquen la misma propiedad.
 const SOLO_LINEA_ABAJO = "[border-top:none] [border-right:none] [border-bottom:1px_solid_var(--border)] [border-left:none]";
-const PUSH = `notificaciones-bell__push-toggle block w-full [background:var(--copper-tint)] px-4 py-2.5 text-left text-[12.5px]
-  font-semibold text-copper ${SOLO_LINEA_ABAJO} disabled:opacity-60`;
+const PUSH = `notificaciones-bell__push-toggle block w-full [background:var(--accion-tint)] px-4 py-2.5 text-left text-[12.5px]
+  font-semibold text-accion ${SOLO_LINEA_ABAJO} disabled:opacity-60`;
 const ITEM = `flex w-full cursor-pointer gap-3 [background:transparent] px-4 py-3 text-left [color:inherit] [font:inherit]
   ${SOLO_LINEA_ABAJO} [transition:background_0.12s_ease] last:[border-bottom:none] hover:[background:var(--paper)]`;
 const ICONO_POR_SEVERIDAD = { vencido: "text-danger-dark", hoy: "text-danger-dark", porvencer: "text-volt-dark" };

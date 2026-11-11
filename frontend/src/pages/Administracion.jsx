@@ -31,11 +31,11 @@ const GRILLA = `usuarios-grid ${GRILLA_TARJETAS}`;
 const TARJETA = `usuario-card ${TARJETA_BASE}`;
 const TARJETA_INACTIVA = "opacity-60";
 const TARJETA_ARRIBA = `${CABECERA_TARJETA} max-md:flex-wrap max-md:gap-y-2`;
-const AVATAR = "flex size-[38px] shrink-0 items-center justify-center rounded-[50%] bg-copper-tint text-[13px] font-bold text-copper-dark";
+const AVATAR = "flex size-[38px] shrink-0 items-center justify-center rounded-[50%] bg-accion-tint text-[13px] font-bold text-accion-dark";
 const INFO = "min-w-0 flex-1 max-md:basis-[calc(100%-48px)]";
 const NOMBRE = "text-[14px] font-bold text-text";
 const CORREO = "mt-0.5 truncate text-[12px] text-muted max-md:whitespace-normal max-md:wrap-anywhere";
-const MARCA_SUPERADMIN = "whitespace-nowrap rounded-[999px] bg-copper-tint px-[9px] py-1 text-xs font-bold uppercase tracking-[0.02em] text-copper-dark max-md:ml-12";
+const MARCA_SUPERADMIN = "whitespace-nowrap rounded-[999px] bg-accion-tint px-[9px] py-1 text-xs font-bold uppercase tracking-[0.02em] text-accion-dark max-md:ml-12";
 // En celular, empresas y ventanas quedan a 6px entre sí (como entre líneas de
 // ventanas), en vez de leerse como dos bloques.
 const CUERPO = "mt-0.5 flex flex-1 flex-col gap-2 border-t border-t-border px-4 pt-3 pb-3.5 max-md:gap-1.5";
@@ -65,7 +65,7 @@ const EMPRESAS_CHECK = "empresas-check flex gap-2.5";
 const EMPRESA = `${CASILLA} px-3.5 py-2`;
 const NO_ELEGIDA = "border-border";
 // Elegida: cobre (ventanas y Corevex) o azul de Electro.
-const ELEGIDA = "border-copper bg-copper-tint text-copper-dark";
+const ELEGIDA = "border-accion bg-accion-tint text-accion-dark";
 const ELEGIDA_ELECTRO = "border-electro bg-electro-tint text-electro-dark";
 const EMPRESAS_AYUDA = "mx-0 mt-0 mb-2 text-[12px] text-muted";
 const TEXTO_MODAL = "mb-1 text-[13.5px] leading-[1.5] text-text";

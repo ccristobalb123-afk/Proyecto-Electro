@@ -216,7 +216,7 @@ const EMPRESAS = "co-choice flex gap-2.5";
 const EMPRESA = "[&&]:flex flex-1 cursor-pointer items-center gap-2 rounded border-[1.5px] border-solid px-3 py-2.5 text-[13px] font-medium";
 const EMPRESA_NORMAL = "border-border text-muted";
 const EMPRESA_ELEGIDA = {
-  corevex: "border-copper [background:var(--copper-tint)] text-copper-dark",
+  corevex: "border-accion [background:var(--accion-tint)] text-accion-dark",
   electro: "border-electro [background:var(--electro-tint)] text-electro-dark",
 };
 
@@ -377,7 +377,7 @@ export function Timeline({ items, onVerFoto }) {
     <div className="relative pl-[22px] before:absolute before:top-1 before:bottom-1 before:left-[6px] before:w-[1.5px] before:[background:var(--border)]">
       {items.map((item, i) => (
         <div className="relative flex gap-2.5 pb-5 last:pb-0" key={`${item.fecha}-${item.titulo}-${i}`}>
-          <div className={`${PUNTO} ${PUNTO_TONO[item.tone] || "border-copper"}`} />
+          <div className={`${PUNTO} ${PUNTO_TONO[item.tone] || "border-accion"}`} />
           <div className="tl-body">
             <div className="text-[13.5px] font-medium">{item.titulo}</div>
             <div className="mt-0.5 text-[12px] text-muted">

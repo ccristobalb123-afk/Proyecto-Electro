@@ -18,19 +18,19 @@
  * bloqueada de Modal.css (.form-field label.doc-chip).
  */
 const FORMA = "doc-chip inline-flex items-center gap-1.5 rounded-[6px] px-2.5 py-[5px] text-[12.5px] font-medium no-underline";
-const HOVER_COBRE = "hover:[background:color-mix(in_srgb,var(--copper-tint),var(--copper)_12%)]";
+const HOVER_COBRE = "hover:[background:color-mix(in_srgb,var(--accion-tint),var(--accion)_12%)]";
 
-export const CHIP_DOC = `${FORMA} [border:none] [background:var(--copper-tint)] text-copper-dark ${HOVER_COBRE}`;
+export const CHIP_DOC = `${FORMA} [border:none] [background:var(--accion-tint)] text-accion-dark ${HOVER_COBRE}`;
 export const CHIP_DOC_SUBIENDO = `${FORMA} cursor-progress [border:none] [background:var(--gray-tint)] text-muted tabular-nums ${HOVER_COBRE}`;
 export const CHIP_DOC_PENDIENTE = `${FORMA} cursor-pointer [border:1px_dashed_var(--danger-dark)] [background:var(--danger-tint)] text-danger-dark
   hover:[background:color-mix(in_srgb,var(--danger-tint),var(--danger)_12%)]`;
 // Adjuntar opcional: neutro y punteado, no en rojo como un faltante.
 const OPCIONAL = `${FORMA} cursor-pointer [border:1px_dashed_var(--border-control)] [background:var(--card)] text-gray-dark`;
-export const CHIP_DOC_OPCIONAL = `${OPCIONAL} hover:[background:var(--copper-tint)]`; // Cursos / EMO
+export const CHIP_DOC_OPCIONAL = `${OPCIONAL} hover:[background:var(--accion-tint)]`; // Cursos / EMO
 export const CHIP_DOC_OPCIONAL_VEHICULO = `${OPCIONAL} ${HOVER_COBRE}`; // documentos del vehículo
 
 // En un <button> (BotonVerArchivo) la letra, el fondo, el borde, el relleno y
 // el color suben su especificidad con [&&]: para ganarle a las clases propias
 // del botón ([font:inherit], [background:none], p-0…).
 export const CHIP_DOC_BOTON = `doc-chip inline-flex items-center gap-1.5 rounded-[6px] [&&]:px-2.5 [&&]:py-[5px] [&&]:text-[12.5px] [&&]:font-medium no-underline
-  [&&]:[border:none] [&&]:[background:var(--copper-tint)] [&&]:text-copper-dark [&&]:hover:[background:color-mix(in_srgb,var(--copper-tint),var(--copper)_12%)]`;
+  [&&]:[border:none] [&&]:[background:var(--accion-tint)] [&&]:text-accion-dark [&&]:hover:[background:color-mix(in_srgb,var(--accion-tint),var(--accion)_12%)]`;

@@ -39,7 +39,7 @@ no ve la clase armada en tiempo de ejecución); usa
 | `--paper`, `--card` | `bg-paper`, `bg-card` |
 | `--fondo-pagina` | `bg-fondo-pagina` (fondo de la zona de contenido, detrás de las tarjetas) |
 | `--text`, `--muted`, `--muted-2` | `text-text`, `text-muted`, `text-muted-2` |
-| `--copper`, `--copper-dark`, `--copper-tint` | `bg-copper`, `text-copper-dark`, `bg-copper-tint`… |
+| `--accion`, `--accion-dark`, `--accion-tint` | `bg-accion`, `text-accion-dark`, `bg-accion-tint`… |
 | `--electro*`, `--volt*`, `--danger*`, `--success*` | igual: `bg-danger-tint`, `text-success-dark`… |
 | `--ink`, `--ink-2`, `--on-ink*`, `--on-accent` | `bg-ink`, `text-on-ink-muted`, `text-on-accent`… |
 | `--gray-tint`, `--gray-dark` | `bg-gray-tint`, `text-gray-dark` |
@@ -54,7 +54,22 @@ no ve la clase armada en tiempo de ejecución); usa
 | `--ease-out` | `ease-out` |
 
 Cualquier color sirve en `bg-`, `text-`, `border-`, `outline-`, `fill-`… y
-admite opacidad: `bg-copper/10`.
+admite opacidad: `bg-accion/10`.
+
+**Nombres de los tokens.** Cada familia de color es un nombre y, si hace
+falta, los sufijos `-dark` (hover, presionado o texto sobre el tinte) y
+`-tint` (fondo suave de lo elegido o activo): `--danger`, `--danger-dark`,
+`--danger-tint`. Los tokens nuevos se nombran por su papel, no por su color
+(`--nav-activo`, `--fondo-pagina`, `--borde-tarjeta`). El azul de acción
+(botón principal, aro de foco, opciones elegidas, bordes de tarjetas) es
+`--accion`, `--accion-dark` y `--accion-tint`, con las clases `bg-accion`,
+`text-accion-dark`, `bg-accion-tint`, `border-accion`, `outline-accion`,
+`accent-accion`… **Cambio de nombre:** hasta noviembre de 2026 se llamaban
+`--copper`, `--copper-dark` y `--copper-tint` (con clases `bg-copper`…), un
+resto de cuando el acento era cobre; se renombraron sin cambiar ningún valor
+(el CSS compilado es el mismo con los nombres cambiados y las capturas dan 0
+píxeles distintos). Si aparece el nombre viejo en algún código o documento,
+es `--accion`.
 
 Para espaciados usa los números que existen en `tokens.css`: **1, 2, 3, 4, 5,
 6, 8, 10, 12**. Otros (`p-7`) funcionan pero se salen del sistema.
@@ -137,7 +152,7 @@ reglas siguen en `responsive.css`.
      de las barras de filtros (el foco se dibuja en la caja), el anillo rojo
      del campo «escribe ELIMINAR» de ConfirmDialog, el anillo por dentro
      del borde de la fila de las fichas desplegables y el anillo en
-     `--copper-dark` de «Seguir conectado» del aviso de inactividad
+     `--accion-dark` de «Seguir conectado» del aviso de inactividad
      (`.btn-seguir-conectado:focus-visible`, desde el paso 4). Para cambiar
      el foco de otro control, agrega ahí la excepción con su motivo.
 3. **Cómo migrar una regla:** pasa la propiedad a clases de Tailwind y
@@ -350,7 +365,7 @@ capa, al lado de la regla.
 | `tokens.css` — `:root` | variables | son la fuente de valores, no reglas que compitan |
 | `tokens.css` — `.sr-only` | texto solo para lectores de pantalla | se deja con su definición: la de Tailwind agrega `clip-path` y no es igual (está excluida en `tailwind.css`) |
 | `foco.css` — `input:focus-visible, button:focus-visible` | anillo de foco de teclado | red de seguridad: ninguna clase debe poder quitarlo |
-| `foco.css` — excepciones (`.global-search input:focus`, `.filters .search input:focus`, `.confirm-palabra input:focus-visible`, `.persona-cursos__cabecera:focus-visible`, `.btn-seguir-conectado:focus-visible`) | sin anillo en los dos buscadores (lo dibuja la caja), anillo rojo en «escribe ELIMINAR», anillo por dentro en la fila de las fichas, anillo `--copper-dark` en «Seguir conectado» | para cambiar la regla global hay que estar sin capa y con más especificidad que 0-1-1 |
+| `foco.css` — excepciones (`.global-search input:focus`, `.filters .search input:focus`, `.confirm-palabra input:focus-visible`, `.persona-cursos__cabecera:focus-visible`, `.btn-seguir-conectado:focus-visible`) | sin anillo en los dos buscadores (lo dibuja la caja), anillo rojo en «escribe ELIMINAR», anillo por dentro en la fila de las fichas, anillo `--accion-dark` en «Seguir conectado» | para cambiar la regla global hay que estar sin capa y con más especificidad que 0-1-1 |
 | `responsive.css` | celular y 44 px táctiles (`html .x`) | ajustes que deben ganar siempre |
 | `motion.css` | movimiento reducido (`html .x`) y `@keyframes fade-in` | idem: con movimiento reducido no debe moverse nada aunque una clase lo pida |
 | `tarjetas.css` | borde suave de tarjetas y fichas | un solo lugar para el borde, que gana a la clase de cada tarjeta |
@@ -448,7 +463,7 @@ regla sin capa, regla 9, o lo que una clase no puede expresar):
 | Campos de formulario de los modales | `clasesModal.js` (`CAMPO`, `FILA`, `ERROR_CAMPO`, `AYUDA`, `AVISO…`, `DROPZONE…`, `OPCION…`, `BOTON_SECUNDARIO`…), usadas en `Modal.jsx` (empresa, aviso de vencimiento, IGV, detracción) y en cada formulario (`ModalNuevo*`, `ModalEditar*`, `ModalInspeccion`, `ModalTiposEquipo`, `FotosEquipo`, `CamposEquipo`, `CamposDocumentosVehiculo`, `ModalDocumentos`, `Administracion.jsx`…) | `Modal.css`: solo el cursor de mano de «Tomar foto» / «Elegir archivo» de las fotos del equipo mientras se guarda (`.foto-equipo__botones label.btn-outline-sm`: le gana por venir después a la regla del cursor «trabajando», las dos sin capa; como clase perdería). Lo demás de esos botones, de «Mantener la actual» y la letra de los botones de archivo de Nuevo gasto va en clases (`FotosEquipo.jsx`, `ModalNuevoGasto.jsx`); como la etiqueta general del campo (`[&_label]`, 0-1-1) le gana a una clase sola, el display y la letra van con `[&&]:`. Ganchos: `form-field` (`responsive.css`, `Administracion.css`), `form-row` (`responsive.css`), `campo-ayuda` (`Operaciones.css`), `co-choice`, `igv-choice` (`responsive.css`), `aviso-input-row`, `btn-secondary` (`responsive.css`), `dropzone`, `foto-equipo__botones` (el cursor de arriba), `foto-equipo-slot` (campos atenuados mientras se guarda) |
 | Botón con carga y spinner | `Carga.jsx` | `Carga.css`: solo el `@keyframes` del giro. Display, alineación, separación y el aspecto «ocupado» (`:disabled` sin atenuar, cursor de «trabajando») van en clases (`BOTON_CARGA`) |
 | Bloque de carga | `Loading.jsx` | `Loading.css`: solo el `@keyframes` del pulso del texto |
-| Aviso de inactividad | `AvisoInactividad.jsx`, `clasesAviso.js` | `AvisoInactividad.css`: solo el `@keyframes` del pulso del ícono. El anillo de foco de «Seguir conectado» (`--copper-dark`) pasó a `foco.css`, y la regla de movimiento reducido duplicada se borró (ya estaba en `motion.css`). El párrafo `.sr-only` del anuncio lleva las clases de texto de la tarjeta, como antes, pero su margen ahora es el de `.sr-only` (`-1px`; antes la regla `.aviso-inactividad-card p` le ponía `0 0 24px`): está fuera del flujo y oculto, no cambia ningún píxel. ≤400 px con `max-[401px]:`. Ganchos: `aviso-inactividad-icono-container` (`motion.css`) y `btn-seguir-conectado` (`responsive.css`, `foco.css`). El fondo lleva solo `-webkit-backdrop-filter` (ver «Detalles») |
+| Aviso de inactividad | `AvisoInactividad.jsx`, `clasesAviso.js` | `AvisoInactividad.css`: solo el `@keyframes` del pulso del ícono. El anillo de foco de «Seguir conectado» (`--accion-dark`) pasó a `foco.css`, y la regla de movimiento reducido duplicada se borró (ya estaba en `motion.css`). El párrafo `.sr-only` del anuncio lleva las clases de texto de la tarjeta, como antes, pero su margen ahora es el de `.sr-only` (`-1px`; antes la regla `.aviso-inactividad-card p` le ponía `0 0 24px`): está fuera del flujo y oculto, no cambia ningún píxel. ≤400 px con `max-[401px]:`. Ganchos: `aviso-inactividad-icono-container` (`motion.css`) y `btn-seguir-conectado` (`responsive.css`, `foco.css`). El fondo lleva solo `-webkit-backdrop-filter` (ver «Detalles») |
 | Diálogo de confirmación | `ConfirmDialog.jsx` | ninguno (`ConfirmDialog.css` se eliminó): el anillo de foco rojo del campo «escribe ELIMINAR» está en `foco.css` (`.confirm-palabra input:focus-visible`). Ganchos: `confirm-overlay` (`ToastContainer.css`), `btn-confirm-primary`, `-secondary`, `-danger` (`responsive.css`) y `confirm-palabra` (`foco.css`). El fondo lleva solo `-webkit-backdrop-filter` (ver «Detalles») |
 | Visor de archivos | `VisorArchivo.jsx`, variante «visor» de `Modal.jsx` (`FONDO_VISOR`, `CAJA_VISOR`, `TITULO_VISOR`), `ACCIONES_VISOR` en `clasesModal.js` | `VisorArchivo.css`: solo los `@keyframes` de entrada del fondo y del visor. El botón «Ver archivo» (`BotonVerArchivo`) ya no usa la regla `:where(...)` (regla 10) |
 | Foto ampliada | `Lightbox.jsx` | ninguno (`Lightbox.css` se eliminó). Gancho: `lightbox-close` (`responsive.css`) |

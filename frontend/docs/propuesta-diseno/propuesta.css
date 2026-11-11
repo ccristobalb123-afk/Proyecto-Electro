@@ -60,7 +60,7 @@ button {
 }
 
 .lamina-aviso a {
-  color: var(--copper-dark);
+  color: var(--accion-dark);
 }
 
 /* ---------- Estructura ---------- */
@@ -167,13 +167,13 @@ button {
 /* Activo: píldora con el azul de acción (no ámbar: el ámbar queda para
    estados). A: relleno translúcido; B: relleno sólido. */
 .nav a.activo {
-  background: color-mix(in srgb, var(--copper) 26%, transparent);
+  background: color-mix(in srgb, var(--accion) 26%, transparent);
   color: var(--on-ink);
   font-weight: var(--fw-semibold);
 }
 
 html.vb .nav a.activo {
-  background: var(--copper);
+  background: var(--accion);
   color: var(--on-accent);
   box-shadow: var(--shadow-boton);
 }
@@ -212,7 +212,7 @@ html.vb .nav a.activo {
   padding: 0 var(--space-5);
   border: 0;
   border-radius: var(--radius-boton);
-  background: var(--copper);
+  background: var(--accion);
   color: var(--on-accent);
   font-size: 13.5px;
   font-weight: var(--fw-semibold);
@@ -268,9 +268,9 @@ html.vb .kpi.danger .kpi-num {
   place-items: center;
 }
 
-.kpi.copper .kpi-icono {
-  background: var(--copper-tint);
-  color: var(--copper-dark);
+.kpi.accion .kpi-icono {
+  background: var(--accion-tint);
+  color: var(--accion-dark);
 }
 
 .kpi.success .kpi-icono {
@@ -324,7 +324,7 @@ html.vb .kpi.danger .kpi-num {
 
 /* B: rótulo en color, como en las referencias (azul: no es un estado) */
 html.vb .equipo-cat {
-  color: var(--copper-dark);
+  color: var(--accion-dark);
 }
 
 .equipo-nombre {
@@ -550,7 +550,7 @@ html.vc .nav a.activo {
   box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--nav-activo) 70%, transparent);
 }
 
-/* En la app el avatar usa --copper: en C sería navy sobre navy. */
+/* En la app el avatar usa --accion: en C sería navy sobre navy. */
 html.vc .avatar {
   background: var(--nav-activo);
   color: var(--on-accent);
@@ -619,17 +619,17 @@ html.vc .avatar {
 
 .b-principal {
   border: 0;
-  background: var(--copper);
+  background: var(--accion);
   color: var(--on-accent);
   box-shadow: var(--shadow-boton);
 }
 
 .b-principal.es-hover {
-  background: var(--copper-dark);
+  background: var(--accion-dark);
 }
 
 .b-principal.es-presionado {
-  background: var(--copper-dark);
+  background: var(--accion-dark);
   transform: scale(0.97);
   box-shadow: none;
 }
@@ -696,13 +696,13 @@ html.vc .avatar {
 }
 
 .b-borde.primario {
-  border-color: var(--copper);
-  color: var(--copper-dark);
+  border-color: var(--accion);
+  color: var(--accion-dark);
 }
 
 .b-borde.primario.es-hover {
-  border-color: var(--copper-dark);
-  background: var(--copper-tint);
+  border-color: var(--accion-dark);
+  background: var(--accion-tint);
 }
 
 .b-borde.peligro {
@@ -757,7 +757,7 @@ html.vc .avatar {
 .es-foco,
 .galeria button:focus-visible,
 .campo input:focus-visible {
-  outline: 2px solid var(--copper);
+  outline: 2px solid var(--accion);
   outline-offset: 2px;
 }
 
@@ -808,7 +808,7 @@ html.vc .avatar {
 
 .enlace {
   font-size: 12px;
-  color: var(--copper-dark);
+  color: var(--accion-dark);
   text-decoration: underline;
 }
 
@@ -840,8 +840,8 @@ html.vc .avatar {
 }
 
 .pestanas button.activa {
-  background: var(--copper-tint);
-  color: var(--copper-dark);
+  background: var(--accion-tint);
+  color: var(--accion-dark);
 }
 
 .campo input {
@@ -860,16 +860,16 @@ html.vc .avatar {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid var(--copper);
+  border: 1px solid var(--accion);
   border-radius: var(--radius);
-  background: var(--copper-tint);
-  color: var(--copper-dark);
+  background: var(--accion-tint);
+  color: var(--accion-dark);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
 }
 
 .opcion input {
-  accent-color: var(--copper);
+  accent-color: var(--accion);
   margin: 0;
 }
 
@@ -882,5 +882,5 @@ html.vc .avatar {
 }
 
 .cargando-bloque svg {
-  color: var(--copper);
+  color: var(--accion);
 }

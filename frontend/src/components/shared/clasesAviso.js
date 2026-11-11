@@ -6,7 +6,7 @@
  * - aviso-inactividad-icono-container: motion.css (sin pulso con
  *   movimiento reducido; sin capa, le gana a la clase animate-).
  * - btn-seguir-conectado: responsive.css (44 px táctiles) y styles/foco.css
- *   (anillo de foco en --copper-dark: la regla global de foco no tiene capa
+ *   (anillo de foco en --accion-dark: la regla global de foco no tiene capa
  *   y le ganaría a una clase).
  *
  * Fondo: desenfoque con backdrop-blur-[6px], que deja en el build la
@@ -39,6 +39,6 @@ export const TEXTO = "mx-0 mt-0 mb-6 text-[14px] leading-[1.5] text-muted";
 
 export const TIEMPO = "rounded-[4px] [background:var(--volt-tint)] px-1.5 py-0.5 font-mono text-md font-semibold text-volt-dark";
 
-export const BOTON = `btn-seguir-conectado w-full cursor-pointer rounded [border:none] [background:var(--copper)] px-5 py-[11px]
+export const BOTON = `btn-seguir-conectado w-full cursor-pointer rounded [border:none] [background:var(--accion)] px-5 py-[11px]
   text-[14px] font-semibold text-on-accent [transition:background_0.15s_ease]
-  hover:not-disabled:[background:var(--copper-dark)] disabled:cursor-progress disabled:opacity-75`;
+  hover:not-disabled:[background:var(--accion-dark)] disabled:cursor-progress disabled:opacity-75`;

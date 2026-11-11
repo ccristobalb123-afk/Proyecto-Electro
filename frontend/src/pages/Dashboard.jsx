@@ -20,7 +20,7 @@ import { Link } from "react-router-dom";
 
 const ICONO_KPI = [IconContrato, IconWrench, IconInvoice, IconBell];
 // "Contratos por vencer" en ámbar: es un aviso (por vencer), no una acción.
-const TONE_KPI = ["volt", "success", "copper", "danger"];
+const TONE_KPI = ["volt", "success", "accion", "danger"];
 
 /* Estilos con Tailwind (ver docs/tailwind.md). Las clases sin estilo propio
    que quedan son ganchos de reglas sin capa que siguen en otros archivos:
@@ -38,7 +38,7 @@ const KPI_CARD = `kpi-card rounded-lg border bg-card p-[18px] [box-shadow:var(--
 const KPI_ICONO = `flex size-[34px] items-center justify-center rounded *:size-[18px]
   max-md:size-7 max-md:*:size-4`;
 const KPI_TONO = {
-  copper: "[background:var(--copper-tint)] text-copper-dark",
+  accion: "[background:var(--accion-tint)] text-accion-dark",
   volt: "[background:var(--volt-tint)] text-volt-dark",
   danger: "[background:var(--danger-tint)] text-danger-dark",
   success: "[background:var(--success-tint)] text-success-dark",
@@ -51,7 +51,7 @@ const PANEL_TITULO = "text-[14.5px] font-semibold";
 // etiqueta baja debajo del texto, alineada con él (ml-11 = ícono de 32px +
 // separación de 12px), para que título y detalle usen todo el ancho.
 const FILA = `flex items-center gap-3 border-b border-b-border px-5 py-[13px] last:[border-bottom:none]
-  hover:[background:var(--gray-tint)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-copper
+  hover:[background:var(--gray-tint)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accion
   max-md:flex-wrap max-md:items-start max-md:gap-y-2 max-md:px-4 max-md:py-3`;
 const ACTIVIDAD = "flex gap-2.5 border-b border-b-border px-5 py-[13px] last:[border-bottom:none]";
 
@@ -187,7 +187,7 @@ export default function Dashboard() {
               const Icon = ICONO_POR_TIPO[aviso.tipo] || IconBell;
               return (
                 <Link className={FILA} key={aviso.id} to={aviso.url}>
-                  <div className="flex size-8 flex-none items-center justify-center rounded [background:var(--paper)] *:size-4 *:text-copper-dark">
+                  <div className="flex size-8 flex-none items-center justify-center rounded [background:var(--paper)] *:size-4 *:text-accion-dark">
                     <Icon />
                   </div>
                   <div className="min-w-0 flex-1 max-md:basis-[calc(100%-44px)]">

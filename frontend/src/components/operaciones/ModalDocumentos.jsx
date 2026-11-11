@@ -25,7 +25,7 @@ const ARCHIVO_PENDIENTE = `${ARCHIVO} text-danger-dark`;
 function FilaDocumento({ d, subiendo, onSubirArchivo }) {
   return (
     <div className={FILA}>
-      <div className={ICONO}><IconFile className="size-4 text-copper-dark" width={16} height={16} /></div>
+      <div className={ICONO}><IconFile className="size-4 text-accion-dark" width={16} height={16} /></div>
       <div className={PRINCIPAL}>
         <div className={TITULO}>{d.nombre}</div>
         {!d.legado && (

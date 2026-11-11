@@ -81,7 +81,7 @@ export function useComparativoChart(canvasRef, mesFinalIndex, datos) {
         // resueltos, así el gráfico sigue a la paleta en vez de repetir los hex.
         const estilos = getComputedStyle(document.documentElement);
         const token = (nombre) => estilos.getPropertyValue(nombre).trim();
-        const colorCorevex = token("--copper");
+        const colorCorevex = token("--accion");
         const colorElectro = token("--electro");
         const colorSecundario = token("--muted");
         const colorTexto = token("--text");

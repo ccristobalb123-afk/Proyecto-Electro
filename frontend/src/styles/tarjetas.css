@@ -17,7 +17,7 @@
     .fin-card           /* Finanzas */
   ),
 /* Fichas de RRHH > Cursos/EMO y Operaciones > Asignaciones (clasesFicha.js).
-   Va aparte, solo cerrada: abierta lleva el navy (--copper) de
+   Va aparte, solo cerrada: abierta lleva el navy (--accion) de
    .persona-cursos--abierta, y dentro del :is() le ganaría. */
 .main .persona-cursos:not(.persona-cursos--abierta) {
   border-color: var(--borde-tarjeta-suave);

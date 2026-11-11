@@ -64,7 +64,7 @@ export const COMPROBANTE = "flex flex-wrap items-center gap-1.5";
 const TIPO = "rounded-[6px] border border-current px-[9px] py-0.5 text-xs font-bold uppercase tracking-[0.05em]";
 export const TIPO_COMPROBANTE = {
   boleta: `${TIPO} bg-gray-tint text-gray-dark`,
-  factura: `${TIPO} bg-copper-tint text-copper-dark`,
+  factura: `${TIPO} bg-accion-tint text-accion-dark`,
   sin: `${TIPO} border-dashed text-muted`,
 };
 export const FALTAN = "rounded-[999px] bg-volt-tint px-[9px] py-0.5 text-xs font-semibold text-volt-dark";

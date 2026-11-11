@@ -1,5 +1,7 @@
 # Propuesta de diseño visual — reporte
 
+> Nota: los nombres de los tokens del azul de acción se actualizaron después de este informe a `--accion`, `--accion-dark` y `--accion-tint` (los valores no cambiaron). Ver «Nombres de los tokens» en `docs/tailwind.md`.
+
 Propuesta en tres variantes (la C está al final), **sin aplicar a la app** (no se tocó `src/` ni `tokens.css`).
 
 - Muestras: `variante-a.html` (conservadora) y `variante-b.html` (marcada). Cargan
@@ -40,7 +42,7 @@ Propuesta en tres variantes (la C está al final), **sin aplicar a la app** (no 
   en las referencias los tintes son **más suaves y claros** que los de la app.
   Acercarlos hacía que verde, rojo y ámbar se parecieran (con daltonismo
   rojo-verde, la diferencia entre el tinte verde y el rojo bajaba de 0.027 a 0.006).
-  El tinte azul (`--copper-tint`) sí se suaviza, porque no es un estado.
+  El tinte azul (`--accion-tint`) sí se suaviza, porque no es un estado.
 - **El ámbar ya no marca el menú activo:** hoy el activo es ámbar; como el ámbar es
   de estado, pasa al azul de acción. El ámbar queda en «360» y en estados.
 - **«Contratos por vencer» en ámbar** (hoy es azul): es justamente un «por vencer».
@@ -59,15 +61,15 @@ Solo los tokens que cambian. Entre paréntesis, saturación y luminosidad HSL.
 
 | Token | Actual | A (mitad del camino) | B (como las referencias) |
 |---|---|---|---|
-| `--copper` | `#2563eb` (S 83% · L 53%) | `#1e61f2` (S 89% · L 53%) | `#185ef9` (S 95% · L 54%) |
+| `--accion` | `#2563eb` (S 83% · L 53%) | `#1e61f2` (S 89% · L 53%) | `#185ef9` (S 95% · L 54%) |
 | `--danger` | `#dc2626` (S 72% · L 51%) | `#e11414` (S 84% · L 48%) | `#e40606` (S 95% · L 46%) |
 | `--success` | `#16a34a` (S 76% · L 36%) | `#0ca444` (S 86% · L 35%) | `#04a43f` (S 95% · L 33%) |
 | `--volt` | `#f59e0b` (S 92% · L 50%) | `#f59e09` (S 93% · L 50%) | `#f69e08` (S 94% · L 50%) |
-| `--copper-dark` | `#1d4ed8` (S 76% · L 48%) | `#1e4fd7` (S 76% · L 48%) | `#1f4ed6` (S 75% · L 48%) |
+| `--accion-dark` | `#1d4ed8` (S 76% · L 48%) | `#1e4fd7` (S 76% · L 48%) | `#1f4ed6` (S 75% · L 48%) |
 | `--danger-dark` | `#991b1b` (S 70% · L 35%) | `#9a1919` (S 72% · L 35%) | `#9a1616` (S 75% · L 35%) |
 | `--success-dark` | `#166534` (S 64% · L 24%) | `#126632` (S 70% · L 24%) | `#0f6630` (S 74% · L 23%) |
 | `--volt-dark` | `#92400e` (S 82% · L 31%) | `#914111` (S 79% · L 32%) | `#8f4314` (S 75% · L 32%) |
-| `--copper-tint` | `#dbeafe` (S 95% · L 93%) | `#e2ecfb` (S 76% · L 94%) | `#e8f0f9` (S 59% · L 94%) |
+| `--accion-tint` | `#dbeafe` (S 95% · L 93%) | `#e2ecfb` (S 76% · L 94%) | `#e8f0f9` (S 59% · L 94%) |
 | `--ink` | `#243447` (S 33% · L 21%) | `#142943` (S 54% · L 17%) | `#09203a` (S 73% · L 13%) |
 | `--ink-2` | `#1b2836` (S 33% · L 16%) | `#0c1928` (S 54% · L 10%) | `#061425` (S 72% · L 8%) |
 | `--text` | `#1f2937` (S 28% · L 17%) | `#0c1c33` (S 62% · L 12%) | `#011025` (S 95% · L 7%) |
@@ -80,7 +82,7 @@ Solo los tokens que cambian. Entre paréntesis, saturación y luminosidad HSL.
 | `--on-ink-muted` | `#93a0ae` (S 14% · L 63%) | `#81a2c5` (S 37% · L 64%) | `#6fa2da` (S 59% · L 65%) |
 | `--on-ink-accent` | `#f3d889` (S 82% · L 75%) | `#f6d77d` (S 87% · L 73%) | `#fad66e` (S 93% · L 71%) |
 
-Casi no cambian `--volt`, `--copper-dark`, `--danger-dark` y `--volt-dark`: su saturación
+Casi no cambian `--volt`, `--accion-dark`, `--danger-dark` y `--volt-dark`: su saturación
 ya es la de las referencias (~75 % en rótulos de color, ~94 % en el ámbar). `--muted`,
 `--muted-2`, `--border` y `--on-ink` **bajan** un poco de saturación, porque en las
 referencias los grises de apoyo son más neutros. Lo que más cambia es la barra lateral
@@ -95,8 +97,8 @@ Si algún color no llegaba al mínimo, se corregía solo su luminosidad. Ninguno
 
 | Par | Actual | A | B | Mínimo |
 |---|---|---|---|---|
-| copper sobre blanco | 5.17 | 5.19 | 5.24 | 4.5 |
-| copper-dark sobre blanco | 6.7 | 6.66 | 6.73 | 4.5 |
+| accion sobre blanco | 5.17 | 5.19 | 5.24 | 4.5 |
+| accion-dark sobre blanco | 6.7 | 6.66 | 6.73 | 4.5 |
 | danger sobre blanco | 4.83 | 4.87 | 4.85 | 4.5 |
 | text sobre (peor fondo) | 12.59 | 15.31 | 17.87 | 7 |
 | muted sobre (peor fondo) | 5.94 | 5.93 | 5.93 | 4.5 |
@@ -176,7 +178,7 @@ token» hoy están escritos a mano en cada CSS; al aplicar la variante pasarían
 | `--radius-pill` | 12px (fijo) | `999px` | etiquetas de estado (nuevo token) |
 | `--radius-avatar` | 50% (fijo) | `12px` | avatar en cuadro redondeado (nuevo token) |
 | `--shadow-sm` | 0 1px 2px rgba(16, 24, 40, 0.05) | `0 1px 2px rgba(9, 32, 58, 0.05), 0 8px 24px -8px rgba(9, 32, 58, 0.14)` | sombra suave y amplia, teñida del navy |
-| `--shadow-boton` | — (no existe) | `0 6px 16px -6px color-mix(in srgb, var(--copper) 60%, transparent)` | sombra de color en el botón principal y el menú activo (nuevo token) |
+| `--shadow-boton` | — (no existe) | `0 6px 16px -6px color-mix(in srgb, var(--accion) 60%, transparent)` | sombra de color en el botón principal y el menú activo (nuevo token) |
 | `--borde-tarjeta` | 2px solid var(--border-control) | `1px solid var(--border)` | tarjeta de equipo: borde fino; la separa la sombra |
 | `--fs-rotulo` | — | `11.5px` | rótulos en mayúsculas (nuevo token) |
 | `--fw-rotulo` | — | `700` | peso de los rótulos (nuevo token) |
@@ -208,8 +210,8 @@ clases para verlos sin interactuar.
 | Uso | Hex | Tono · saturación · luminosidad |
 |---|---|---|
 | Barra lateral (`--ink`) | **`#081c49`** | 222° · S 80 % · L 16 % |
-| Botón principal, aro de foco, ícono de carga (`--copper`) | **`#153684`** | 222° · S 73 % · L 30 % |
-| Hover y presionado; texto de enlaces y pestañas (`--copper-dark`) | **`#0c255f`** | 222° · S 78 % · L 21 % |
+| Botón principal, aro de foco, ícono de carga (`--accion`) | **`#153684`** | 222° · S 73 % · L 30 % |
+| Hover y presionado; texto de enlaces y pestañas (`--accion-dark`) | **`#0c255f`** | 222° · S 78 % · L 21 % |
 | Píldora del menú activo (`--nav-activo`, nuevo) | **`#2b65ee`** | 222° · S 85 % · L 55 % |
 
 - **La barra (`#081c49`)** es mucho más saturada que el `#142943` de A (S 54 %).
@@ -218,17 +220,17 @@ clases para verlos sin interactuar.
 - **La píldora del menú activo** no puede ser del mismo navy: no se vería sobre la barra.
   Es un azul de la misma familia, elegido para que el texto blanco tenga AA (5.0:1) y la
   píldora se separe de la barra (3.3:1).
-- **El avatar del usuario** en la app usa `--copper` de fondo. En C sería navy sobre
+- **El avatar del usuario** en la app usa `--accion` de fondo. En C sería navy sobre
   navy, así que en la muestra usa `--nav-activo`. Habría que hacer ese cambio al aplicarla.
 
 ### Estados del botón principal
 
 | Estado | Cómo se ve |
 |---|---|
-| Normal | Fondo `--copper` `#153684`, texto blanco, sombra de color. |
-| Hover | Fondo `--copper-dark` `#0c255f` (igual que hoy: el hover oscurece). |
-| Presionado | `--copper-dark`, se achica al 97 % y pierde la sombra (como el botón del Login hoy). |
-| Foco visible | Aro de 2 px `--copper`, separado 2 px (la regla global de la app). |
+| Normal | Fondo `--accion` `#153684`, texto blanco, sombra de color. |
+| Hover | Fondo `--accion-dark` `#0c255f` (igual que hoy: el hover oscurece). |
+| Presionado | `--accion-dark`, se achica al 97 % y pierde la sombra (como el botón del Login hoy). |
+| Foco visible | Aro de 2 px `--accion`, separado 2 px (la regla global de la app). |
 | Deshabilitado | Opacidad 0.6 (como hoy). |
 | Cargando | Ícono girando + «Guardando…», color normal y cursor de espera (como `BotonCarga`). |
 
@@ -238,9 +240,9 @@ clases para verlos sin interactuar.
 |---|---|---|
 | `--ink` | `#243447` (213° · S 33% · L 21%) | **`#081c49`** (222° · S 80% · L 16%) |
 | `--ink-2` | `#1b2836` (211° · S 33% · L 16%) | **`#051333`** (222° · S 82% · L 11%) |
-| `--copper` | `#2563eb` (221° · S 83% · L 53%) | **`#153684`** (222° · S 73% · L 30%) |
-| `--copper-dark` | `#1d4ed8` (224° · S 76% · L 48%) | **`#0c255f`** (222° · S 78% · L 21%) |
-| `--copper-tint` | `#dbeafe` (214° · S 95% · L 93%) | **`#e5ebfa`** (223° · S 68% · L 94%) |
+| `--accion` | `#2563eb` (221° · S 83% · L 53%) | **`#153684`** (222° · S 73% · L 30%) |
+| `--accion-dark` | `#1d4ed8` (224° · S 76% · L 48%) | **`#0c255f`** (222° · S 78% · L 21%) |
+| `--accion-tint` | `#dbeafe` (214° · S 95% · L 93%) | **`#e5ebfa`** (223° · S 68% · L 94%) |
 | `--nav-activo` (nuevo) | — | **`#2b65ee`** (222° · S 85% · L 55%) |
 | `--danger` | `#dc2626` | `#e40606` (igual que B) |
 | `--success` | `#16a34a` | `#04a43f` (igual que B) |
@@ -276,20 +278,20 @@ no toca `--borde-tarjeta`).
 | Par | C | Hoy en la app | Mínimo |
 |---|---|---|---|
 | Texto blanco sobre el botón principal (normal) | 11.1 | 5.17 | 4.5 |
-| Texto blanco sobre hover / presionado (`--copper-dark`) | 14.53 | 6.7 | 4.5 |
+| Texto blanco sobre hover / presionado (`--accion-dark`) | 14.53 | 6.7 | 4.5 |
 | Texto blanco sobre la píldora del menú activo | 5.0 | — | 4.5 |
 | Píldora del menú activo contra la barra lateral | 3.3 | — | 3 (no texto) |
 | Botón principal contra la barra lateral (solo informativo) | 1.49 | — | — |
 | Texto del menú (`--on-ink-soft`) sobre la barra | 9.23 | 7.03 | 4.5 |
 | Rótulo del menú (`--on-ink-muted`) sobre la barra | 6.17 | 4.76 | 4.5 |
 | «360» ámbar (`--volt`) sobre la barra | 7.71 | 5.9 | 3 (texto grande) |
-| Aro de foco (`--copper`) sobre blanco | 11.1 | 5.17 | 3 (no texto) |
+| Aro de foco (`--accion`) sobre blanco | 11.1 | 5.17 | 3 (no texto) |
 | Aro de foco sobre el fondo de página (`--paper`) | 10.4 | 4.43 | 3 (no texto) |
-| Enlace (`--copper-dark`) sobre blanco | 14.53 | 6.7 | 4.5 |
+| Enlace (`--accion-dark`) sobre blanco | 14.53 | 6.7 | 4.5 |
 | Enlace sobre el fondo de página | 13.62 | 5.75 | 4.5 |
-| Pestaña activa (`--copper-dark` sobre `--copper-tint`) | 12.17 | 5.49 | 4.5 |
-| Borde del botón «primario» (`--copper`) sobre blanco | 11.1 | 5.17 | 3 (no texto) |
-| Ícono de carga (`--copper`) sobre blanco | 11.1 | 5.17 | 3 (no texto) |
+| Pestaña activa (`--accion-dark` sobre `--accion-tint`) | 12.17 | 5.49 | 4.5 |
+| Borde del botón «primario» (`--accion`) sobre blanco | 11.1 | 5.17 | 3 (no texto) |
+| Ícono de carga (`--accion`) sobre blanco | 11.1 | 5.17 | 3 (no texto) |
 | Peligro: blanco sobre `--danger` | 4.85 | 4.83 | 4.5 |
 | Peligro hover: blanco sobre `--danger-dark` | 8.4 | 8.31 | 4.5 |
 | Borde rojo: texto `--danger` sobre blanco | 4.85 | 4.83 | 4.5 |
@@ -303,7 +305,7 @@ Enlace frente al texto normal (`--text`): 1.31:1. Como son casi igual de oscuros
 Aplicar C cambia todos estos lugares. Están agrupados por para qué sirven; entre
 paréntesis, el archivo.
 
-**`--copper` (33 usos en CSS + 1 en JS):**
+**`--accion` (33 usos en CSS + 1 en JS):**
 - **Botón principal:** `.btn-primary` (`styles/tokens.css`), `.btn-seguir-conectado` del aviso de
   inactividad (`AvisoInactividad.css`).
 - **Aro de foco:** `input:focus-visible, button:focus-visible` (`tokens.css`), buscador
@@ -330,20 +332,20 @@ paréntesis, el archivo.
   (`Operaciones.css`).
 - **Hover de chips de documento:** `.doc-chip:hover`, mezclado con el tinte (`Rrhh.css`,
   `Operaciones.css`).
-- **Gráfico del Dashboard:** la serie de CorevexSAC lee `--copper` (`hooks/useComparativoChart.js`).
+- **Gráfico del Dashboard:** la serie de CorevexSAC lee `--accion` (`hooks/useComparativoChart.js`).
 
-**`--copper-dark` (37 usos):** hover de `.btn-primary` y `.btn-seguir-conectado`, enlaces
+**`--accion-dark` (37 usos):** hover de `.btn-primary` y `.btn-seguir-conectado`, enlaces
 (`.link-button`), pestañas activas (`.tabs button.active` en RRHH, Operaciones y Finanzas),
 hover de enlaces de documentos (`.docs-row-title--link`, `.vehiculo-doc-nombre--link`,
 `.fin-card-archivo--link`), texto de las opciones elegidas y de los chips (`.doc-chip`,
-`.tipo-chip`, `.fin-tag-tipo--factura`), íconos del Dashboard (`.kpi-icon.copper`, `.row-icon`),
+`.tipo-chip`, `.fin-tag-tipo--factura`), íconos del Dashboard (`.kpi-icon.accion`, `.row-icon`),
 insignia `.co-badge.corevex`, `.rol-superadmin`, `.usuario-avatar` y el botón de borde «primario».
 
-**`--copper-tint` (32 usos):** fondo de pestañas activas, opciones elegidas, chips de
-documento, `.co-badge.corevex`, `.usuario-avatar`, `.rol-superadmin`, `.kpi-icon.copper`,
+**`--accion-tint` (32 usos):** fondo de pestañas activas, opciones elegidas, chips de
+documento, `.co-badge.corevex`, `.usuario-avatar`, `.rol-superadmin`, `.kpi-icon.accion`,
 hover de menús y listas de selección.
 
-**Ojo con las pestañas:** usan `--copper-tint` y `--copper-dark`, no `--copper`. En C siguen
+**Ojo con las pestañas:** usan `--accion-tint` y `--accion-dark`, no `--accion`. En C siguen
 el mismo cambio porque toda la familia pasa a navy.
 
 ## A tener en cuenta antes de aplicar C
@@ -356,4 +358,4 @@ el mismo cambio porque toda la familia pasa a navy.
 - **Enlaces frente al texto:** el enlace (`#0c255f`) y el texto normal (`#011025`) quedan
   casi igual de oscuros (1.31:1). `.link-button` está subrayado y los enlaces de
   documentos tienen subrayado punteado, así que se siguen reconociendo. Pero su hover, que
-  hoy cambia a `--copper-dark`, casi no se notaría.
+  hoy cambia a `--accion-dark`, casi no se notaría.

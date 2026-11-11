@@ -32,7 +32,7 @@
 
 /* El input no dibuja su propio contorno: el foco se muestra en la caja */
 .filters .search:focus-within {
-  outline: 2px solid var(--copper);
+  outline: 2px solid var(--accion);
   outline-offset: 2px;
 }
 

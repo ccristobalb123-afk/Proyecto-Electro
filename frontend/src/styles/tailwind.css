@@ -54,7 +54,7 @@
 
 /* ---------- Valores por defecto de Tailwind que no se usan ----------
    Se quitan los grupos que tienen equivalente en tokens.css, para que
-   solo existan las clases con los valores de la app (bg-copper sí,
+   solo existan las clases con los valores de la app (bg-accion sí,
    bg-blue-600 no). */
 @theme {
   --color-*: initial;
@@ -92,9 +92,9 @@
   --color-card: var(--card);
   --color-border: var(--border);
   --color-border-control: var(--border-control);
-  --color-copper: var(--copper);
-  --color-copper-dark: var(--copper-dark);
-  --color-copper-tint: var(--copper-tint);
+  --color-accion: var(--accion);
+  --color-accion-dark: var(--accion-dark);
+  --color-accion-tint: var(--accion-tint);
   --color-electro: var(--electro);
   --color-electro-dark: var(--electro-dark);
   --color-electro-tint: var(--electro-tint);

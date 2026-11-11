@@ -13,7 +13,7 @@ import { CHIP_DOC, CHIP_DOC_OPCIONAL_VEHICULO } from "../shared/clasesDocumento"
 // compartido (clasesDocumento.js).
 const DOC = "rounded border [background:var(--card)]";
 const DOC_NORMAL = "border-border";
-const DOC_MARCADO = "border-copper [box-shadow:0_0_0_1px_var(--copper-tint)]";
+const DOC_MARCADO = "border-accion [box-shadow:0_0_0_1px_var(--accion-tint)]";
 const DOC_CASILLA = `[&&]:m-0 [&&]:flex [&&]:text-base [&&]:font-semibold min-h-(--control-height-lg) cursor-pointer items-center gap-3
   px-3 py-2`;
 
@@ -57,7 +57,7 @@ export default function CamposDocumentosVehiculo({ documentos, onChange, tipoUni
         return (
           <div className={`${DOC} ${d.marcado ? DOC_MARCADO : DOC_NORMAL}`} key={info.clave}>
             <label className={DOC_CASILLA}>
-              <input className="h-[18px] w-[18px] shrink-0 accent-copper" type="checkbox" checked={d.marcado} onChange={(e) => alternar(info, e.target.checked)} />
+              <input className="h-[18px] w-[18px] shrink-0 accent-accion" type="checkbox" checked={d.marcado} onChange={(e) => alternar(info, e.target.checked)} />
               <span>{info.nombre}</span>
             </label>
 

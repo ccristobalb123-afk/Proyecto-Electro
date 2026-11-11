@@ -140,7 +140,7 @@ export function AppShell({ title, topbarExtra, children }) {
 
         {/* Dos filas: avatar + nombre/empresas arriba, botones abajo. */}
         <div className="flex flex-wrap items-center gap-2.5 border-t border-t-ink-border p-4 pb-[max(16px,env(safe-area-inset-bottom))]">
-          {/* --nav-activo: --copper es navy y no se vería sobre la barra */}
+          {/* --nav-activo: --accion es navy y no se vería sobre la barra */}
           <div
             className="flex size-9 flex-none items-center justify-center rounded-[50%] [background:var(--nav-activo)] text-[13px] font-semibold text-on-accent"
             aria-hidden="true"

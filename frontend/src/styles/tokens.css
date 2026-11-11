@@ -35,31 +35,31 @@
      1.4.11. --border queda para separadores y tarjetas. */
   --border-control: #6e7a8e;
   /* Borde de las tarjetas de Operaciones (Equipos y Vehículos): el azul
-     marino de acción (--copper), más grueso para separarlas del fondo.
+     marino de acción (--accion), más grueso para separarlas del fondo.
      Cambiar acá cambia ambas. --borde-tarjeta-extra es lo que crece
      respecto de un borde de 1 px; las tarjetas lo descuentan de su relleno
      lateral para no perder ancho útil. */
   --borde-tarjeta-ancho: 2px;
-  --borde-tarjeta-color: var(--copper);
+  --borde-tarjeta-color: var(--accion);
   /* Borde de 1px de las demás tarjetas y paneles (indicadores y paneles
      del Dashboard, tablas, tarjetas de usuarios, finanzas, RRHH en
      celular y fichas de Cursos/EMO y Asignaciones): el azul marino
      aclarado con blanco. Se aplica en styles/tarjetas.css. */
-  --borde-tarjeta-suave: color-mix(in srgb, var(--copper) 45%, #ffffff); /* ≈ #96a5c8 */
+  --borde-tarjeta-suave: color-mix(in srgb, var(--accion) 45%, #ffffff); /* ≈ #96a5c8 */
   --borde-tarjeta: var(--borde-tarjeta-ancho) solid var(--borde-tarjeta-color);
   --borde-tarjeta-extra: calc(var(--borde-tarjeta-ancho) - 1px);
 
-  /* "Principal" (acento dominante de la app: botones, focos, hovers).
-     Se mantiene el nombre --copper por compatibilidad con ~90 usos en
-     el resto del CSS, pero el valor es el azul Principal de la paleta.
-     CorevexSAC usa este mismo azul como su color de marca (es la
-     empresa "principal" del sistema). */
-  /* Desde la propuesta C es azul marino: botón principal, aro de foco,
-     opciones elegidas. --copper-dark: hover/presionado y texto de pestañas
-     activas. Los enlaces tienen su propio azul (--link). */
-  --copper: #153684;
-  --copper-dark: #0c255f;
-  --copper-tint: #e5ebfa;
+  /* Azul de acción: el acento dominante de la app (botón principal, aro
+     de foco, opciones elegidas, bordes de tarjetas). Azul marino desde la
+     propuesta C. CorevexSAC usa este mismo azul como su color de marca.
+     --accion-dark: hover/presionado y texto sobre el tinte (pestañas
+     activas, chips). --accion-tint: fondo de lo elegido o activo. Mismos
+     sufijos que las demás familias (--danger-dark, --electro-tint…). Los
+     enlaces tienen su propio azul (--link). Nombre anterior: ver «Nombres
+     de los tokens» en docs/tailwind.md. */
+  --accion: #153684;
+  --accion-dark: #0c255f;
+  --accion-tint: #e5ebfa;
 
   /* Enlaces: azul vivo, distinto del navy de los botones y del texto
      (3.6:1 contra --text, así se reconocen aun sin subrayado; 5.2:1 sobre
@@ -148,7 +148,7 @@
   --shadow-md: 0 12px 32px -4px rgba(16, 24, 40, 0.12);
   --shadow-lg: 0 20px 50px -4px rgba(16, 24, 40, 0.18);
   /* Sombra de color del botón principal */
-  --shadow-boton: 0 6px 16px -6px color-mix(in srgb, var(--copper) 60%, transparent);
+  --shadow-boton: 0 6px 16px -6px color-mix(in srgb, var(--accion) 60%, transparent);
 
   --transition-fast: 0.12s ease;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
