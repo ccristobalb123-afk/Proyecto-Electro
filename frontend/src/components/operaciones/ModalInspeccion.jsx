@@ -12,6 +12,7 @@ const AVISO_VENCIDO = {
   vencido: "Este equipo está vencido",
   devuelto: "Devuelto, pero sigue Vencido",
   disponible: "Para dejarlo Disponible, renueva sus fechas",
+  mantenimiento: "Registrar el resultado de la prueba",
 };
 
 /**
@@ -41,7 +42,9 @@ export default function ModalInspeccion({ open, equipo, contexto, fInspeccion, s
             </div>
             <p className={RECUADRO_TEXTO.peligro}>
               {equipo?.proxInspeccion ? `Venció el ${equipo.proxInspeccion}. ` : ""}
-              Para volver a usarlo registra la inspección con resultado Aprobado y una fecha de vencimiento de hoy en adelante. Si cancelas, se mantiene Vencido.
+              {contexto === "mantenimiento"
+                ? "Si la prueba salió bien, registra el resultado Aprobado con la nueva fecha de vencimiento (de hoy en adelante): el equipo queda Disponible. Observado o Rechazado: sigue en Mantenimiento. Si cancelas, no cambia nada."
+                : "Para volver a usarlo registra la inspección con resultado Aprobado y una fecha de vencimiento de hoy en adelante. Si cancelas, se mantiene Vencido."}
             </p>
           </div>
         )}
@@ -100,14 +103,14 @@ export default function ModalInspeccion({ open, equipo, contexto, fInspeccion, s
               {liberar ? `Queda Disponible y deja de estar asignado a ${equipo.responsable}` : equipo?.responsable ? `Sigue asignado a ${equipo.responsable}` : "El equipo queda Disponible"}
             </div>
             <p className={RECUADRO_TEXTO.exito}>
-              {equipo?.estado === "vencido"
+              {equipo?.vencidoPorFecha
                 ? "El equipo está vencido: se renuevan sus fechas, y la de vencimiento tiene que ser de hoy en adelante."
                 : "Se actualiza la próxima inspección con esta fecha de vencimiento."}
             </p>
           </div>
         ) : (
           <div className={RECUADRO.peligro}>
-            <div className={RECUADRO_TITULO.peligro}><IconAlertCircle width={14} height={14} />El equipo pasa a Mantenimiento</div>
+            <div className={RECUADRO_TITULO.peligro}><IconAlertCircle width={14} height={14} />{equipo?.estado === "mantenimiento" ? "El equipo sigue en Mantenimiento" : "El equipo pasa a Mantenimiento"}</div>
             <p className={RECUADRO_TEXTO.peligro}>
               {equipo?.responsable ? `Deja de estar asignado a ${equipo.responsable}. ` : ""}
               No podrá asignarse hasta una nueva inspección con resultado Aprobado.

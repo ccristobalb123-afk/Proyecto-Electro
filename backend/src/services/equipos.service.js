@@ -57,11 +57,24 @@ function textoDestinatario(equipo) {
 }
 
 // ---- Vencido ----
-// Vencido NO se elige a mano: depende solo de la fecha de vencimiento.
-// Un equipo está vencido si esa fecha ya pasó (la misma regla que los
-// avisos); se calcula al leer y deja de estarlo solo al renovar sus
-// fechas. De baja no cuenta (ya no se usa). Mientras esté vencido no se puede
-// asignar, reasignar ni dejar Disponible sin renovar sus fechas.
+// Vencido NO se elige a mano ni se guarda: depende solo de la fecha de
+// vencimiento (proxima_inspeccion). Un equipo está vencido si esa fecha
+// ya pasó (la misma regla que los avisos); se calcula al leer y deja de
+// estarlo solo al renovar sus fechas. De baja no cuenta (ya no se usa).
+//
+// Dos cosas distintas que no hay que mezclar:
+//   - El ESTADO que se muestra y con el que se filtra (estadoEfectivo):
+//     Mantenimiento tiene prioridad sobre Vencido. Un equipo vencido que
+//     se mandó a mantenimiento (por ejemplo, a certificar) se ve como
+//     "Mantenimiento", con su comentario, para que quien entre sepa que
+//     ya se está atendiendo; la fecha vencida sigue a la vista
+//     (vencidoPorFecha en la respuesta). Antes Vencido tapaba a
+//     Mantenimiento y parecía que el envío no había funcionado.
+//   - Los BLOQUEOS (no asignar, no reasignar, no dejar Disponible) miran
+//     la FECHA (estaVencido / vencidoPorFecha), no el estado efectivo:
+//     estar en mantenimiento no hace utilizable un equipo con la
+//     certificación vencida. Sale de ahí solo con una inspección
+//     aprobada con fecha de hoy en adelante (registrarInspeccion).
 // Si vence estando asignado, sigue asignado (físicamente lo tiene esa
 // persona o camión) pero se muestra Vencido y bloqueado hasta que se
 // devuelva o se renueven sus fechas.
@@ -73,25 +86,63 @@ export function estaVencido(equipo) {
 }
 
 /**
- * Estado que se muestra y con el que se filtra: Vencido (por fecha) gana
- * a Disponible, Asignado y Mantenimiento. El valor VENCIDO guardado (de
- * cuando se podía marcar a mano; ya no se escribe) no cuenta: sin la
- * fecha pasada se ve Disponible.
+ * Estado que se muestra y con el que se filtra: Mantenimiento (guardado)
+ * gana siempre; después, Vencido (por fecha) gana a Disponible y
+ * Asignado. El valor VENCIDO guardado (de cuando se podía marcar a mano;
+ * ya no se escribe) no cuenta: sin la fecha pasada se ve Disponible.
+ * Ver la nota "Vencido" de arriba: los bloqueos NO usan esta función.
  */
 export function estadoEfectivo(equipo) {
+  if (equipo.estado === "MANTENIMIENTO") return "MANTENIMIENTO";
   if (estaVencido(equipo)) return "VENCIDO";
   return equipo.estado === "VENCIDO" ? "DISPONIBLE" : equipo.estado;
 }
 
 const errorVencido = () => conflicto(MENSAJE_VENCIDO, "EQUIPO_VENCIDO");
 
+// ---- En mantenimiento desde ----
+// Sale de la hoja de vida: el último evento que hizo ENTRAR al equipo en
+// Mantenimiento. Cuentan "Enviado a mantenimiento" (no las
+// actualizaciones del comentario, que no reinician la cuenta) y una
+// inspección observada o rechazada que lo pasó a Mantenimiento. Los
+// eventos anteriores a esta versión no tienen `datos`: se reconoce el
+// título "Enviado a mantenimiento…" y la inspección no aprobada. Sin
+// ningún evento así, null (se muestra sin fecha, no se inventa).
+const TITULO_ENVIO_MANTENIMIENTO = "Enviado a mantenimiento";
+
+function entroAMantenimiento(h) {
+  const d = h.datos;
+  if (d?.evento === "mantenimiento") return !d.actualizacion;
+  if (d?.tipoInspeccion) return d.entraMantenimiento ?? (d.resultado === "observado" || d.resultado === "rechazado");
+  return !d && h.titulo.startsWith(TITULO_ENVIO_MANTENIMIENTO);
+}
+
+/** Map equipoId → Date (o ausente) de los equipos que están en Mantenimiento. */
+export async function mantenimientoDesdePorEquipo(equipos) {
+  const ids = equipos.filter((e) => e.estado === "MANTENIMIENTO").map((e) => e.id);
+  const desde = new Map();
+  if (ids.length === 0) return desde;
+  const eventos = await db.historialEquipo.findMany({
+    where: { equipoId: { in: ids } },
+    orderBy: [{ creadoEn: "desc" }, { id: "desc" }],
+    select: { equipoId: true, titulo: true, datos: true, creadoEn: true },
+  });
+  for (const h of eventos) if (!desde.has(h.equipoId) && entroAMantenimiento(h)) desde.set(h.equipoId, h.creadoEn);
+  return desde;
+}
+
+// "2026-11-11": el día en Perú de una marca de tiempo (para contar días).
+const diaPeru = (fecha) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date(fecha));
+
 /** Lo que se muestra para identificar al equipo: su Código o, si no tiene, su Serial. */
 export function identificadorEquipo(equipo) {
   return equipo.codigo || equipo.serial || `Equipo #${equipo.id}`;
 }
 
-function serializar(equipo) {
+// `desde`: Map de mantenimientoDesdePorEquipo (solo importa si está en Mantenimiento).
+function serializar(equipo, desde = new Map()) {
   const campos = camposDelTipo(equipo.categoria);
+  const enMantenimientoDesde = equipo.estado === "MANTENIMIENTO" ? desde.get(equipo.id) : null;
   return {
     id: equipo.id,
     identificador: identificadorEquipo(equipo),
@@ -126,12 +177,19 @@ function serializar(equipo) {
     camposValores: campos ? {} : equipo.camposValores,
     fotos: urlsFotosActuales(equipo),
     ...(equipo.comentarioMantenimiento ? { comentarioMantenimiento: equipo.comentarioMantenimiento } : {}),
+    // Desde cuándo está en Mantenimiento ("11 nov 2026" y el día para contar días).
+    ...(enMantenimientoDesde ? { mantenimientoDesde: formatearFecha(enMantenimientoDesde), mantenimientoDesdeIso: diaPeru(enMantenimientoDesde) } : {}),
     ...(equipo.ultimaInspeccion ? { ultInspeccion: formatearFechaDia(equipo.ultimaInspeccion) } : {}),
     ...(equipo.proximaInspeccion ? { proxInspeccion: formatearFechaDia(equipo.proximaInspeccion) } : {}),
     ultInspeccionIso: isoDia(equipo.ultimaInspeccion),
     proxInspeccionIso: isoDia(equipo.proximaInspeccion),
     diasAnticipacionInspeccion: equipo.diasAnticipacionInspeccion,
   };
+}
+
+/** Un equipo serializado, con su "en mantenimiento desde" si corresponde. */
+async function serializarUno(equipo) {
+  return serializar(equipo, await mantenimientoDesdePorEquipo([equipo]));
 }
 
 /** Tipo de equipo por su nombre (sin distinguir mayúsculas: es único así). */
@@ -268,7 +326,9 @@ export async function listarEquipos({ empresa, categoria, estado, q }, empresasP
   });
   // El estado se filtra con el efectivo (un Disponible con la fecha
   // pasada aparece en "Vencido", no en "Disponible").
-  return equipos.filter((e) => !estado || estadoEfectivo(e) === estado.toUpperCase()).map(serializar);
+  const filtrados = equipos.filter((e) => !estado || estadoEfectivo(e) === estado.toUpperCase());
+  const desde = await mantenimientoDesdePorEquipo(filtrados);
+  return filtrados.map((e) => serializar(e, desde));
 }
 
 export async function crearEquipo(body, empresasPermitidas, usuarioId) {
@@ -310,7 +370,7 @@ export async function crearEquipo(body, empresasPermitidas, usuarioId) {
     return creado;
   });
 
-  return serializar(nuevo);
+  return serializarUno(nuevo);
 }
 
 /**
@@ -333,7 +393,7 @@ export async function actualizarFotosEquipo(equipoId, fotosEntrada, empresasPerm
     });
     return act;
   });
-  return serializar(actualizado);
+  return serializarUno(actualizado);
 }
 
 // Edita los datos base del equipo según su tipo. Un equipo registrado
@@ -384,7 +444,7 @@ export async function actualizarEquipo(equipoId, body, empresasPermitidas, usuar
     return act;
   });
 
-  return serializar(actualizado);
+  return serializarUno(actualizado);
 }
 
 // Solo se puede borrar un equipo que nunca tuvo actividad real (nadie
@@ -466,7 +526,7 @@ export async function cambiarEstadoEquipo(equipoId, estado, empresasPermitidas, 
     await tx.historialEquipo.create({ data: { equipoId, titulo: tenia ? `Devuelto — lo tenía ${tenia}` : "Estado cambiado a Disponible", usuarioId } });
     return act;
   });
-  return serializar(actualizado);
+  return serializarUno(actualizado);
 }
 
 /**
@@ -491,7 +551,7 @@ export async function devolverEquipo(equipoId, empresasPermitidas, usuarioId) {
     });
     return act;
   });
-  return serializar(actualizado);
+  return serializarUno(actualizado);
 }
 
 // ---- Reglas de destino por tipo ----
@@ -590,7 +650,7 @@ export async function asignarEquipo(equipoId, { vehiculoId, personalId }, empres
     return act;
   });
 
-  return serializar(actualizado);
+  return serializarUno(actualizado);
 }
 
 /**
@@ -704,22 +764,46 @@ export async function listarAsignaciones(equipoId, empresasPermitidas) {
   }));
 }
 
+/**
+ * Envía a mantenimiento (también un equipo vencido: ver la nota "Vencido").
+ * Si ya estaba en Mantenimiento, es "actualizar el comentario": se
+ * sobrescribe comentarioMantenimiento, pero cada envío o actualización
+ * deja su propio evento en la hoja de vida con el texto (datos.comentario),
+ * así el anterior no se pierde. Quién y cuándo son los de la fila del
+ * historial (usuario_id, creado_en). Un comentario idéntico al actual no
+ * crea otro evento (doble clic, reintento).
+ */
 export async function enviarAMantenimiento(equipoId, comentario, empresasPermitidas, usuarioId) {
   await buscarEquipo(equipoId, empresasPermitidas);
 
   const actualizado = await db.$transaction(async (tx) => {
     const equipo = await bloquearEquipo(tx, equipoId);
-    const tenia = await cerrarAsignacion(tx, equipo, "Enviado a mantenimiento");
+    const yaEstaba = equipo.estado === "MANTENIMIENTO";
+    if (yaEstaba && equipo.comentarioMantenimiento === comentario) return tx.equipo.findUnique({ where: { id: equipoId }, include: INCLUDE });
+    const tenia = yaEstaba ? null : await cerrarAsignacion(tx, equipo, "Enviado a mantenimiento");
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: { estado: "MANTENIMIENTO", ...SIN_DESTINATARIO, comentarioMantenimiento: comentario },
       include: INCLUDE,
     });
-    await tx.historialEquipo.create({ data: { equipoId, titulo: `Enviado a mantenimiento${seLibero(tenia)}`, tono: "volt", usuarioId } });
+    await tx.historialEquipo.create({
+      data: {
+        equipoId,
+        titulo: yaEstaba ? "Mantenimiento: comentario actualizado" : `${TITULO_ENVIO_MANTENIMIENTO}${seLibero(tenia)}`,
+        tono: "volt",
+        usuarioId,
+        datos: {
+          evento: "mantenimiento", comentario, actualizacion: yaEstaba, vencidoPorFecha: estaVencido(equipo),
+          // El texto que se reemplaza: los envíos anteriores a esta versión
+          // no lo guardaron en su evento, así no se pierde.
+          ...(yaEstaba && equipo.comentarioMantenimiento ? { comentarioAnterior: equipo.comentarioMantenimiento } : {}),
+        },
+      },
+    });
     return act;
   });
 
-  return serializar(actualizado);
+  return serializarUno(actualizado);
 }
 
 export async function darDeBajaEquipo(equipoId, motivo, empresasPermitidas, usuarioId) {
@@ -737,7 +821,7 @@ export async function darDeBajaEquipo(equipoId, motivo, empresasPermitidas, usua
     return act;
   });
 
-  return serializar(actualizado);
+  return serializarUno(actualizado);
 }
 
 /**
@@ -786,6 +870,9 @@ export async function registrarInspeccion(equipoId, { tipo = "interna", fechaIns
         ...(sigueAsignado ? {} : SIN_DESTINATARIO),
         ultimaInspeccion: new Date(fechaInspeccion),
         proximaInspeccion: new Date(fechaVencimiento),
+        // Aprobada: sale de Mantenimiento; el comentario ya no aplica (antes
+        // quedaba guardado y oculto). Observada o rechazada: se conserva.
+        ...(aprobado ? { comentarioMantenimiento: null } : {}),
         fotos,
         // Antes este valor del modal se descartaba y se avisaba siempre
         // con 15 días fijos.
@@ -806,13 +893,17 @@ export async function registrarInspeccion(equipoId, { tipo = "interna", fechaIns
         titulo: `${partes.join(" — ")}${seLibero(tenia)}`,
         tono: aprobado ? "success" : "volt",
         usuarioId,
-        datos: { tipoInspeccion: "interna", resultado, fotos: idsFotos, reemplazadas: idsReemplazadas },
+        datos: {
+          tipoInspeccion: "interna", resultado, fotos: idsFotos, reemplazadas: idsReemplazadas,
+          // Para "en mantenimiento desde": esta inspección lo hizo entrar.
+          ...(aprobado ? {} : { entraMantenimiento: equipo.estado !== "MANTENIMIENTO" }),
+        },
       },
     });
     return act;
   });
 
-  return serializar(actualizado);
+  return serializarUno(actualizado);
 }
 
 // Por id: los equipos sin código (arnés, línea de vida...) también tienen hoja de vida.
@@ -827,11 +918,24 @@ export async function obtenerHojaDeVida(equipoId, empresasPermitidas) {
   // Fotos de cada inspección o cambio de fotos (las reemplazadas
   // incluidas), como enlaces que se cargan al verlas.
   const url = (id) => `/api/equipos/${equipoId}/fotos/${id}`;
+  // El comentario reemplazado se muestra solo si no está ya en un evento
+  // anterior (envíos de antes de esta versión, que no guardaban el texto).
+  const anteriorSinRegistro = new Map();
+  let ultimoComentario = null;
+  for (const h of [...equipo.historial].reverse()) {
+    const d = h.datos;
+    if (d?.evento !== "mantenimiento") continue;
+    if (d.comentarioAnterior && d.comentarioAnterior !== ultimoComentario) anteriorSinRegistro.set(h.id, d.comentarioAnterior);
+    ultimoComentario = d.comentario;
+  }
   return equipo.historial.map((h) => ({
     titulo: h.titulo,
     fecha: formatearFecha(h.creadoEn),
     actor: h.usuario?.nombre || "Sistema",
     ...(h.tono ? { tone: h.tono } : {}),
+    // Texto del comentario de "Enviado a mantenimiento" / su actualización.
+    ...(h.datos?.comentario ? { comentario: h.datos.comentario } : {}),
+    ...(anteriorSinRegistro.has(h.id) ? { comentarioAnterior: anteriorSinRegistro.get(h.id) } : {}),
     ...(h.datos?.fotos?.length ? { fotos: h.datos.fotos.map(url) } : {}),
     ...(h.datos?.reemplazadas?.length ? { fotosReemplazadas: h.datos.reemplazadas.map(url) } : {}),
   }));

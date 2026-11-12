@@ -7,9 +7,18 @@ import { Spinner } from "../shared/Carga";
 import Lightbox from "../shared/Lightbox";
 
 import { ESTADOS_EQUIPO as ESTADOS } from "../../services/equiposService";
-import { CAMPOS_EQUIPO } from "./camposEquipo";
+import { CAMPOS_EQUIPO, hoyEnPeru } from "./camposEquipo";
 import * as C from "./clasesEquipos";
 import { urlMiniatura } from "../../utils/fotosEquipo";
+
+// "En mantenimiento desde el 11 nov 2026 (5 días)". Sin fecha registrada
+// (datos antiguos) no se muestra: no se inventa.
+function textoMantenimientoDesde(eq) {
+  if (!eq.mantenimientoDesde || !eq.mantenimientoDesdeIso) return null;
+  const dias = Math.round((Date.parse(hoyEnPeru()) - Date.parse(eq.mantenimientoDesdeIso)) / 86_400_000);
+  const cuanto = dias <= 0 ? "hoy" : dias === 1 ? "1 día" : `${dias} días`;
+  return `En mantenimiento desde el ${eq.mantenimientoDesde} (${cuanto})`;
+}
 
 // Datos de la tarjeta según el tipo (las fechas de inspección van aparte,
 // y el campo que identifica al equipo ya está en la cabecera).
@@ -140,12 +149,26 @@ export default function EquiposGrid({
                       </div>
                     )}
 
-                    {eq.estado === "mantenimiento" && eq.comentarioMantenimiento && (
+                    {/* En Mantenimiento con la fecha vencida (por ejemplo, en la
+                        prueba): se ve Mantenimiento, pero la fecha vencida sigue a
+                        la vista y desde acá se registra el resultado. */}
+                    {eq.estado === "mantenimiento" && eq.vencidoPorFecha && (
+                      <div className={C.AVISO_VENCIDO} role="status">
+                        <span>
+                          {eq.proxInspeccion ? `Venció el ${eq.proxInspeccion}. ` : ""}
+                          No se puede usar hasta registrar la inspección aprobada.
+                        </span>
+                        <button className={C.AVISO_VENCIDO_BOTON} type="button" onClick={() => onRenovar(eq)}>
+                          Registrar resultado de la prueba
+                        </button>
+                      </div>
+                    )}
+
+                    {eq.estado === "mantenimiento" && (eq.comentarioMantenimiento || eq.mantenimientoDesde) && (
                       <div className={C.ADVERTENCIA}>
                         <span className={C.ETIQUETA_ADVERTENCIA}>Qué tiene</span>
-                        <span className={C.ADVERTENCIA_VALOR}>
-                          {eq.comentarioMantenimiento}
-                        </span>
+                        {eq.comentarioMantenimiento && <span className={C.ADVERTENCIA_VALOR}>{eq.comentarioMantenimiento}</span>}
+                        {textoMantenimientoDesde(eq) && <span className={C.ADVERTENCIA_DETALLE}>{textoMantenimientoDesde(eq)}</span>}
                       </div>
                     )}
 
@@ -221,17 +244,21 @@ export default function EquiposGrid({
                       <select className={C.CAMBIAR_ESTADO_SELECT} value={eq.estado} onChange={(e) => onCambiarEstado(eq, e.target.value)}>
                         {/* Vencido no se elige: depende de la fecha. Solo aparece
                             (sin poder elegirse) para mostrar el estado actual. */}
+                        {/* Bloqueos por FECHA (vencidoPorFecha), no por el estado
+                            que se muestra: en Mantenimiento con la fecha vencida
+                            tampoco se asigna ni pasa a Disponible sin renovar. */}
                         {Object.entries(ESTADOS)
                           .filter(([valor]) => valor !== "vencido" || eq.estado === "vencido")
                           .map(([valor, label]) => (
                             <option
                               key={valor}
                               value={valor}
-                              disabled={valor === "vencido" || (valor === "asignado" && (eq.estado === "vencido" || eq.estado === "debaja"))}
+                              disabled={valor === "vencido" || (valor === "asignado" && (eq.vencidoPorFecha || eq.estado === "debaja"))}
                             >
-                              {valor === "disponible" && eq.estado === "vencido" ? "Disponible (renovar fechas)" : label}
+                              {valor === "disponible" && eq.vencidoPorFecha ? "Disponible (renovar fechas)" : label}
                             </option>
                           ))}
+                        {eq.estado === "mantenimiento" && <option value="mantenimiento-comentario">Editar comentario de mantenimiento</option>}
                       </select>
                     </label>
                     </fieldset>

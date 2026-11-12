@@ -322,8 +322,11 @@ export function useOperacionesManager() {
 
   // Renovar fechas (la única forma de sacar un equipo de Vencido) es
   // "Actualizar inspección" con el contexto de por qué se abrió.
+  // En Mantenimiento con la fecha vencida (por ejemplo, en la prueba): el
+  // mismo modal, para registrar el resultado de la prueba.
   function abrirRenovar(eq, { devuelto = false, disponible = false } = {}) {
-    abrirInspeccion(eq, { contexto: devuelto ? "devuelto" : disponible ? "disponible" : "vencido", fechaInspeccion: hoyEnPeru() });
+    const contexto = devuelto ? "devuelto" : disponible ? "disponible" : eq.estado === "mantenimiento" ? "mantenimiento" : "vencido";
+    abrirInspeccion(eq, { contexto, fechaInspeccion: hoyEnPeru() });
   }
 
   async function handleDevolver(eq) {
@@ -353,15 +356,18 @@ export function useOperacionesManager() {
       abrirAsignar(eq);
       return;
     }
-    if (nuevoEstado === "mantenimiento") {
+    // "Editar comentario de mantenimiento": ya está en Mantenimiento (elegir
+    // de nuevo "Mantenimiento" en el desplegable no dispara nada).
+    if (nuevoEstado === "mantenimiento" || nuevoEstado === "mantenimiento-comentario") {
       abrirMantenimiento(eq);
       return;
     }
     // Vencido no se elige a mano (depende de la fecha).
     if (!nuevoEstado || nuevoEstado === "vencido") return;
-    // Vencido → Disponible: solo renovando sus fechas (y si estaba
-    // asignado, al aprobar se libera).
-    if (nuevoEstado === "disponible" && eq.estado === "vencido") {
+    // Fecha vencida → Disponible: solo renovando sus fechas (y si estaba
+    // asignado, al aprobar se libera). También si está en Mantenimiento:
+    // el bloqueo mira la fecha, no el estado que se muestra.
+    if (nuevoEstado === "disponible" && eq.vencidoPorFecha) {
       abrirRenovar(eq, { disponible: true });
       return;
     }
@@ -426,9 +432,10 @@ export function useOperacionesManager() {
     });
   }
 
+  // Si ya está en Mantenimiento se edita el comentario actual (precargado).
   function abrirMantenimiento(eq) {
     setErrorAccion("");
-    setComentarioMantenimiento("");
+    setComentarioMantenimiento(eq.estado === "mantenimiento" ? eq.comentarioMantenimiento || "" : "");
     setErrorMantenimiento(false);
     modalMantenimiento.abrir(eq);
   }
@@ -441,10 +448,11 @@ export function useOperacionesManager() {
     }
     await acciones.ejecutar("modal", async () => {
       try {
+        const yaEstaba = modalMantenimiento.dato.estado === "mantenimiento";
         const actualizado = await equiposService.enviarAMantenimiento(modalMantenimiento.dato.id, comentarioMantenimiento);
         setEquipos((prev) => prev.map((e) => (e.id === actualizado.id ? actualizado : e)));
         modalMantenimiento.cerrar();
-        mostrarToast("Equipo enviado a mantenimiento", { tipo: "success" });
+        mostrarToast(yaEstaba ? "Comentario actualizado" : "Equipo en mantenimiento", { tipo: "success" });
       } catch (err) {
         setErrorAccion(err.message || "No se pudo enviar el equipo a mantenimiento.");
       }

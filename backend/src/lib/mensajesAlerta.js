@@ -60,6 +60,9 @@ const dias = (n) => `${n} ${n === 1 ? "día" : "días"}`;
  * @param {string} p.url         a dónde lleva al tocarlo
  * @param {boolean} [p.vencidoSinLimite] true para la campana y el Dashboard: lo
  *   vencido se muestra siempre, no solo los primeros días (el push sí tiene límite)
+ * @param {boolean} [p.enMantenimiento] equipo en Mantenimiento: el título de
+ *   vencido pasa a "Inspección vencida — en mantenimiento desde el …"
+ * @param {string|null} [p.mantenimientoDesde] "11 nov 2026", o null si no se sabe
  * @returns {object|null} null si hoy no corresponde avisar
  */
 export function crearAviso(p) {
@@ -83,8 +86,13 @@ export function construirMensaje(aviso, { incluirEmpresa = false } = {}) {
   const vencio = plural ? "vencieron" : "venció";
   const vencidoAdj = (genero === "f" ? "vencida" : "vencido") + (plural ? "s" : "");
 
+  // Vencido pero ya en atención (equipo en Mantenimiento): sigue avisando,
+  // pero dice que alguien lo está viendo, y desde cuándo si se sabe.
+  const enAtencion = severidad === "vencido" && aviso.enMantenimiento
+    ? ` — en mantenimiento${aviso.mantenimientoDesde ? ` desde el ${aviso.mantenimientoDesde}` : ""}`
+    : "";
   const titulo =
-    severidad === "porvencer" ? `${que} por vencer` : severidad === "hoy" ? `${que} ${vence} hoy` : `${que} ${vencidoAdj}`;
+    severidad === "porvencer" ? `${que} por vencer` : severidad === "hoy" ? `${que} ${vence} hoy` : `${que} ${vencidoAdj}${enAtencion}`;
 
   const cuando =
     severidad === "porvencer" ? `${vence} en ${dias(n)}` : severidad === "hoy" ? `${vence} hoy` : `${vencio} hace ${dias(n)}`;

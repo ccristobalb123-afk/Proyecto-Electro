@@ -5,7 +5,7 @@
 // siempre de construirMensaje (lib/mensajesAlerta.js).
 // ============================================================
 import { db } from "../lib/db.js";
-import { TIPO_CURSO_A_TEXTO } from "../lib/estadoVencimiento.js";
+import { TIPO_CURSO_A_TEXTO, diasHasta, formatearFecha } from "../lib/estadoVencimiento.js";
 import { infoDocumento, nombreDocumento } from "../lib/documentosVehiculo.js";
 import { calcularEstadoPago, montoNetoAPagar } from "../lib/estadoPago.js";
 import { modulosDe } from "../lib/roles.js";
@@ -18,7 +18,7 @@ import {
   DIAS_AVISO_FACTURA,
   MAX_PUSH_INDIVIDUALES,
 } from "../lib/mensajesAlerta.js";
-import { identificadorEquipo } from "./equipos.service.js";
+import { identificadorEquipo, mantenimientoDesdePorEquipo } from "./equipos.service.js";
 import { enviarAUsuario } from "./push.service.js";
 
 // Solo se traen de la base los registros que PUEDEN estar en ventana:
@@ -114,10 +114,20 @@ export async function recolectarAvisos({ modo = "push" } = {}) {
     where: { proximaInspeccion: { not: null }, ...filtroFecha("proximaInspeccion"), estado: { not: "DEBAJA" } },
     include: { empresa: true },
   });
+  // En Mantenimiento con la fecha vencida (por ejemplo, enviado a
+  // certificar): en la campana y el Dashboard sigue el aviso (no se olvida
+  // ni deja de contar), con "en mantenimiento desde…"; el push del día del
+  // vencimiento y de los 3 siguientes no se manda (ya se está atendiendo).
+  // Los avisos previos al vencimiento no cambian.
+  const desdeMantenimiento = await mantenimientoDesdePorEquipo(equipos);
   for (const eq of equipos) {
+    const enMantenimiento = eq.estado === "MANTENIMIENTO";
+    if (!lista && enMantenimiento && diasHasta(eq.proximaInspeccion) <= 0) continue;
+    const desde = desdeMantenimiento.get(eq.id);
     agregar(
       crearAviso({
         ...base,
+        ...(enMantenimiento ? { enMantenimiento: true, mantenimientoDesde: desde ? formatearFecha(desde) : null } : {}),
         tipo: "equipo", entidadId: eq.id, claveDedupe: "equipo_inspeccion",
         que: "Inspección", genero: "f", sujeto: `Inspección del equipo ${identificadorEquipo(eq)}`,
         fecha: eq.proximaInspeccion, diasAnticipacion: eq.diasAnticipacionInspeccion,

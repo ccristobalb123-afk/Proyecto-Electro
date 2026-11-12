@@ -67,7 +67,9 @@ export const ASIGNADO = `${RECUADRO} bg-electro-tint`;
 export const ADVERTENCIA = `${RECUADRO} bg-volt-tint`;
 const VALOR = "text-[13px] font-semibold";
 export const ASIGNADO_VALOR = `${VALOR} flex items-center gap-1.5 text-electro-dark wrap-anywhere`;
-export const ADVERTENCIA_VALOR = `${VALOR} text-volt-dark`;
+export const ADVERTENCIA_VALOR = `${VALOR} text-volt-dark wrap-anywhere whitespace-pre-line`;
+// "En mantenimiento desde el 11 nov 2026 (5 días)", debajo del comentario.
+export const ADVERTENCIA_DETALLE = "mt-1 block text-[12px] text-volt-dark";
 
 // Datos del tipo y fechas de inspección, en 2 columnas.
 const DOS_COLUMNAS = "grid grid-cols-[repeat(2,1fr)] gap-x-3.5 gap-y-2.5 border-t border-t-border pt-3";

@@ -384,6 +384,9 @@ export function Timeline({ items, onVerFoto }) {
               {item.fecha}
               {item.actor ? ` — ${item.actor}` : ""}
             </div>
+            {/* Comentario de "Enviado a mantenimiento" (y de cada actualización). */}
+            {item.comentario && <p className="mt-1 mb-0 whitespace-pre-line text-[12.5px] text-text wrap-anywhere">«{item.comentario}»</p>}
+            {item.comentarioAnterior && <p className="mt-0.5 mb-0 whitespace-pre-line text-[12px] text-muted wrap-anywhere">Antes: «{item.comentarioAnterior}»</p>}
             {onVerFoto && item.fotos?.length > 0 && <MiniaturasFotos titulo="Fotos" fotos={item.fotos} onVerFoto={onVerFoto} />}
             {onVerFoto && item.fotosReemplazadas?.length > 0 && (
               <MiniaturasFotos titulo={item.fotosReemplazadas.length === 1 ? "Foto reemplazada" : "Fotos reemplazadas"} fotos={item.fotosReemplazadas} onVerFoto={onVerFoto} />
