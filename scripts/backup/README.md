@@ -10,6 +10,7 @@ los archivos 600.
 | `restaurar.sh` | Restaura un respaldo en una base **vacía** (nunca sobre producción). |
 | `_comun.sh` | Credenciales y rutas que comparten los dos scripts. |
 | `crontab.txt` | Las líneas de cron que hay que instalar. |
+| `usb/` | Copia automática y cifrada al USB al conectarlo ([`usb/README.md`](usb/README.md)). |
 
 ## Qué queda en `~/backups/electrosac/`
 
@@ -118,15 +119,11 @@ hace falta:
 Los respaldos locales se pierden si la laptop se daña o la roban. Opciones, de
 la más simple a la más automática:
 
-1. **Disco USB (manual, semanal).** Conectar el USB y ejecutar:
-
-   ```bash
-   rsync -a --info=progress2 ~/backups/electrosac/ "/run/media/$USER/NOMBRE_USB/electrosac/"
-   ```
-
-   Sin credenciales nuevas. Conviene un USB cifrado (LUKS, desde la utilidad
-   "Discos"), porque los respaldos contienen datos personales y hashes de
-   contraseñas.
+1. **Disco USB cifrado, automático al conectarlo (lo que se usa).** USB con
+   LUKS2 + ext4: al conectarlo se copia y verifica el respaldo más reciente,
+   y se avisa para retirarlo. `backup.sh` avisa en su log si pasan más de
+   8 días sin copia. Instalación y restauración en
+   [`usb/README.md`](usb/README.md).
 2. **Google Drive con `rclone`, automático.** Primero `sudo apt install rclone`
    y `rclone config`: crea un remoto "gdrive" e inicia sesión con Google en el
    navegador. Luego, conviene cifrar con `rclone config`: un remoto "crypt"

@@ -1,0 +1,24 @@
+# Copia del respaldo más reciente de ElectroSAC al USB cifrado.
+# La arranca la regla udev 99-respaldo-usb.rules al conectar el USB.
+# Instalar en /etc/systemd/system/respaldo-usb.service (README.md, paso e).
+# Seguir:  journalctl -fu respaldo-usb
+[Unit]
+Description=Copia de respaldos de ElectroSAC al USB cifrado
+Documentation=file:///etc/respaldo-usb.conf
+# Si el USB ya está conectado al arrancar, espera a que /home esté montado.
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/respaldo-usb.sh
+# Copiar unos cientos de MB a un USB lento + verificar + avisos (LED ~15 s).
+TimeoutStartSec=45min
+# Al detenerlo (o al apagar), SIGTERM a cp y al script: su trap desmonta y
+# cierra antes de que pase TimeoutStopSec.
+TimeoutStopSec=2min
+# Prioridad baja: que no se note en el servidor mientras copia.
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+UMask=0077
+NoNewPrivileges=yes

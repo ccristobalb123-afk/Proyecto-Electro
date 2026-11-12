@@ -1,0 +1,17 @@
+# Regla udev del USB de respaldos de ElectroSAC (PLANTILLA).
+# No se copia tal cual: el paso e) del README sustituye __UUID_LUKS__ y
+# __NOMBRE_MAPPER__ con los valores de /etc/respaldo-usb.conf y la instala en
+# /etc/udev/rules.d/99-respaldo-usb.rules.
+#
+# Se numera 99 para correr después de 60-persistent-storage (que rellena
+# ID_FS_UUID) y de 80-udisks2. Aquí no se hace ningún trabajo largo: solo se
+# marca el dispositivo y systemd arranca respaldo-usb.service.
+
+# 1) La partición LUKS de ESTE USB (por UUID, no por /dev/sdX):
+#    - que el escritorio (udisks/GNOME) no la muestre, no pida la frase ni la monte;
+#    - que systemd arranque el servicio de copia cuando aparezca.
+SUBSYSTEM=="block", ACTION!="remove", ENV{ID_FS_TYPE}=="crypto_LUKS", ENV{ID_FS_UUID}=="__UUID_LUKS__", ENV{UDISKS_IGNORE}="1", ENV{UDISKS_AUTO}="0", TAG+="systemd", ENV{SYSTEMD_WANTS}+="respaldo-usb.service"
+
+# 2) El dispositivo ya descifrado (/dev/mapper/__NOMBRE_MAPPER__): que el
+#    escritorio tampoco lo monte ni lo muestre mientras dura la copia.
+SUBSYSTEM=="block", ACTION!="remove", ENV{DM_NAME}=="__NOMBRE_MAPPER__", ENV{UDISKS_IGNORE}="1", ENV{UDISKS_AUTO}="0"

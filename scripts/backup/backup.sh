@@ -39,9 +39,22 @@ touch "$LOG" && chmod 600 "$LOG"
 
 log() { printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S %z')" "$*" | tee -a "$LOG" >&2; }
 
+# Aviso si hace más de N días que no se copia al USB cifrado (usb/README.md).
+# Nunca hace fallar el respaldo.
+COMPROBAR_USB="$DIR_SCRIPT/usb/comprobar-usb.sh"
+aviso_usb() {
+  [[ -x "$COMPROBAR_USB" ]] || return 0
+  local salida
+  if ! salida="$("$COMPROBAR_USB" --solo-aviso 2>&1)" && [[ -n "$salida" ]]; then
+    printf '%s\n' "$salida"
+  fi
+  return 0
+}
+
 case "${1:-}" in
   --estado)
     cat "$ESTADO" 2>/dev/null || echo "Todavía no hay ningún respaldo."
+    [[ -x "$COMPROBAR_USB" ]] && { "$COMPROBAR_USB" || true; }
     exit 0 ;;
   --si-falta)
     ultimo="$(find "$DESTINO/diarios" -name 'electrosac_*.sql.gz' -mmin "-$((HORAS_PARA_SI_FALTA * 60))" | head -1)"
@@ -122,3 +135,5 @@ rotar "$DESTINO/semanales" "$SEMANALES_A_CONSERVAR" 'electrosac_*'
 total="$(du -sh "$DESTINO" | cut -f1)"
 log "Fin OK. Espacio total de respaldos: $total · libre en disco: $(df -h "$DESTINO" | awk 'NR==2{print $4}')"
 printf 'OK %s — %s\n' "$(date '+%F %T')" "$STAMP" > "$ESTADO"
+aviso="$(aviso_usb)"
+[[ -z "$aviso" ]] || log "$aviso"
