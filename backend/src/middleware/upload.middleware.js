@@ -44,7 +44,18 @@ const storage = multer.diskStorage({
 
 export const subirArchivo = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  // El frontend manda solo el archivo (uploadsService.js): 1 archivo y
+  // ningún campo de texto. Los demás topes cortan formularios armados a
+  // mano antes de leerlos enteros (los errores se traducen a 400 en
+  // uploads.routes.js).
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB
+    files: 1,
+    fields: 5,
+    fieldSize: 1024, // 1 KB por campo de texto
+    parts: 6,
+    headerPairs: 50,
+  },
   fileFilter: (req, file, cb) => {
     if (!EXTENSION_POR_TIPO[file.mimetype]) {
       return cb(validacionFallida("Solo se permiten archivos PDF, JPG, PNG o WEBP."));

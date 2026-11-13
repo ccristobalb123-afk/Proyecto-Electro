@@ -11,6 +11,25 @@ import { limiteSubidas } from "../middleware/rateLimit.js";
 
 const CARPETA_UPLOADS = path.resolve("uploads");
 
+// Errores al leer el formulario que son culpa de lo enviado (400), no del
+// servidor. Antes solo "más de 10 MB" daba 400; un campo con otro nombre,
+// dos archivos o una subida cortada a la mitad llegaban como 500.
+// Los errores del disco (ENOSPC, EACCES…) siguen siendo 500.
+const FORMULARIO_MAL_FORMADO = /^(Malformed part header|Multipart: Boundary not found|Unexpected end of file)$/;
+
+function errorDeSubida(err) {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") return validacionFallida("El archivo no puede superar los 10 MB.");
+    if (err.code === "LIMIT_UNEXPECTED_FILE" || err.code === "LIMIT_FILE_COUNT") {
+      return validacionFallida("Envía un solo archivo en el campo \"archivo\".");
+    }
+    return validacionFallida("No se pudo procesar el archivo.");
+  }
+  if (err?.message === "Unexpected end of form") return validacionFallida("La subida se interrumpió. Vuelve a intentarlo.");
+  if (FORMULARIO_MAL_FORMADO.test(err?.message || "")) return validacionFallida("No se pudo procesar el archivo.");
+  return err; // ApiError (tipo no permitido) o error real del servidor
+}
+
 const router = Router();
 
 router.use(requireAuth);
@@ -22,13 +41,7 @@ router.use(requireAuth);
 router.post(
   "/",
   limiteSubidas,
-  (req, res, next) =>
-    subirArchivo(req, res, (err) => {
-      if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
-        return next(validacionFallida("El archivo no puede superar los 10 MB."));
-      }
-      next(err);
-    }),
+  (req, res, next) => subirArchivo(req, res, (err) => next(err ? errorDeSubida(err) : undefined)),
   asyncHandler(async (req, res) => {
     if (!req.file) throw validacionFallida("No se recibió ningún archivo.");
     // El tipo MIME lo declara el navegador (se puede falsificar): se
