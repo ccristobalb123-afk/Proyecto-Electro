@@ -2,7 +2,7 @@ import * as dashboardService from "../services/dashboard.service.js";
 import { asyncHandler } from "../lib/errors.js";
 
 export const getKpis = asyncHandler(async (req, res) => {
-  res.json(await dashboardService.obtenerKpis(req.empresasPermitidas, req.usuario));
+  res.json(await dashboardService.obtenerKpis(req.empresasPermitidas));
 });
 
 export const getAlertas = asyncHandler(async (req, res) => {

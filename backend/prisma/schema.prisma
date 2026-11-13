@@ -337,6 +337,12 @@ model Equipo {
 
   camposValores              Json      @default("{}") @map("campos_valores")
   fotos                      Json      @default("[]") // hasta 2 URLs/base64
+  // Versión corta de cada foto, en la misma posición: los 12 primeros
+  // caracteres del sha256 de la foto (versionFoto en lib/fotosEquipo.js);
+  // "" donde no hay foto. Es el ?v= de sus URLs. Existe para que los
+  // listados no lean `fotos` (megas de base64): se escribe junto con
+  // `fotos`, siempre con versionesDeFotos().
+  versionesFotos             String[]  @default([]) @map("versiones_fotos")
   comentarioMantenimiento    String?   @map("comentario_mantenimiento")
   motivoBaja                 String?   @map("motivo_baja")
   ultimaInspeccion           DateTime? @map("ultima_inspeccion") @db.Date

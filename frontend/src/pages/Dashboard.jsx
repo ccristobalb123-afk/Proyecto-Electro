@@ -11,6 +11,7 @@ import {
 import * as notificacionesService from "../services/notificacionesService";
 import { useAsyncList } from "../hooks/useAsyncList";
 import { useAsync } from "../hooks/useAsync";
+import { useAlertas } from "../hooks/useAlertas";
 import { useComparativoChart } from "../hooks/useComparativoChart";
 import Loading from "../components/shared/Loading";
 import EstadoVacio from "../components/shared/EstadoVacio";
@@ -119,7 +120,7 @@ export default function Dashboard() {
     loading: cargandoAlertas,
     error: errorAlertas,
     reload: recargarAlertas,
-  } = useAsyncList(() => notificacionesService.listarAlertas(), []);
+  } = useAlertas(); // la misma petición que la campana
   const [verTodos, setVerTodos] = useState(false);
   const avisosVisibles = verTodos ? proximosVencimientos : proximosVencimientos.slice(0, AVISOS_VISIBLES);
 
@@ -130,7 +131,9 @@ export default function Dashboard() {
         { label: "Contratos por vencer", value: String(kpisData.contratosPorVencer) },
         { label: "Equipos disponibles", value: kpisData.equiposDisponibles },
         { label: "Por cobrar (ambas empresas)", value: soles(kpisData.porCobrar) },
-        { label: "Alertas pendientes", value: String(kpisData.alertasPendientes) },
+        // El largo de la lista de vencimientos (la misma de la campana): los
+        // KPI ya no la vuelven a recolectar en el servidor.
+        { label: "Alertas pendientes", value: cargandoAlertas ? "…" : errorAlertas ? "—" : String(proximosVencimientos.length) },
       ]
     : [];
 

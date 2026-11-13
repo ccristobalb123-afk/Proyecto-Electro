@@ -18,7 +18,7 @@ import {
   DIAS_AVISO_FACTURA,
   MAX_PUSH_INDIVIDUALES,
 } from "../lib/mensajesAlerta.js";
-import { identificadorEquipo, mantenimientoDesdePorEquipo } from "./equipos.service.js";
+import { identificadorEquipo, mantenimientoDesdePorEquipo, COLUMNAS_SIN_FOTOS } from "./equipos.service.js";
 import { enviarAUsuario } from "./push.service.js";
 
 // Solo se traen de la base los registros que PUEDEN estar en ventana:
@@ -112,7 +112,8 @@ export async function recolectarAvisos({ modo = "push" } = {}) {
 
   const equipos = await db.equipo.findMany({
     where: { proximaInspeccion: { not: null }, ...filtroFecha("proximaInspeccion"), estado: { not: "DEBAJA" } },
-    include: { empresa: true },
+    // Sin `fotos` (megas de base64 que el aviso no usa).
+    select: { ...COLUMNAS_SIN_FOTOS, empresa: true },
   });
   // En Mantenimiento con la fecha vencida (por ejemplo, enviado a
   // certificar): en la campana y el Dashboard sigue el aviso (no se olvida

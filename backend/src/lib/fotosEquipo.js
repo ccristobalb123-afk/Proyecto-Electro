@@ -137,3 +137,10 @@ export function decodificarFoto(data) {
  * el navegador puede guardarla en caché sin quedarse con una vieja.
  */
 export const versionFoto = (data) => hashFoto(data).slice(0, 12);
+
+/**
+ * equipos.versiones_fotos de unas fotos: la versión de cada una en su
+ * posición ("" donde no hay). Se guarda SIEMPRE junto con equipos.fotos,
+ * así los listados arman las URLs sin leer las fotos.
+ */
+export const versionesDeFotos = (fotos) => (Array.isArray(fotos) ? fotos : []).map((f) => (typeof f === "string" && f ? versionFoto(f) : ""));

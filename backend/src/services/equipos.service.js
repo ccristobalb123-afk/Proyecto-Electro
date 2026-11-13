@@ -1,22 +1,32 @@
+import { Prisma } from "@prisma/client";
 import { db } from "../lib/db.js";
 import { formatearFecha, formatearFechaDia, vencidoPorFecha } from "../lib/estadoVencimiento.js";
 import { ApiError, validacionFallida, conflicto } from "../lib/errors.js";
 import { empresasParaFiltro, verificarAccesoEmpresa } from "../lib/autorizacionEmpresa.js";
 import { camposDelTipo, ETIQUETAS_CAMPO, admiteRegistro, campoIdentificador, destinoApi, normalizarTexto } from "../lib/tiposEquipo.js";
 import { ENUM_A_TIPO } from "./vehiculos.service.js";
-import { fotosDeRegistro, resolverFotos, guardarFotos, textoFotosCambiadas, decodificarFoto, versionFoto, hashFoto } from "../lib/fotosEquipo.js";
+import { fotosDeRegistro, resolverFotos, guardarFotos, textoFotosCambiadas, decodificarFoto, hashFoto, versionesDeFotos } from "../lib/fotosEquipo.js";
 import { obtenerMiniatura } from "../lib/miniaturas.js";
 
-const INCLUDE = { categoria: true, empresa: true, vehiculo: true, personal: true };
+// Todas las columnas del equipo MENOS `fotos` (las 2 fotos en base64,
+// ~700 KB por equipo): leerla en cada listado costaba ~0,5 s con 33
+// equipos. Solo la leen obtenerFotoActual (una foto, por SQL) y las
+// acciones que cambian fotos (bloquearEquipo con conFotos). Las columnas
+// nuevas del modelo entran solas (salen del cliente de Prisma).
+export const COLUMNAS_SIN_FOTOS = Object.freeze(
+  Object.fromEntries(Object.values(Prisma.EquipoScalarFieldEnum).filter((c) => c !== "fotos").map((c) => [c, true]))
+);
+const SELECT = { ...COLUMNAS_SIN_FOTOS, categoria: true, empresa: true, vehiculo: true, personal: true };
+const SELECT_CON_FOTOS = { ...SELECT, fotos: true };
 
 // Enlaces a las fotos actuales del equipo, no las fotos: el navegador las
 // pide con <img> (la cookie de sesión viaja sola) solo cuando se ven, y
 // las guarda en caché. ?v= cambia si cambia la foto (ver
-// obtenerFotoActual). Antes el listado llevaba las fotos en base64 (unos
-// 350 KB cada una) y pesaba ~23 MB con 66 fotos.
+// obtenerFotoActual); sale de versiones_fotos, que se guarda junto con
+// las fotos (versionesDeFotos), así el listado no las lee.
 function urlsFotosActuales(equipo) {
-  return (Array.isArray(equipo.fotos) ? equipo.fotos : [])
-    .map((f, i) => (f ? `/api/equipos/${equipo.id}/foto-actual/${i + 1}?v=${versionFoto(f)}` : null))
+  return (equipo.versionesFotos ?? [])
+    .map((v, i) => (v ? `/api/equipos/${equipo.id}/foto-actual/${i + 1}?v=${v}` : null))
     .filter(Boolean);
 }
 
@@ -266,6 +276,7 @@ async function verificarUnicos(categoriaRow, data, excluirId = null) {
     if (!data[campo]) continue;
     const otro = await db.equipo.findFirst({
       where: { categoriaId: categoriaRow.id, [campo]: { equals: data[campo], mode: "insensitive" }, ...(excluirId ? { NOT: { id: excluirId } } : {}) },
+      select: { id: true },
     });
     if (otro) {
       const nombreTipo = categoriaRow.nombre;
@@ -288,7 +299,7 @@ function diasAnticipacionValidos(dias) {
 // usuario sin acceso a la empresa dueña del equipo nunca llega a
 // tocarlo, ni sabiendo su id.
 async function buscarEquipo(equipoId, empresasPermitidas) {
-  const equipo = await db.equipo.findUnique({ where: { id: equipoId }, include: INCLUDE });
+  const equipo = await db.equipo.findUnique({ where: { id: equipoId }, select: SELECT });
   if (!equipo) throw new ApiError(404, "NO_ENCONTRADO", "El equipo no existe.");
   verificarAccesoEmpresa(equipo.empresa.slug, empresasPermitidas);
   return equipo;
@@ -321,7 +332,7 @@ export async function listarEquipos({ empresa, categoria, estado, q }, empresasP
           }
         : {}),
     },
-    include: INCLUDE,
+    select: SELECT,
     orderBy: { creadoEn: "desc" },
   });
   // El estado se filtra con el efectivo (un Disponible con la fecha
@@ -361,9 +372,10 @@ export async function crearEquipo(body, empresasPermitidas, usuarioId) {
         empresaId: empresaRow.id,
         camposValores: {},
         fotos: fotosNuevas,
+        versionesFotos: versionesDeFotos(fotosNuevas),
         ...(dias !== undefined ? { diasAnticipacionInspeccion: dias } : {}),
       },
-      include: INCLUDE,
+      select: SELECT,
     });
     const idsFotos = await guardarFotos(tx, creado.id, fotosNuevas);
     await tx.historialEquipo.create({ data: { equipoId: creado.id, titulo: "Registrado en el sistema", usuarioId, datos: { fotos: idsFotos } } });
@@ -382,12 +394,12 @@ export async function crearEquipo(body, empresasPermitidas, usuarioId) {
 export async function actualizarFotosEquipo(equipoId, fotosEntrada, empresasPermitidas, usuarioId) {
   await buscarEquipo(equipoId, empresasPermitidas);
   const actualizado = await db.$transaction(async (tx) => {
-    const equipo = await bloquearEquipo(tx, equipoId);
+    const equipo = await bloquearEquipo(tx, equipoId, { conFotos: true });
     const { fotos, reemplazadas, cambiadas } = resolverFotos(fotosEntrada, equipo.fotos);
     if (!cambiadas.length) return equipo;
     const idsFotos = await guardarFotos(tx, equipoId, fotos);
     const idsReemplazadas = await guardarFotos(tx, equipoId, reemplazadas);
-    const act = await tx.equipo.update({ where: { id: equipoId }, data: { fotos }, include: INCLUDE });
+    const act = await tx.equipo.update({ where: { id: equipoId }, data: { fotos, versionesFotos: versionesDeFotos(fotos) }, select: SELECT });
     await tx.historialEquipo.create({
       data: { equipoId, titulo: `Fotos actualizadas — ${textoFotosCambiadas(cambiadas)}`, usuarioId, datos: { fotos: idsFotos, reemplazadas: idsReemplazadas } },
     });
@@ -433,7 +445,7 @@ export async function actualizarEquipo(equipoId, body, empresasPermitidas, usuar
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: { ...data, categoriaId: categoriaRow.id, ...(dias !== undefined ? { diasAnticipacionInspeccion: dias } : {}) },
-      include: INCLUDE,
+      select: SELECT,
     });
     const fechasCambiaron =
       "proximaInspeccion" in data && (isoDia(data.proximaInspeccion) !== isoDia(equipo.proximaInspeccion) || isoDia(data.ultimaInspeccion) !== isoDia(equipo.ultimaInspeccion));
@@ -460,7 +472,7 @@ export async function eliminarEquipo(equipoId, empresasPermitidas) {
       "EQUIPO_CON_HISTORIAL"
     );
   }
-  await db.equipo.delete({ where: { id: equipoId } });
+  await db.equipo.delete({ where: { id: equipoId }, select: { id: true } });
   return { ok: true };
 }
 
@@ -473,9 +485,10 @@ export async function eliminarEquipo(equipoId, empresasPermitidas) {
 // Dentro de una transacción: bloquea la fila del equipo hasta el final
 // (dos cambios a la vez sobre el mismo equipo se hacen uno detrás del
 // otro, así nunca quedan dos asignaciones abiertas) y lo relee.
-async function bloquearEquipo(tx, equipoId) {
+// `conFotos`: solo para las acciones que cambian fotos (necesitan las actuales).
+async function bloquearEquipo(tx, equipoId, { conFotos = false } = {}) {
   await tx.$queryRaw`SELECT id FROM equipos WHERE id = ${equipoId} FOR UPDATE`;
-  return tx.equipo.findUnique({ where: { id: equipoId }, include: INCLUDE });
+  return tx.equipo.findUnique({ where: { id: equipoId }, select: conFotos ? SELECT_CON_FOTOS : SELECT });
 }
 
 // Cierra la asignación abierta (si hay) con su motivo. Devuelve a quién
@@ -521,7 +534,7 @@ export async function cambiarEstadoEquipo(equipoId, estado, empresasPermitidas, 
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: { estado: "DISPONIBLE", ...SIN_DESTINATARIO },
-      include: INCLUDE,
+      select: SELECT,
     });
     await tx.historialEquipo.create({ data: { equipoId, titulo: tenia ? `Devuelto — lo tenía ${tenia}` : "Estado cambiado a Disponible", usuarioId } });
     return act;
@@ -544,7 +557,7 @@ export async function devolverEquipo(equipoId, empresasPermitidas, usuarioId) {
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: { estado: "DISPONIBLE", ...SIN_DESTINATARIO },
-      include: INCLUDE,
+      select: SELECT,
     });
     await tx.historialEquipo.create({
       data: { equipoId, titulo: `Devuelto — lo tenía ${tenia}${vencido ? " (queda Vencido: hay que renovar sus fechas)" : ""}`, tono: vencido ? "danger" : null, usuarioId },
@@ -599,7 +612,7 @@ async function verificarReglasDestino(tx, equipo, categoriaId, destino, empresas
   else await tx.$queryRaw`SELECT id FROM personal WHERE id = ${destino.personalId} FOR UPDATE`;
   const otro = await tx.equipo.findFirst({
     where: { categoriaId, id: { not: equipo.id }, ...(destino.vehiculoId ? { vehiculoId: destino.vehiculoId } : { personalId: destino.personalId }) },
-    include: { empresa: true },
+    select: { ...COLUMNAS_SIN_FOTOS, empresa: true },
   });
   if (otro) throw conflicto(mensajeYaTiene(destino, categoria, otro, empresasPermitidas), "YA_TIENE_TIPO");
 }
@@ -642,7 +655,7 @@ export async function asignarEquipo(equipoId, { vehiculoId, personalId }, empres
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: { estado: "ASIGNADO", vehiculoId: destino.vehiculoId, personalId: destino.personalId },
-      include: INCLUDE,
+      select: SELECT,
     });
     await tx.historialEquipo.create({
       data: { equipoId, titulo: tenia ? `Reasignado de ${tenia} a ${destino.texto}` : `Asignado a ${destino.texto}`, tono: "success", usuarioId },
@@ -669,7 +682,7 @@ export async function listarDestinatarios(equipoId, empresasPermitidas) {
     ? []
     : await db.equipo.findMany({
         where: { categoriaId: categoria.id, id: { not: equipo.id }, ...(aCamion ? { vehiculoId: { not: null } } : { personalId: { not: null } }) },
-        include: { empresa: true },
+        select: { ...COLUMNAS_SIN_FOTOS, empresa: true },
       });
   const ocupadoPor = new Map(ocupados.map((o) => [aCamion ? o.vehiculoId : o.personalId, o]));
   const bloqueo = (id) => (ocupadoPor.has(id) ? `Ya tiene ${equipoQueYaTiene(categoria, ocupadoPor.get(id), empresasPermitidas)}.` : undefined);
@@ -715,7 +728,7 @@ export async function listarDestinatarios(equipoId, empresasPermitidas) {
 export async function listarAsignacionesActuales(empresasPermitidas) {
   const equipos = await db.equipo.findMany({
     where: { empresa: { slug: { in: empresasPermitidas } }, OR: [{ vehiculoId: { not: null } }, { personalId: { not: null } }] },
-    include: INCLUDE,
+    select: SELECT,
     orderBy: [{ categoria: { orden: "asc" } }, { id: "asc" }],
   });
   const grupos = new Map();
@@ -779,12 +792,12 @@ export async function enviarAMantenimiento(equipoId, comentario, empresasPermiti
   const actualizado = await db.$transaction(async (tx) => {
     const equipo = await bloquearEquipo(tx, equipoId);
     const yaEstaba = equipo.estado === "MANTENIMIENTO";
-    if (yaEstaba && equipo.comentarioMantenimiento === comentario) return tx.equipo.findUnique({ where: { id: equipoId }, include: INCLUDE });
+    if (yaEstaba && equipo.comentarioMantenimiento === comentario) return tx.equipo.findUnique({ where: { id: equipoId }, select: SELECT });
     const tenia = yaEstaba ? null : await cerrarAsignacion(tx, equipo, "Enviado a mantenimiento");
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: { estado: "MANTENIMIENTO", ...SIN_DESTINATARIO, comentarioMantenimiento: comentario },
-      include: INCLUDE,
+      select: SELECT,
     });
     await tx.historialEquipo.create({
       data: {
@@ -815,7 +828,7 @@ export async function darDeBajaEquipo(equipoId, motivo, empresasPermitidas, usua
     const act = await tx.equipo.update({
       where: { id: equipoId },
       data: { estado: "DEBAJA", motivoBaja: motivo, ...SIN_DESTINATARIO },
-      include: INCLUDE,
+      select: SELECT,
     });
     await tx.historialEquipo.create({ data: { equipoId, titulo: `Dado de baja — ${motivo}${seLibero(tenia)}`, usuarioId } });
     return act;
@@ -854,7 +867,7 @@ export async function registrarInspeccion(equipoId, { tipo = "interna", fechaIns
   const etiquetaResultado = { aprobado: "Aprobado", observado: "Observado", rechazado: "Rechazado" }[resultado];
 
   const actualizado = await db.$transaction(async (tx) => {
-    const equipo = await bloquearEquipo(tx, equipoId);
+    const equipo = await bloquearEquipo(tx, equipoId, { conFotos: true });
     // Con el equipo bloqueado: las fotos que tiene ahora son las que valen.
     const { fotos, reemplazadas, cambiadas } = resolverFotos(fotosEntrada, equipo.fotos);
     // Aprobado: si estaba asignado, sigue asignado al mismo destinatario
@@ -874,11 +887,12 @@ export async function registrarInspeccion(equipoId, { tipo = "interna", fechaIns
         // quedaba guardado y oculto). Observada o rechazada: se conserva.
         ...(aprobado ? { comentarioMantenimiento: null } : {}),
         fotos,
+        versionesFotos: versionesDeFotos(fotos),
         // Antes este valor del modal se descartaba y se avisaba siempre
         // con 15 días fijos.
         ...(diasAnticipacion !== undefined ? { diasAnticipacionInspeccion: diasAnticipacion } : {}),
       },
-      include: INCLUDE,
+      select: SELECT,
     });
     const idsFotos = await guardarFotos(tx, equipoId, fotos);
     const idsReemplazadas = await guardarFotos(tx, equipoId, reemplazadas);
@@ -910,7 +924,7 @@ export async function registrarInspeccion(equipoId, { tipo = "interna", fechaIns
 export async function obtenerHojaDeVida(equipoId, empresasPermitidas) {
   const equipo = await db.equipo.findUnique({
     where: { id: equipoId },
-    include: { historial: { orderBy: { creadoEn: "desc" }, include: { usuario: true } }, empresa: true },
+    select: { historial: { orderBy: { creadoEn: "desc" }, include: { usuario: true } }, empresa: true },
   });
   if (!equipo) return [];
   verificarAccesoEmpresa(equipo.empresa.slug, empresasPermitidas);

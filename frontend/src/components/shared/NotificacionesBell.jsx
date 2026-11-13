@@ -9,9 +9,8 @@ import {
   IconClipboardCheck,
   IconInvoice,
 } from "../icons/Icons";
-import * as notificacionesService from "../../services/notificacionesService";
 import EtiquetaUrgencia from "./EtiquetaUrgencia";
-import { useAsyncList } from "../../hooks/useAsyncList";
+import { useAlertas } from "../../hooks/useAlertas";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import "./NotificacionesBell.css";
 
@@ -50,7 +49,8 @@ function iconoDe(tipo) {
 
 export default function NotificacionesBell() {
   const [abierto, setAbierto] = useState(false);
-  const { data: notificaciones } = useAsyncList(() => notificacionesService.listarAlertas(), []);
+  // Compartidos con el Dashboard (una sola petición al abrirlo).
+  const { data: notificaciones } = useAlertas();
   const push = usePushNotifications();
   const navigate = useNavigate();
   const wrapRef = useRef(null);

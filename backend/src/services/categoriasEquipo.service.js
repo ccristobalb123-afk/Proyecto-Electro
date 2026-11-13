@@ -2,6 +2,7 @@ import { db } from "../lib/db.js";
 import { ApiError, validacionFallida, conflicto } from "../lib/errors.js";
 import { registrarEventoAuditoria } from "../lib/seguridad.js";
 import { CAMPOS_OPCIONALES, camposDelTipo, campoIdentificador, destinoApi, esHeredada, admiteRegistro } from "../lib/tiposEquipo.js";
+import { COLUMNAS_SIN_FOTOS } from "./equipos.service.js";
 
 const ORDEN = [{ orden: "asc" }, { id: "asc" }];
 const noExiste = () => new ApiError(404, "NO_ENCONTRADO", "El tipo de equipo no existe.");
@@ -124,7 +125,7 @@ export async function crearTipo(body, usuario) {
 const asignadosDelTipo = (tx, categoriaId) =>
   tx.equipo.findMany({
     where: { categoriaId, OR: [{ vehiculoId: { not: null } }, { personalId: { not: null } }] },
-    include: { vehiculo: true, personal: true },
+    select: { ...COLUMNAS_SIN_FOTOS, vehiculo: true, personal: true },
     orderBy: { id: "asc" },
   });
 

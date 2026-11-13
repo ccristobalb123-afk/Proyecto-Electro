@@ -1,7 +1,7 @@
 import { db } from "../lib/db.js";
 import { totalPagado } from "../lib/estadoPago.js";
 import { diasHasta } from "../lib/estadoVencimiento.js";
-import { identificadorEquipo, estadoEfectivo } from "./equipos.service.js";
+import { identificadorEquipo, estadoEfectivo, COLUMNAS_SIN_FOTOS } from "./equipos.service.js";
 import { listarAvisos } from "./alertas.service.js";
 
 
@@ -21,10 +21,13 @@ function filtroEmpresaVehiculo(empresasPermitidas) {
 // Todo lo que ve el Dashboard se restringe a las empresas del usuario
 // que lo está mirando — antes esto mezclaba Corevex + Electro sin
 // importar a cuál pertenecía de verdad.
-export async function obtenerKpis(empresasPermitidas, usuario) {
+// "Alertas pendientes" ya no sale de acá: es el largo de la misma lista de
+// /dashboard/alertas, que el Dashboard ya trae (y comparte con la campana).
+// Antes los KPI volvían a recolectar todos los avisos en cada visita.
+export async function obtenerKpis(empresasPermitidas) {
   const filtroEmpresa = { empresa: { slug: { in: empresasPermitidas } } };
 
-  const [contratos, totalEquipos, disponibles, facturas, avisos] = await Promise.all([
+  const [contratos, totalEquipos, disponibles, facturas] = await Promise.all([
     db.contrato.findMany({ where: { estadoManual: null, ...filtroEmpresa } }),
     db.equipo.count({ where: { estado: { not: "DEBAJA" }, ...filtroEmpresa } }),
     // Disponibles de verdad: sin los que tienen la fecha de vencimiento
@@ -33,7 +36,6 @@ export async function obtenerKpis(empresasPermitidas, usuario) {
       .findMany({ where: { estado: { in: ["DISPONIBLE", "VENCIDO"] }, ...filtroEmpresa }, select: { estado: true, proximaInspeccion: true } })
       .then((lista) => lista.filter((e) => estadoEfectivo(e) === "DISPONIBLE").length),
     db.factura.findMany({ where: { anulada: false, ...filtroEmpresa }, include: { pagos: true } }),
-    listarAvisos(usuario, empresasPermitidas),
   ]);
 
   const contratosPorVencer = contratos.filter((c) => {
@@ -50,10 +52,6 @@ export async function obtenerKpis(empresasPermitidas, usuario) {
     contratosPorVencer,
     equiposDisponibles: `${disponibles}/${totalEquipos}`,
     porCobrar,
-    // La MISMA lista que muestran la campana y el panel de vencimientos
-    // (alertas.service.js) — antes se recontaba acá con otros criterios
-    // y el número podía no coincidir con la campana.
-    alertasPendientes: avisos.length,
   };
 }
 
@@ -70,7 +68,7 @@ export async function listarActividadReciente({ limit = 4 } = {}, empresasPermit
       where: { equipo: { empresa: { slug: { in: empresasPermitidas } } } },
       orderBy: { creadoEn: "desc" },
       take: limit,
-      include: { equipo: true, usuario: true },
+      include: { equipo: { select: COLUMNAS_SIN_FOTOS }, usuario: true },
     }),
     db.historialVehiculo.findMany({
       where: { vehiculo: filtroEmpresaVehiculo(empresasPermitidas) },
